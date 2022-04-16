@@ -15,6 +15,7 @@ int main(int argc, char ** argv) {
 
   //Parser de instrucciones
   pathArchivoInstrucciones = argv[1];
+
   leerArchivoDeInstrucciones("InstruccionTest.txt");
 
 
@@ -22,6 +23,7 @@ int main(int argc, char ** argv) {
   terminar_programa(conexion,logger, consola_config);
 
 }
+
 
 void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
   char palabraLeida[10] = "\0";
@@ -52,50 +54,33 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
     }
 
     //Arma la instrucción en función del identificador leído
+
+
     if (strcmp(palabraLeida, "NO_OP") == 0) {
       instruccionAux.tipo = NO_OP;
-      int i = 0;
-      fscanf(file, "%d", & i);
-      instruccionAux.params[0] = i;
     }
 
     if (strcmp(palabraLeida, "I/O") == 0) {
       instruccionAux.tipo = I_O;
-      int i = 0;
-      fscanf(file, "%d", & i);
-      instruccionAux.params[0] = i;
     }
 
     if (strcmp(palabraLeida, "READ") == 0) {
       instruccionAux.tipo = READ;
-      int i = 0;
-      fscanf(file, "%d", & i);
-      instruccionAux.params[0] = i;
     }
 
     if (strcmp(palabraLeida, "WRITE") == 0) {
       instruccionAux.tipo = WRITE;
-      int i = 0;
-      fscanf(file, "%d", & i);
-      instruccionAux.params[0] = i;
-      fgetc(file);
-      fscanf(file, "%d", & i);
-      instruccionAux.params[1] = i;
     }
 
     if (strcmp(palabraLeida, "COPY") == 0) {
       instruccionAux.tipo = COPY;
-      int i = 0;
-      fscanf(file, "%d", & i);
-      instruccionAux.params[0] = i;
-      fgetc(file);
-      fscanf(file, "%d", & i);
-      instruccionAux.params[1] = i;
     }
 
     if (strcmp(palabraLeida, "EXIT") == 0) {
       instruccionAux.tipo = EXIT;
     }
+
+    lectura_y_asignacion_parametros(&instruccionAux,file);
 
     memset(palabraLeida, '\0', 10);
 
@@ -109,6 +94,34 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
 
   }
 
+}
+
+void lectura_y_asignacion_parametros(Instruccion* instruccionAux, FILE *file){
+	int i = 0;
+	switch(instruccionAux->tipo){
+			case I_O:
+			case NO_OP:
+			case READ:
+				lectura_y_asignacion_un_parametro(instruccionAux, file, i);
+				break;
+			case WRITE:
+			case COPY:
+				lectura_y_asignacion_dos_parametro(instruccionAux, file, i);
+				break;
+		}
+}
+
+void lectura_y_asignacion_un_parametro(Instruccion* instruccionAux, FILE *file, int i){
+	 fscanf(file, "%d", & i);
+	 instruccionAux->params[0] = i;
+
+}
+
+void lectura_y_asignacion_dos_parametro(Instruccion* instruccionAux, FILE *file, int i){
+	lectura_y_asignacion_un_parametro(instruccionAux, file, i);
+	fgetc(file);
+	fscanf(file, "%d", &i);
+	instruccionAux->params[1] = i;
 }
 
 void enviar_instruccion(Instruccion instruccion){
@@ -130,9 +143,6 @@ void enviar_instruccion(Instruccion instruccion){
 
 void terminar_programa(int conexion, t_log* logger, t_config* config)
 {
-
-	/* Y por ultimo, hay que liberar lo que utilizamos (conexion, log y config)
-	  con las funciones de las commons y del TP mencionadas en el enunciado */
 	log_destroy(logger);
 	config_destroy(config);
 	close(conexion);
