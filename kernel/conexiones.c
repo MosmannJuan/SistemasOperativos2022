@@ -1,4 +1,4 @@
-#include "conexiones.h"
+/* #include "conexiones.h"
 
 //////////////////////////
 //CONEXIONES DE SERVIDOR//
@@ -218,5 +218,5 @@ char* mensajeCompleto(char* quienHabla,char* mensaje){
 	strcpy(aux,quienHabla);
 	strcat(aux,mensaje);
 	return aux;
-}
+} */
 

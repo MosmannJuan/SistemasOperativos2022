@@ -9,7 +9,7 @@
 #define KERNEL_H_
 #include <commons/config.h>
 #include <commons/log.h>
-#include <conexiones.c>
+#include <string.h>
 
 char* ipMemoria;
 char* ipKernel;
@@ -18,7 +18,7 @@ char* ipCpu;
 char* algoritmoPlanificacion;
 int puertoCpuInterrupt;
 int puertoCpuDispatch;
-int puertoEscucha;
+char* puertoEscucha;
 int estimacionInicial;
 int alfa;
 int gradoMultiprogramacion;
