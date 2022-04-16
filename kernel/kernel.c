@@ -21,7 +21,38 @@ int main(int argc, char **argv) {
 
  	int conexion = iniciar_servidor(ipKernel, puertoEscucha);
  	int cliente_fd = esperar_cliente(conexion);
-	//while(1){
+ 	Instruccion instruccionAux;
+ 	t_list* instrucciones = list_create();
+	while(1){
+		int cod_op = recibir_int(cliente_fd);
+		instruccionAux.tipo = cod_op;
+
+		switch(cod_op){
+		case I_O:
+		case NO_OP:
+		case READ:
+			instruccionAux.params[0] = recibir_int(cliente_fd);
+			printf("Recibí la instruccion %d, con el param %d \n", cod_op, instruccionAux.params[0]);
+			break;
+		case WRITE:
+		case COPY:
+			instruccionAux.params[0] = recibir_int(cliente_fd);
+			instruccionAux.params[1] = recibir_int(cliente_fd);
+			printf("Recibí la instruccion %d, con el params %d y %d \n", cod_op, instruccionAux.params[0], instruccionAux.params[1]);
+			break;
+		case EXIT:
+			printf("Lei correctamente el codigo completo");
+		case -1:
+			printf("Se ha cerrado la conexión");
+			return EXIT_SUCCESS;
+		default:
+			printf("No recibi un codigo de operacion valido");
+			break;
+		}
+		list_add(instrucciones, &instruccionAux);
+
+
+
 		//int server = esperar_cliente(connection);
 		//conexiones *conn = malloc(sizeof(conexiones));
 		//conn->conn_kernel = server;
@@ -29,5 +60,18 @@ int main(int argc, char **argv) {
 		//conn->puertoMemoria = puerto_memoria;
 		//pthread_create(&hilo_por_cliente, NULL, (void*) atender_kernel, conn);
 		//pthread_detach(hilo_por_cliente);
-	//}
+	}
 }
+
+int recibir_int(int socket_cliente)
+{
+	int leido;
+	if(recv(socket_cliente, &leido, sizeof(int), MSG_WAITALL) > 0)
+		return leido;
+	else
+	{
+		close(socket_cliente);
+		return -1;
+	}
+}
+

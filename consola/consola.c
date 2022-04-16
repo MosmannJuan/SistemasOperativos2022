@@ -6,7 +6,7 @@ int main(int argc, char ** argv) {
   logger = log_create("errors.log", "error_logger", 1, LOG_LEVEL_ERROR);
 
   //Levantar config, traer ip y puerto.
-  consola_config = config_create("consola.config");
+   consola_config = config_create("consola.config");
   ip = strdup(config_get_string_value(consola_config, "IP_KERNEL"));
   puertoKernel = strdup(config_get_string_value(consola_config, "PUERTO_KERNEL"));
 
@@ -19,9 +19,8 @@ int main(int argc, char ** argv) {
 
 
   //Finalizar conexion socket, logger y config.
-  close(conexion);
-  log_destroy(logger);
-  config_destroy(consola_config);
+  terminar_programa(conexion,logger, consola_config);
+
 }
 
 void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
@@ -101,7 +100,9 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
     memset(palabraLeida, '\0', 10);
 
     //Añade la instrucción a la lista
-    list_add(listaInstrucciones, & instruccionAux);
+    //list_add(listaInstrucciones, & instruccionAux);
+
+    enviar_instruccion(instruccionAux);
 
     //Consume el EOF o \n
     control = fgetc(file);
@@ -109,3 +110,31 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
   }
 
 }
+
+void enviar_instruccion(Instruccion instruccion){
+	send(conexion, &instruccion.tipo, sizeof(int), 0);
+	switch(instruccion.tipo){
+		case I_O:
+		case NO_OP:
+		case READ:
+			send(conexion, &instruccion.params[0], sizeof(unsigned int), 0);
+			break;
+		case WRITE:
+		case COPY:
+			send(conexion, &instruccion.params[0], sizeof(unsigned int), 0);
+			send(conexion, &instruccion.params[1], sizeof(unsigned int), 0);
+			break;
+	}
+
+}
+
+void terminar_programa(int conexion, t_log* logger, t_config* config)
+{
+
+	/* Y por ultimo, hay que liberar lo que utilizamos (conexion, log y config)
+	  con las funciones de las commons y del TP mencionadas en el enunciado */
+	log_destroy(logger);
+	config_destroy(config);
+	close(conexion);
+}
+

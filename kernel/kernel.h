@@ -9,7 +9,23 @@
 #define KERNEL_H_
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/collections/list.h>
+#include <sys/socket.h>
 #include <string.h>
+
+typedef enum {
+	NO_OP,
+	I_O,
+	READ,
+	WRITE,
+	COPY,
+	EXIT
+} TipoInstruccion;
+
+typedef struct Instruccion {
+	TipoInstruccion tipo;
+	unsigned int params[2];
+} Instruccion;
 
 char* ipMemoria;
 char* ipKernel;
