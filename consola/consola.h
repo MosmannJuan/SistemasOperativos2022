@@ -6,6 +6,7 @@
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/string.h>
 
 #include "utils.h"
 
@@ -31,6 +32,7 @@ t_list* listaInstrucciones;
 t_config* consola_config;
 t_log* logger;
 
+Instruccion* crear_instruccion();
 
 #endif /* CONSOLA_H_ */
 
