@@ -1,26 +1,15 @@
-/*
- * kernel.h
- *
- *  Created on: 14 abr. 2022
- *      Author: utnso
- */
 
 #ifndef KERNEL_H_
 #define KERNEL_H_
 
 #include <commons/config.h>
-
 #include <commons/log.h>
-
 #include <commons/collections/list.h>
-
 #include <sys/socket.h>
-
 #include <sys/types.h>
-
 #include <string.h>
-
 #include <stdio.h>
+#include <unistd.h>
 
 typedef enum {
   NO_OP,
@@ -61,5 +50,8 @@ typedef struct {
 conexiones;
 
 t_config * kernel_config;
+int recibir_int(int socket_cliente);
+void atender_instrucciones_cliente(int cliente_fd, t_list * instrucciones);
+
 
 #endif /* KERNEL_H_ */

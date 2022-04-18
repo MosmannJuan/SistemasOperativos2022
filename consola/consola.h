@@ -45,5 +45,6 @@ Instruccion * crear_instruccion();
 void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file);
 void lectura_y_asignacion_un_parametro(Instruccion * instruccionAux, FILE * file, int i);
 void lectura_y_asignacion_dos_parametro(Instruccion * instruccionAux, FILE * file, int i);
+void enviar_instruccion(Instruccion instruccion);
 
 #endif /* CONSOLA_H_ */

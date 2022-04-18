@@ -78,6 +78,8 @@ void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file) 
   case COPY:
     lectura_y_asignacion_dos_parametro(instruccionAux, file, i);
     break;
+  case EXIT:
+  	  break;
   }
 }
 
@@ -107,6 +109,8 @@ void enviar_instruccion(Instruccion instruccion) {
     send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
     send(conexion, & instruccion.params[1], sizeof(unsigned int), 0);
     break;
+  case EXIT:
+	  break;
   }
 
 }
