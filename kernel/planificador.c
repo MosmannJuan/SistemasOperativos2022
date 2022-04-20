@@ -268,8 +268,6 @@ void * hilo_de_corto_plazo_fifo_running(void * argumentos) {
       list_add(ready, dummy_mensaje.pcb_actualizado);
       sem_post( & semaforo_lista_ready_add);
       break;
-    default:
-      break;
     }
   }
 }

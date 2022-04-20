@@ -15,14 +15,15 @@
 
 
 char * ipMemoria;
+char * puertoMemoria;
 char * ipKernel;
-int puertoMemoria;
+char * puertoEscucha;
 char * ipCpu;
 int puertoCpuInterrupt;
 int puertoCpuDispatch;
-char * puertoEscucha;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
+int conexion_con_memoria;
 
 t_config * kernel_config;
 
