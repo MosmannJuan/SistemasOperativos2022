@@ -22,8 +22,8 @@ int main(int argc, char ** argv) {
   puertoMemoria = config_get_string_value(kernel_config,"PUERTO_MEMORIA");
 
   //ipCpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
-  //puertoCpuDispatch = config_get_int_value(kernel_config,"PUERTO_CPU_DISPATCH");
-  //puertoCpuInterrupt = config_get_int_value(kernel_config,"PUERTO_CPU_INTERRUPT");
+  puertoCpuDispatch = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_DISPATCH"));
+  puertoCpuInterrupt = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_INTERRUPT"));
 
   estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
   algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
@@ -36,7 +36,12 @@ int main(int argc, char ** argv) {
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
   inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
 
-  int conexion = iniciar_servidor(ipKernel, puertoEscucha);
+  conexionConsola = iniciar_servidor(ipKernel, puertoEscucha);
+  conexionDispatch = iniciar_servidor(ipKernel, puertoCpuDispatch);
+  conexionInterrupt = iniciar_servidor(ipKernel, puertoCpuInterrupt);
+
+  dispatch = esperar_cliente(conexionDispatch);
+  interrupt = esperar_cliente(conexionInterrupt);
 
   //Inicializamos el semáforo para el process id del planificador de largo plazo
   inicializar_semaforos();
@@ -47,7 +52,7 @@ int main(int argc, char ** argv) {
 	t_list * instrucciones = list_create();
 	argumentos *argumentos = malloc(sizeof(argumentos));
 	argumentos->instrucciones = instrucciones;
-	argumentos->cliente_fd = esperar_cliente(conexion);
+	argumentos->cliente_fd = esperar_cliente(conexionConsola);
 
 
     if (argumentos->cliente_fd < 0) {
@@ -74,7 +79,7 @@ int main(int argc, char ** argv) {
 
     }
   }
-  terminar_programa(conexion, loggerKernel, kernel_config);
+  terminar_programa(conexionConsola, conexionDispatch, conexionInterrupt, loggerKernel, kernel_config);
 }
 
 void inicializar_semaforos(){
@@ -89,9 +94,9 @@ void inicializar_semaforos(){
     sem_init(&semaforo_grado_multiprogramacion,0,1);
 }
 
-void inicializar_planificador_largo_plazo(pthread_t * hilo_new_ready, pthread_t  * hilo_exit){
-	pthread_create(hilo_new_ready, NULL, hilo_new_ready, NULL);
-	pthread_create(hilo_exit, NULL, exit_largo_plazo, NULL);
+void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
+	pthread_create(hiloNewReady, NULL, hilo_new_ready, NULL);
+	// hay que armar el msje de cpu sino rompe pthread_create(hilo_exit, NULL, exit_largo_plazo, NULL);
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){

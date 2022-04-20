@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
   puerto_kernel = strdup(config_get_string_value(consola_config, "PUERTO_KERNEL"));
 
   //inicializar conexion con kernel.
-  conexion = conexion_a_kernel(ip, puerto_kernel);
+  int conexion = conexion_a_kernel(ip, puerto_kernel);
 
   //Parser de instrucciones
   path_archivo_instrucciones = argv[1];

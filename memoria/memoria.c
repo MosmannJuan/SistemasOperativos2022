@@ -5,7 +5,7 @@
 
 int main(void) {
 
-	t_log *loggerMemoria = log_create("memoria.log", "memoria.c", 1, LOG_LEVEL_DEBUG);
+	t_log *loggerMemoria = log_create("memoria.log", "memoriaError_log", 1, LOG_LEVEL_DEBUG);
 
 	memoria_config = config_create("memoria.config");
 	ipMemoria = strdup(config_get_string_value(memoria_config, "IP_MEMORIA"));
@@ -22,11 +22,11 @@ int main(void) {
 	retardoSwap = config_get_int_value(memoria_config,"RETARDO_SWAP");
 	pathSwap = strdup(config_get_string_value(algoritmoReemplazo,"PATH_SWAP"));
 */
-	int conexion = iniciar_servidor(ipMemoria, puertoEscucha);
+	conexion = iniciar_servidor(ipMemoria, puertoEscucha);
 
 	while(1){
-		int cliente_kernel = esperar_cliente(conexion);
-		if(cliente_kernel !=0) printf("cliente_kernel: %d", cliente_kernel);
+		int cliente = esperar_cliente(conexion);
+		if(cliente !=0) printf("cliente_kernel: %d", cliente);
 	}
 	  terminar_programa(conexion, loggerMemoria, memoria_config);
 

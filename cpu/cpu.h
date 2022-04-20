@@ -17,14 +17,17 @@ int	entradasTlb ;
 char*	reemplazoTlb;
 int	retardoNoop;
 char*	ipMemoria;
-int	puertoMemoria;
-int	puertoEscuchaDispatch;
-int	puertoEscuhcaInterrupt;
+char*	puertoMemoria;
+char* 	ipKernel;
+char*	puertoEscuchaDispatch;
+char*	puertoEscuchaInterrupt;
 
+int conexionMemoria;
 int conexionDispatch;
 int conexionInterrupt;
 
-t_config* cpuConfig;
+t_config* cpu_config;
+t_log * cpuLogger;
 
 typedef enum {
 	BLOQUEADO,

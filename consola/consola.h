@@ -3,7 +3,6 @@
 
 #include "parser.h"
 
-int conexion;
 char * ip;
 char * puerto_kernel;
 char * path_archivo_instrucciones;

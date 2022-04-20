@@ -76,6 +76,7 @@ t_list * exit_estado;
 pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso);
 pcb* pcb_create();
 void pcb_destroy(pcb * pcb);
+void * hilo_new_ready (void* args);
 void * hilo_de_largo_plazo (void * args);
 void inicializar_listas_procesos();
 void * hilo_pcb_new (void * args_p);

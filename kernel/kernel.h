@@ -19,11 +19,19 @@ char * puertoMemoria;
 char * ipKernel;
 char * puertoEscucha;
 char * ipCpu;
-int puertoCpuInterrupt;
-int puertoCpuDispatch;
+char * puertoCpuInterrupt;
+char * puertoCpuDispatch;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
+
 int conexion_con_memoria;
+
+int conexionConsola;
+int conexionDispatch;
+int conexionInterrupt;
+
+int dispatch;
+int interrupt;
 
 t_config * kernel_config;
 

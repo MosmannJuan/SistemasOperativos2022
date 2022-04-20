@@ -252,6 +252,7 @@ void * hilo_de_corto_plazo_fifo_running(void * argumentos) {
   while (1) {
     //Espera mensaje de cpu por socket de dispatch (pcb actualizado y mensaje para switch)
     mensaje_dispatch dummy_mensaje;
+    dummy_mensaje.mensaje = 5;
     switch (dummy_mensaje.mensaje) {
     case PASAR_A_BLOQUEADO:
       list_remove(running, 0);

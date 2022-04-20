@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include<commons/collections/list.h>
 #include <commons/config.h>
+#include <unistd.h>
 
 t_config* memoria_config;
 #endif /* MEMORIA_H_ */
@@ -19,10 +20,12 @@ int tamMemoria;
 int tamPagina;
 int paginasPorTabla;
 int retardoMemoria;
-char* algoritmoReemplazo;
 int marcosPorProceso;
 int retardoSwap;
+char* algoritmoReemplazo;
 char* pathSwap;
+
+int conexion;
 
 
 void abrirArchivoConfifuracion();
