@@ -25,7 +25,7 @@ int main(int argc, char ** argv) {
   //puertoCpuInterrupt = config_get_int_value(kernel_config,"PUERTO_CPU_INTERRUPT");
   alfa = config_get_int_value(kernel_config,"ALFA");
   //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
-  //tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
+  tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
 
@@ -77,7 +77,12 @@ void inicializar_semaforos(){
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
-	pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
-	pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL);
+	if(strcmp(algoritmoPlanificacion, "SRT") == 0) {
+		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_sjf_ready, NULL);
+		pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL);
+	} else {
+		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
+		pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL);
+	}
 }
 

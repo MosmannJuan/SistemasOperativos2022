@@ -102,6 +102,69 @@ void * hilo_de_largo_plazo (void * args_p){
 
 // ----------------- PLANIFICADOR MEDIANO PLAZO -----------------
 
+void * hilo_mediano_plazo_bloqueado(void* argumentos) {
+	//Hay que comentar de la linea 207 a 211, que el sistema de bloqueo lo maneje esta funcion y esa solo se encargue de cargar
+	// en cada lista
+	mensaje_dispatch pcb_bloqueado;
+	pthread_t hilo_bloqueo;
+	while(1) {
+		if(list_size(bloqueado) > 0){
+			pcb_bloqueado = list_get(bloqueado, 0);
+			//toma los datos (solo lo hace del primero por ahora), hay que repensar
+			argumentos_hilo_bloqueo* args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
+			args_bloqueo->tiempo_bloqueo = pcb_bloqueado.tiempo_bloqueo;
+			args_bloqueo->pcb_actualizado = pcb_bloqueado.pcb_actualizado;
+			if(pcb_bloqueado.tiempo_bloqueo > tiempoMaximoBloqueado) {
+				//bloquear en disco
+				pcb_bloqueado = list_remove(bloqueado, 0);
+				//sacar de bloqueado y agregar en bloqueado suspendido
+				list_add(bloqueado_suspendido, pcb_bloqueado);
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso_disco, args_bloqueo);
+			} else {
+				//bloqueo normal
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso_memoria, args_bloqueo);
+			}
+		}
+	}
+}
+
+void * hilo_bloqueo_proceso_disco(void * argumentos){
+	argumentos_hilo_bloqueo* args = (argumentos_hilo_bloqueo *) argumentos;
+	unsigned int tiempo_bloqueo = args->tiempo_bloqueo;
+	pcb * pcb_actualizado = args->pcb_actualizado;
+	free(args);
+
+	//Esperamos el tiempo que corresponde según la instrucción
+	sleep(tiempo_bloqueo/1000);
+
+	//Enviamos de bloqueado a ready
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pcb_actualizado->id;
+	list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
+	list_add(ready_suspendido, pcb_actualizado);
+
+	return NULL;
+}
+
+void * hilo_mediano_plazo_ready(void* argumentos) {
+	mensaje_dispatch pcb_ready;
+	while(1) {
+		if(list_size(ready_suspendido) > 0){
+			pcb_ready = list_remove(ready_suspendido, 0);
+			pcb* pcb_a_enviar = pcb_ready->pcb_actualizado;
+			//TODO Evaluar multiprogramacion
+			//TODO Enviar mensaje a memoria
+
+			//debe tener prioridad
+			sem_wait(&semaforo_lista_ready_add);
+			if(strcmp(algoritmoPlanificacion, "SRT") == 0) list_add_sorted(ready, pcb_a_enviar, ordenar_por_estimacion_rafaga);
+			else list_add(ready, pcb_a_enviar);
+			sem_post(&semaforo_lista_ready_add);
+		}
+	}
+}
+
+
 // ----------------- PLANIFICADOR CORTO PLAZO  -----------------
 void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
 	while(1){
@@ -119,6 +182,7 @@ void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
 		}
 	}
 }
+
 
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos){
 
@@ -150,7 +214,7 @@ void * hilo_de_corto_plazo_fifo_running(void* argumentos){
 				args_bloqueo->tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
 				args_bloqueo->pcb_actualizado = dummy_mensaje.pcb_actualizado;
 				pthread_t hilo_bloqueo;
-				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso_memoria, args_bloqueo);
 				break;
 			case PASAR_A_READY:
 				list_remove(running, 0);
@@ -164,7 +228,7 @@ void * hilo_de_corto_plazo_fifo_running(void* argumentos){
 	}
 }
 
-void * hilo_bloqueo_proceso(void * argumentos){
+void * hilo_bloqueo_proceso_memoria(void * argumentos){
 	argumentos_hilo_bloqueo* args = (argumentos_hilo_bloqueo *) argumentos;
 	unsigned int tiempo_bloqueo = args->tiempo_bloqueo;
 	pcb * pcb_actualizado = args->pcb_actualizado;
@@ -220,7 +284,7 @@ void * hilo_de_corto_plazo_sjf_running(void* argumentos){
 				args_bloqueo->tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
 				args_bloqueo->pcb_actualizado = dummy_mensaje.pcb_actualizado;
 				pthread_t hilo_bloqueo; // falta preguntar en hilo si es sjf para ordenar
-				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso_memoria, args_bloqueo);
 				break;
 			case PASAR_A_READY:
 				list_remove(running, 0);
