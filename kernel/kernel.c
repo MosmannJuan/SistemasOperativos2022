@@ -17,14 +17,16 @@ int main(int argc, char ** argv) {
   kernel_config = config_create("kernel.config");
   ipKernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
   puertoEscucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
+
   ipMemoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
   puertoMemoria = config_get_string_value(kernel_config,"PUERTO_MEMORIA");
-  estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
 
-  algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
   //ipCpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
   //puertoCpuDispatch = config_get_int_value(kernel_config,"PUERTO_CPU_DISPATCH");
   //puertoCpuInterrupt = config_get_int_value(kernel_config,"PUERTO_CPU_INTERRUPT");
+
+  estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
+  algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
   alfa = config_get_int_value(kernel_config,"ALFA");
   //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
