@@ -60,3 +60,9 @@ int esperar_cliente(int socket_servidor) {
 
   return socket_cliente;
 }
+
+void terminar_programa(int conexion, t_log * logger, t_config * config) {
+  log_destroy(logger);
+  config_destroy(config);
+  close(conexion);
+}

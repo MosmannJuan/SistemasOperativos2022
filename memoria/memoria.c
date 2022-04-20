@@ -26,10 +26,10 @@ int main(void) {
 
 	while(1){
 		int cliente_kernel = esperar_cliente(conexion);
-		if(cliente_kernel != 0)
-			printf("Se conectó alguien a memoria!");
+		if(cliente_kernel !=0) printf("cliente_kernel: %d", cliente_kernel);
 	}
-	return EXIT_SUCCESS;
+	  terminar_programa(conexion, loggerMemoria, memoria_config);
+
 }
 
 

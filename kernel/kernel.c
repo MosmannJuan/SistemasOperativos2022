@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
 
     }
   }
-
+  terminar_programa(conexion, loggerKernel, kernel_config);
 }
 
 void inicializar_semaforos(){

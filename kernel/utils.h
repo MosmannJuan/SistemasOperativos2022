@@ -13,6 +13,8 @@
 
 #include <commons/log.h>
 
+#include <commons/config.h>
+
 t_log * logger;
 
 int iniciar_servidor(char * , char * );
