@@ -1,30 +1,5 @@
 #include "consola.h"
 
-int main(int argc, char ** argv) {
-
-  //Crear logger.
-  logger = log_create("errors.log", "error_logger", 1, LOG_LEVEL_ERROR);
-
-  //Levantar config, traer ip y puerto.
-   consola_config = config_create("consola.config");
-  ip = strdup(config_get_string_value(consola_config, "IP_KERNEL"));
-  puertoKernel = strdup(config_get_string_value(consola_config, "PUERTO_KERNEL"));
-
-  //inicializar conexion con kernel.
-  conexion = conexion_a_kernel(ip, puertoKernel);
-
-  //Parser de instrucciones
-  pathArchivoInstrucciones = argv[1];
-
-  leerArchivoDeInstrucciones("InstruccionTest.txt");
-
-
-  //Finalizar conexion socket, logger y config.
-  terminar_programa(conexion,logger, consola_config);
-
-}
-
-
 void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
   char palabraLeida[10] = "\0";
   char c;
@@ -32,7 +7,6 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
   Instruccion instruccionAux;
   instruccionAux.params[0] = 0;
   instruccionAux.params[1] = 0;
-  listaInstrucciones = list_create();
 
   //Abrir archivo
   FILE * file = fopen(pathArchivoInstrucciones, "r+");
@@ -47,14 +21,13 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
     int contadorCaracter = 0;
     //Lee el identificador de la instrucción
     while (c != ' ') {
-	  palabraLeida[contadorCaracter] = c;
+      palabraLeida[contadorCaracter] = c;
       c = fgetc(file);
       contadorCaracter++;
-      if(strcmp(palabraLeida, "EXIT") == 0) break;
+      if (strcmp(palabraLeida, "EXIT") == 0) break;
     }
 
     //Arma la instrucción en función del identificador leído
-
 
     if (strcmp(palabraLeida, "NO_OP") == 0) {
       instruccionAux.tipo = NO_OP;
@@ -80,12 +53,9 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
       instruccionAux.tipo = EXIT;
     }
 
-    lectura_y_asignacion_parametros(&instruccionAux,file);
+    lectura_y_asignacion_parametros( & instruccionAux, file);
 
     memset(palabraLeida, '\0', 10);
-
-    //Añade la instrucción a la lista
-    //list_add(listaInstrucciones, & instruccionAux);
 
     enviar_instruccion(instruccionAux);
 
@@ -96,55 +66,76 @@ void leerArchivoDeInstrucciones(char * pathArchivoInstrucciones) {
 
 }
 
-void lectura_y_asignacion_parametros(Instruccion* instruccionAux, FILE *file){
-	int i = 0;
-	switch(instruccionAux->tipo){
-			case I_O:
-			case NO_OP:
-			case READ:
-				lectura_y_asignacion_un_parametro(instruccionAux, file, i);
-				break;
-			case WRITE:
-			case COPY:
-				lectura_y_asignacion_dos_parametro(instruccionAux, file, i);
-				break;
-		}
+void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file) {
+  int i = 0;
+  switch (instruccionAux -> tipo) {
+  case I_O:
+  case NO_OP:
+  case READ:
+    lectura_y_asignacion_un_parametro(instruccionAux, file, i);
+    break;
+  case WRITE:
+  case COPY:
+    lectura_y_asignacion_dos_parametro(instruccionAux, file, i);
+    break;
+  }
 }
 
-void lectura_y_asignacion_un_parametro(Instruccion* instruccionAux, FILE *file, int i){
-	 fscanf(file, "%d", & i);
-	 instruccionAux->params[0] = i;
-
-}
-
-void lectura_y_asignacion_dos_parametro(Instruccion* instruccionAux, FILE *file, int i){
-	lectura_y_asignacion_un_parametro(instruccionAux, file, i);
-	fgetc(file);
-	fscanf(file, "%d", &i);
-	instruccionAux->params[1] = i;
-}
-
-void enviar_instruccion(Instruccion instruccion){
-	send(conexion, &instruccion.tipo, sizeof(int), 0);
-	switch(instruccion.tipo){
-		case I_O:
-		case NO_OP:
-		case READ:
-			send(conexion, &instruccion.params[0], sizeof(unsigned int), 0);
-			break;
-		case WRITE:
-		case COPY:
-			send(conexion, &instruccion.params[0], sizeof(unsigned int), 0);
-			send(conexion, &instruccion.params[1], sizeof(unsigned int), 0);
-			break;
-	}
+void lectura_y_asignacion_un_parametro(Instruccion * instruccionAux, FILE * file, int i) {
+  fscanf(file, "%d", & i);
+  instruccionAux -> params[0] = i;
 
 }
 
-void terminar_programa(int conexion, t_log* logger, t_config* config)
-{
-	log_destroy(logger);
-	config_destroy(config);
-	close(conexion);
+void lectura_y_asignacion_dos_parametro(Instruccion * instruccionAux, FILE * file, int i) {
+  lectura_y_asignacion_un_parametro(instruccionAux, file, i);
+  fgetc(file);
+  fscanf(file, "%d", & i);
+  instruccionAux -> params[1] = i;
 }
 
+void enviar_instruccion(Instruccion instruccion) {
+  send(conexion, & instruccion.tipo, sizeof(int), 0);
+  switch (instruccion.tipo) {
+  case I_O:
+  case NO_OP:
+  case READ:
+    send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
+    break;
+  case WRITE:
+  case COPY:
+    send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
+    send(conexion, & instruccion.params[1], sizeof(unsigned int), 0);
+    break;
+  }
+
+}
+
+void terminar_programa(int conexion, t_log * logger, t_config * config) {
+  log_destroy(logger);
+  config_destroy(config);
+  close(conexion);
+}
+
+int main(int argc, char ** argv) {
+
+  //Crear logger.
+  logger = log_create("errors.log", "error_logger", 1, LOG_LEVEL_ERROR);
+
+  //Levantar config, traer ip y puerto.
+  consola_config = config_create("consola.config");
+  ip = strdup(config_get_string_value(consola_config, "IP_KERNEL"));
+  puertoKernel = strdup(config_get_string_value(consola_config, "PUERTO_KERNEL"));
+
+  //inicializar conexion con kernel.
+  conexion = conexion_a_kernel(ip, puertoKernel);
+
+  //Parser de instrucciones
+  pathArchivoInstrucciones = argv[1];
+
+  leerArchivoDeInstrucciones("InstruccionTest.txt");
+
+  //Finalizar conexion socket, logger y config.
+  terminar_programa(conexion, logger, consola_config);
+
+}
