@@ -57,7 +57,7 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_l
 
     memset(palabraLeida, '\0', 10);
 
-    enviar_instruccion(instruccionAux, conexion);
+     enviar_instruccion(instruccionAux, conexion);
 
     //Consume el EOF o \n
     control = fgetc(file);

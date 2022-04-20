@@ -33,7 +33,7 @@ void enviar_instruccion(Instruccion instruccion, int conexion) {
   case WRITE:
   case COPY:
     send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
-    send(conexion, & instruccion.params[1], sizeof(unsigned int), 0);
+      send(conexion, & instruccion.params[1], sizeof(unsigned int), 0);
     break;
   case EXIT:
 	  break;

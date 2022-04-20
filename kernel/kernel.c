@@ -7,7 +7,6 @@ int main(int argc, char ** argv) {
   pthread_t hilo_ready;
   pthread_t hilo_running;
   inicializar_listas_procesos();
-  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
 
 
   t_log * loggerKernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
@@ -26,6 +25,8 @@ int main(int argc, char ** argv) {
   alfa = config_get_int_value(kernel_config,"ALFA");
   //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
+
+  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
 
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
 
@@ -74,6 +75,7 @@ void inicializar_semaforos(){
 	sem_init(&semaforo_lista_ready_add, 0, 1);
 	sem_init(&semaforo_lista_new_remove, 0, 1);
 	sem_init(&semaforo_pid_comparacion, 0, 1);
+    sem_init(&semaforo_lista_ready_suspendido_remove, 0,1);
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){

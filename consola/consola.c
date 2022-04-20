@@ -20,6 +20,6 @@ int main(int argc, char ** argv) {
   leer_y_enviar_archivo_de_instrucciones("InstruccionTest.txt", logger, conexion);
 
   //Finalizar conexion socket, logger y config.
-  terminar_programa(conexion, logger, consola_config);
+   terminar_programa(conexion, logger, consola_config);
 
-}
+   }
