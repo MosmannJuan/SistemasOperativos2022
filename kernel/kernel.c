@@ -4,8 +4,8 @@
 
 int main(int argc, char ** argv) {
 
-	pthread_t hilo_ready;
-	pthread_t hilo_running;
+  pthread_t hilo_ready;
+  pthread_t hilo_running;
   inicializar_listas_procesos();
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
 
@@ -17,12 +17,12 @@ int main(int argc, char ** argv) {
   estimacionInicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
 
   //ipMemoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
-  //algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
+  algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
   //ipCpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
   //puertoMemoria = config_get_int_value(kernel_config,"PUERTO_MEMORIA");
   //puertoCpuDispatch = config_get_int_value(kernel_config,"PUERTO_CPU_DISPATCH");
   //puertoCpuInterrupt = config_get_int_value(kernel_config,"PUERTO_CPU_INTERRUPT");
-  //alfa = config_get_int_value(kernel_config,"ALFA");
+  alfa = config_get_int_value(kernel_config,"ALFA");
   //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   //tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 

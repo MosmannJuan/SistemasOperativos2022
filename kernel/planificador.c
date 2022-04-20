@@ -92,7 +92,8 @@ void * hilo_de_largo_plazo (void * args_p){
 	printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(new));
 	printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
 	sem_wait(&semaforo_lista_ready_add);
-	list_add(ready, pcb_ready);
+	if(strcmp(algoritmoPlanificacion, "SRT") == 0) list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
+	else list_add(ready, pcb_ready);
 	sem_post(&semaforo_lista_ready_add);
 	printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
 	return NULL;
@@ -104,6 +105,23 @@ void * hilo_de_largo_plazo (void * args_p){
 
 // ----------------- PLANIFICADOR CORTO PLAZO  -----------------
 void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
+	while(1){
+		if(list_size(ready) > 0 && list_size(running) == 0){
+			//Sacamos de lista de ready
+			printf("El tamaño de la lista de ready antes de eliminar es: %d \n", list_size(ready));
+			pcb* pcb_running = list_remove(ready, 0);
+			printf("El tamaño de la lista de ready después de eliminar es: %d \n", list_size(ready));
+			//TODO: Mandamos mensaje a CPU
+
+			//Enviamos a running
+			printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
+			list_add(running, pcb_running);
+			printf("El tamaño de la lista de running despues de asignar es: %d \n", list_size(running));
+		}
+	}
+}
+
+void * hilo_de_corto_plazo_sjf_ready(void* argumentos){
 	while(1){
 		if(list_size(ready) > 0 && list_size(running) == 0){
 			//Sacamos de lista de ready
@@ -168,6 +186,11 @@ void * hilo_bloqueo_proceso(void * argumentos){
 	sem_post(&semaforo_lista_ready_add);
 
 	return NULL;
+}
+
+bool es_pid_a_desbloquear(void * pcb_recibido){
+	pcb* pcb_comparacion = (pcb*) pcb_recibido;
+	return pcb_comparacion->id == pid_comparacion;
 }
 
 bool es_pid_a_desbloquear(void * pcb_recibido){
