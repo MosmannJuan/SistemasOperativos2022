@@ -5,6 +5,7 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include <pthread.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <string.h>
@@ -27,6 +28,7 @@ typedef struct Instruccion {
 }
 Instruccion;
 
+t_list * instrucciones;
 char * ipMemoria;
 char * ipKernel;
 int puertoMemoria;
@@ -51,7 +53,7 @@ conexiones;
 
 t_config * kernel_config;
 int recibir_int(int socket_cliente);
-void atender_instrucciones_cliente(int cliente_fd, t_list * instrucciones);
+void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
 
 
 #endif /* KERNEL_H_ */
