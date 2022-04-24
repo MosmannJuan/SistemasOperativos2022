@@ -22,26 +22,34 @@ int main(int argc, char ** argv) {
   //tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
-  instrucciones = list_create();
 
   while (1) {
 	// pthread requiere que el 4to argumento (argumentos de la funcion que pasamos) sea un void*
 	// entonces creamos un int*, le asignamos memoria dinámica y le guardamos el int que retorna la conexión.
-	int* pointer_cliente_fd = malloc(sizeof(int));
-    *pointer_cliente_fd = esperar_cliente(conexion);
+	t_list * instrucciones = list_create();
+	argumentos *argumentos = malloc(sizeof(argumentos));
+	argumentos->instrucciones = instrucciones;
+	argumentos->cliente_fd = malloc(sizeof(int));
+    int socket_cliente = esperar_cliente(conexion);
+    *argumentos->cliente_fd = socket_cliente;
 
-    if (*pointer_cliente_fd < 0) {
+
+
+    if (*argumentos->cliente_fd < 0) {
       //handlear error en logger y free para evitar memory leak.
-      free(pointer_cliente_fd);
+      free(argumentos->cliente_fd );
+      free(argumentos);
       log_info(loggerKernel, "Falló conexión con el cliente.");
-    } else {
+    }
 
+    else {
     	// HANDLER DE INSTRUCCIONES DE CLIENTE MEDIANTE HILOS (KLT).
     	pthread_t handler;
     	//La funcion (3er argumento) que recibe pthread debe ser del tipo void* y los argumentos (4to argumento) deben ser void*
-    	if(pthread_create(&handler, NULL, atender_instrucciones_cliente, pointer_cliente_fd) != 0) {
+    	if(pthread_create(&handler, NULL, atender_instrucciones_cliente,argumentos) != 0) {
     		// Si el pthread_create falla, handlea el error en el logger del kernel y free para evitar memory leak.
-    	    free(pointer_cliente_fd);
+    	    free(argumentos->cliente_fd );
+    	    free(argumentos);
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
     	}
 
@@ -69,14 +77,15 @@ int main(int argc, char ** argv) {
 
 }
 
-void* atender_instrucciones_cliente(void* pointer_void_cliente_fd) {
+void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	//Recibimos el int del cliente como un void* y lo reconvertimos mediante una asignación y utilizando (int*)
 	// para indicar que guarde el void* como int* en cliente.
-	int* pointer_int_cliente_fd = (int*) pointer_void_cliente_fd;
-	//Desreferenciamos cliente para manejar al cliente (se rompe sino, no se pq jaja)
-	int cliente_fd = *pointer_int_cliente_fd;
-	//liberamos la memoria reservada.
-	free(pointer_void_cliente_fd);
+	argumentos* pointer_args = (argumentos*) pointer_argumentos;
+	int cliente_fd = *pointer_args->cliente_fd;
+	t_list* instrucciones = pointer_args->instrucciones;
+	free(pointer_args->cliente_fd);
+	free(pointer_args);
+
 	//sleep para testing de multiples conexiones.
     sleep(5);
     printf("\n %s %d %s %d %s %lu %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "HILO:", pthread_self(), "\n");

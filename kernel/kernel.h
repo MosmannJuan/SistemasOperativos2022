@@ -28,7 +28,7 @@ typedef struct Instruccion {
 }
 Instruccion;
 
-t_list * instrucciones;
+
 char * ipMemoria;
 char * ipKernel;
 int puertoMemoria;
@@ -48,8 +48,16 @@ typedef struct {
   //int conn_memoria;
   //char *ipMemoria;
   //char *puertoMemoria;
-}
-conexiones;
+}conexiones;
+
+
+typedef struct {
+  int * cliente_fd;
+  t_list * instrucciones;
+
+}argumentos;
+
+
 
 t_config * kernel_config;
 int recibir_int(int socket_cliente);
