@@ -8,7 +8,9 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 
+
 // ---- ESTRUCTURAS Y ENUMS ----//
+
 typedef enum {
   NO_OP,
   I_O,
@@ -31,6 +33,7 @@ typedef struct {
 }argumentos;
 
 // ---- FUNCIONES ----//
+
 int recibir_int(int socket_cliente);
 void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
 

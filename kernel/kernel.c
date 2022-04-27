@@ -9,6 +9,7 @@ int main(int argc, char ** argv) {
   kernel_config = config_create("kernel.config");
   ipKernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
   puertoEscucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
+  estimacionInicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
 
   //ipMemoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
   //algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
@@ -16,7 +17,6 @@ int main(int argc, char ** argv) {
   //puertoMemoria = config_get_int_value(kernel_config,"PUERTO_MEMORIA");
   //puertoCpuDispatch = config_get_int_value(kernel_config,"PUERTO_CPU_DISPATCH");
   //puertoCpuInterrupt = config_get_int_value(kernel_config,"PUERTO_CPU_INTERRUPT");
-  //estimacionInicial = config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
   //alfa = config_get_int_value(kernel_config,"ALFA");
   //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   //tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
@@ -51,7 +51,14 @@ int main(int argc, char ** argv) {
     	    free(argumentos->cliente_fd );
     	    free(argumentos);
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
+    	} else {
+    		pthread_join(handler, NULL);
+    		pcb pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
+    		printf("EN KERNEL PAPU \n");
+    		printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb.id, pcb.tam_proceso, list_size(pcb.instrucciones), pcb.pc, pcb.rafaga);
     	}
+
+
 
     	/*
     	 *
@@ -77,8 +84,3 @@ int main(int argc, char ** argv) {
 
 }
 
-
-
-void incilizar_pcb(pcb pcb){
-
-}
