@@ -36,7 +36,7 @@ pcb* pcb_create(){
 	return pcb;
 }
 
-pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso, double estimacion_rafaga){
+pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso, unsigned int estimacion_rafaga){
 	pcb * pcb = pcb_create();
 
 	pid_contador++; //TODO semaforo
@@ -65,7 +65,7 @@ void * hilo_de_largo_plazo (void * args_p){
 	argumentos_largo_plazo* pointer_args = (argumentos_largo_plazo*) args_p;
 	t_list* instrucciones = pointer_args->instrucciones;
 	unsigned int tam_proceso = pointer_args->tam_proceso;
-	double estimacion_rafaga = pointer_args->estimacion_rafaga;
+	unsigned int estimacion_rafaga = pointer_args->estimacion_rafaga;
 	free(args_p);
 	//Inicializar pcb
 	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso, estimacion_rafaga);
@@ -73,7 +73,7 @@ void * hilo_de_largo_plazo (void * args_p){
 	printf("El tamaño de la lista de new antes de asignar es: %d \n", list_size(new));
 	list_add(new, pcb_nuevo);
 	printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
-
+	sleep(5);
 	//TODO Evaluar multiprogramacion
 	//TODO Enviar mensaje a memoria
 

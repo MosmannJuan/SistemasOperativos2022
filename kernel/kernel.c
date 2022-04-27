@@ -32,6 +32,7 @@ int main(int argc, char ** argv) {
 	argumentos *argumentos = malloc(sizeof(argumentos));
 	argumentos->instrucciones = instrucciones;
 	argumentos->cliente_fd = malloc(sizeof(int));
+    argumentos->estimacion_inicial = estimacionInicial;
     int socket_cliente = esperar_cliente(conexion);
     *argumentos->cliente_fd = socket_cliente;
 
@@ -54,15 +55,8 @@ int main(int argc, char ** argv) {
     	    free(argumentos);
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
     	} else {
-    		pthread_join(handler, NULL);
-    		pthread_t largo_plazo_thread;
-    		argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
-    		args_largo_plazo->instrucciones = instrucciones;
-    		args_largo_plazo->tam_proceso = (unsigned int) 8; //TODO usar el enviado desde consola
-    		args_largo_plazo->estimacion_rafaga = estimacionInicial;
-    		pthread_create(&largo_plazo_thread, NULL, hilo_de_largo_plazo, args_largo_plazo);
-    		pthread_join(largo_plazo_thread, NULL);
-    		printf("Terminó el largo plazo! \n");
+    		//pthread_join(handler, NULL);
+    		printf("Holis");
     		//pcb* pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
     		//printf("EN KERNEL PAPU \n");
     		//printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);

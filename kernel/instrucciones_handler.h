@@ -7,6 +7,7 @@
 #include <pthread.h> //solo para pruebas printf
 #include <sys/socket.h>
 #include <stdlib.h>
+#include "planificador.h"
 
 
 // ---- ESTRUCTURAS Y ENUMS ----//
@@ -29,6 +30,7 @@ typedef struct Instruccion {
 typedef struct {
   int * cliente_fd;
   t_list * instrucciones;
+  unsigned int estimacion_inicial;
 
 }argumentos;
 
@@ -36,6 +38,7 @@ typedef struct {
 
 int recibir_int(int socket_cliente);
 void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
+void iniciar_thread_largo_plazo(t_list * instrucciones, unsigned int estimacionInicial, unsigned int tam_proceso);
 
 
 #endif /* INSTRUCCIONES_HANDLER_H_ */

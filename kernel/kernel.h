@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "instrucciones_handler.h"
-#include "planificador.h"
 
 
 char * ipMemoria;

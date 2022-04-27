@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
 	t_list* instrucciones;
 	unsigned int tam_proceso;
-	double estimacion_rafaga;
+	unsigned int estimacion_rafaga;
 } argumentos_largo_plazo;
 
 // ---- LISTA DE ESTADOS ----//
@@ -34,7 +34,7 @@ t_list * exit_estado;
 
 // ---- FUNCIONES ----//
 
-pcb * inicializar_pcb(t_list *, unsigned int, double);
+pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso, unsigned int estimacion_rafaga);
 pcb* pcb_create();
 void pcb_destroy(pcb * pcb);
 void * hilo_de_largo_plazo (void * args);
