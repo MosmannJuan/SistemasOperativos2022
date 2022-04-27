@@ -37,6 +37,13 @@ typedef enum
 	END
 }op_code;
 
+typedef struct {
+  int conn_kernel;
+  //int conn_memoria;
+  //char *ipMemoria;
+  //char *puertoMemoria;
+}conexiones;
+
 typedef struct
 {
 	int size;

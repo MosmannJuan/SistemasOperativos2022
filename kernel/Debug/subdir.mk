@@ -5,16 +5,19 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../conexiones.c \
+../instrucciones_handler.c \
 ../kernel.c \
 ../utils.c 
 
 OBJS += \
 ./conexiones.o \
+./instrucciones_handler.o \
 ./kernel.o \
 ./utils.o 
 
 C_DEPS += \
 ./conexiones.d \
+./instrucciones_handler.d \
 ./kernel.d \
 ./utils.d 
 

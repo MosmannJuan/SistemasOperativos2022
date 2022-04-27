@@ -11,22 +11,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
-
-typedef enum {
-  NO_OP,
-  I_O,
-  READ,
-  WRITE,
-  COPY,
-  EXIT
-}
-TipoInstruccion;
-
-typedef struct Instruccion {
-  TipoInstruccion tipo;
-  unsigned int params[2];
-}
-Instruccion;
+#include "instrucciones_handler.h"
 
 
 char * ipMemoria;
@@ -41,27 +26,30 @@ int estimacionInicial;
 int alfa;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
-pid_t procesoHijo;
 
-typedef struct {
-  int conn_kernel;
-  //int conn_memoria;
-  //char *ipMemoria;
-  //char *puertoMemoria;
-}conexiones;
 
 
 typedef struct {
-  int * cliente_fd;
-  t_list * instrucciones;
+	unsigned int id;
+	unsigned int tam_proceso;
+	t_list * intrucciones;
+	unsigned int pc;
+	/* TABLA PAGINAS ??? */
+	double rafaga;
 
-}argumentos;
+}pcb;
 
+//Listas de estados
+
+t_list * bloqueado;
+t_list * ready;
+t_list * running;
+t_list * bloqueado_suspendido;
+t_list * ready_suspendido;
 
 
 t_config * kernel_config;
-int recibir_int(int socket_cliente);
-void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
 
+void incilizar_pcb(pcb pcb);
 
 #endif /* KERNEL_H_ */
