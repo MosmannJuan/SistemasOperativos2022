@@ -27,8 +27,9 @@ t_list * ready_suspendido;
 
 // ---- FUNCIONES ----//
 
-pcb inicializar_pcb(t_list *, unsigned int, double);
-
+pcb * inicializar_pcb(t_list *, unsigned int, double);
+pcb* pcb_create();
+void pcb_destroy(pcb * pcb);
 
 
 #endif /* PLANIFICADOR_H_ */

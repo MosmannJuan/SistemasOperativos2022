@@ -53,9 +53,9 @@ int main(int argc, char ** argv) {
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
     	} else {
     		pthread_join(handler, NULL);
-    		pcb pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
+    		pcb* pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
     		printf("EN KERNEL PAPU \n");
-    		printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb.id, pcb.tam_proceso, list_size(pcb.instrucciones), pcb.pc, pcb.rafaga);
+    		printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
     	}
 
 
