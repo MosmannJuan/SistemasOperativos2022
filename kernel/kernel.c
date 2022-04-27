@@ -4,6 +4,8 @@
 
 int main(int argc, char ** argv) {
 
+  inicializar_listas_procesos();
+
   t_log * loggerKernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
 
   kernel_config = config_create("kernel.config");
@@ -53,9 +55,17 @@ int main(int argc, char ** argv) {
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
     	} else {
     		pthread_join(handler, NULL);
-    		pcb* pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
-    		printf("EN KERNEL PAPU \n");
-    		printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
+    		pthread_t largo_plazo_thread;
+    		argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
+    		args_largo_plazo->instrucciones = instrucciones;
+    		args_largo_plazo->tam_proceso = (unsigned int) 8; //TODO usar el enviado desde consola
+    		args_largo_plazo->estimacion_rafaga = estimacionInicial;
+    		pthread_create(&largo_plazo_thread, NULL, hilo_de_largo_plazo, args_largo_plazo);
+    		pthread_join(largo_plazo_thread, NULL);
+    		printf("Terminó el largo plazo! \n");
+    		//pcb* pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
+    		//printf("EN KERNEL PAPU \n");
+    		//printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
     	}
 
 
