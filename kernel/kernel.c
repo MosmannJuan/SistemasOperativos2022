@@ -25,6 +25,9 @@ int main(int argc, char ** argv) {
 
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
 
+  //Inicializamos el semáforo para el process id del planificador de largo plazo
+  sem_init(&semaforo_pid, 0, 1);
+
   while (1) {
 	// pthread requiere que el 4to argumento (argumentos de la funcion que pasamos) sea un void*
 	// entonces creamos un int*, le asignamos memoria dinámica y le guardamos el int que retorna la conexión.

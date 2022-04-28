@@ -2,6 +2,11 @@
 #define PLANIFICADOR_H_
 
 #include "instrucciones_handler.h"
+#include <semaphore.h>
+
+// ---- VARIABLES ----//
+
+sem_t semaforo_pid;
 
 // ---- ESTRUCTURAS Y ENUMS ----//
 

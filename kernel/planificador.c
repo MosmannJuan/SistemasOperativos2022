@@ -38,9 +38,13 @@ pcb* pcb_create(){
 
 pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso, unsigned int estimacion_rafaga){
 	pcb * pcb = pcb_create();
-
-	pid_contador++; //TODO semaforo
+	//Enviamos la señal de wait al semáforo para bloquear el recurso
+	sem_wait(&semaforo_pid);
+	//Accedemos al recurso compartido y ejecutamos las instrucciones de la zona crítica
+	pid_contador++;
 	pcb->id = pid_contador;
+	//Enviamos la señal de post para liberar el recurso
+	sem_post(&semaforo_pid);
 	pcb->tam_proceso = tam_proceso;
 	pcb->instrucciones = instrucciones;
 	pcb->pc = 0;

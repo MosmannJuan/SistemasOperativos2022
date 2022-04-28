@@ -28,6 +28,7 @@ int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
 
 t_config * kernel_config;
+//sem_t semaforo_pid;
 
 
 #endif /* KERNEL_H_ */

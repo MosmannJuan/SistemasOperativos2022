@@ -7,6 +7,7 @@
 #include <pthread.h> //solo para pruebas printf
 #include <sys/socket.h>
 #include <stdlib.h>
+#include <semaphore.h>
 #include "planificador.h"
 
 

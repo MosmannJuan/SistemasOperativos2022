@@ -61,6 +61,7 @@ void iniciar_thread_largo_plazo(t_list * instrucciones, unsigned int estimacionI
 	  	args_largo_plazo->instrucciones = instrucciones;
 	  	args_largo_plazo->tam_proceso = tam_proceso;
 	  	args_largo_plazo->estimacion_rafaga = estimacionInicial;
+	  	//args_largo_plazo->semaforo_pid_puntero = semaforo_pid_puntero;
 	  	pthread_create(&largo_plazo_thread, NULL, hilo_de_largo_plazo, args_largo_plazo);
 	  	pthread_join(largo_plazo_thread, NULL);
 	  	printf("Terminó el largo plazo! \n");
