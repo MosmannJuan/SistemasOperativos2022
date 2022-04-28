@@ -9,12 +9,13 @@ int main(int argc, char ** argv) {
   inicializar_listas_procesos();
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
 
+
   t_log * loggerKernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
 
   kernel_config = config_create("kernel.config");
   ipKernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
   puertoEscucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
-  estimacionInicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
+  estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
 
   //ipMemoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
   algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
@@ -37,7 +38,6 @@ int main(int argc, char ** argv) {
 	t_list * instrucciones = list_create();
 	argumentos *argumentos = malloc(sizeof(argumentos));
 	argumentos->instrucciones = instrucciones;
-    argumentos->estimacion_inicial = estimacionInicial;
 	argumentos->cliente_fd = esperar_cliente(conexion);
 
 

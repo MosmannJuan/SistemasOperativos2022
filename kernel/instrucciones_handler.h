@@ -20,8 +20,7 @@ typedef enum {
   WRITE,
   COPY,
   EXIT
-}
-TipoInstruccion;
+}TipoInstruccion;
 
 typedef struct Instruccion {
   TipoInstruccion tipo;
@@ -31,15 +30,13 @@ typedef struct Instruccion {
 typedef struct {
   int cliente_fd;
   t_list * instrucciones;
-  unsigned int estimacion_inicial;
-
 }argumentos;
 
 // ---- FUNCIONES ----//
 
 int recibir_int(int socket_cliente);
 void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
-void iniciar_thread_largo_plazo(t_list * instrucciones, unsigned int estimacionInicial, unsigned int tam_proceso);
+void iniciar_thread_largo_plazo(t_list * instrucciones, unsigned int tam_proceso);
 
 
 #endif /* INSTRUCCIONES_HANDLER_H_ */

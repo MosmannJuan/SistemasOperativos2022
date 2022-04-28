@@ -36,7 +36,7 @@ pcb* pcb_create(){
 	return pcb;
 }
 
-pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso, unsigned int estimacion_rafaga){
+pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso){
 	pcb * pcb = pcb_create();
 	//Enviamos la señal de wait al semáforo para bloquear el recurso
 	sem_wait(&semaforo_pid);
@@ -48,7 +48,7 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso, unsigned
 	pcb->tam_proceso = tam_proceso;
 	pcb->instrucciones = instrucciones;
 	pcb->pc = 0;
-	pcb->rafaga = estimacion_rafaga;
+	pcb->rafaga = estimacion_inicial;
 
 	printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
 	return pcb;
@@ -69,10 +69,9 @@ void * hilo_de_largo_plazo (void * args_p){
 	argumentos_largo_plazo* pointer_args = (argumentos_largo_plazo*) args_p;
 	t_list* instrucciones = pointer_args->instrucciones;
 	unsigned int tam_proceso = pointer_args->tam_proceso;
-	unsigned int estimacion_rafaga = pointer_args->estimacion_rafaga;
 	free(args_p);
 	//Inicializar pcb
-	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso, estimacion_rafaga);
+	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
 	//Asignar pcb a new
 	printf("El tamaño de la lista de new antes de asignar es: %d \n", list_size(new));
 	sem_wait(&semaforo_lista_new_add);
@@ -122,6 +121,7 @@ void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
 }
 
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos){
+
 	while(1){
 		if(list_size(ready) > 0 && list_size(running) == 0){
 			//Sacamos de lista de ready
@@ -193,8 +193,14 @@ bool es_pid_a_desbloquear(void * pcb_recibido){
 	return pcb_comparacion->id == pid_comparacion;
 }
 
-bool es_pid_a_desbloquear(void * pcb_recibido){
-	pcb* pcb_comparacion = (pcb*) pcb_recibido;
-	return pcb_comparacion->id == pid_comparacion;
+bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb){
+	pcb* pcbUno = (pcb*) unPcb;
+	pcb* pcbDos = (pcb*) otroPcb;
+
+	return pcbUno->rafaga <  pcbDos->rafaga;
+}
+
+unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior){
+	return alfa * rafaga_real_anterior + (1-alfa) * estimacion_anterior;
 }
 

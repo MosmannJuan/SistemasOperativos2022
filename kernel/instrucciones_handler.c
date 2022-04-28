@@ -6,7 +6,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	argumentos* pointer_args = (argumentos*) pointer_argumentos;
 	int cliente_fd = pointer_args->cliente_fd;
 	t_list* instrucciones = pointer_args->instrucciones;
-	unsigned int estimacionInicial = pointer_args->estimacion_inicial;
+
 	free(pointer_args);
 
 	//sleep para testing de multiples conexiones.
@@ -34,7 +34,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       break;
     case -1:
       printf("Se ha cerrado la conexión. \n\n");
-      iniciar_thread_largo_plazo(instrucciones, estimacionInicial, (unsigned int) 8); //TODO usar el tam_proceso enviado desde consola
+      iniciar_thread_largo_plazo(instrucciones, (unsigned int) 8); //TODO usar el tam_proceso enviado desde consola
       return NULL;
     default:
       printf("No recibi un codigo de operacion valido. \n");
@@ -54,13 +54,12 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 
 }
 
-void iniciar_thread_largo_plazo(t_list * instrucciones, unsigned int estimacionInicial, unsigned int tam_proceso){
+void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso){
 	pthread_t largo_plazo_thread;
 	  	argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
 	  	args_largo_plazo->instrucciones = instrucciones;
 	  	args_largo_plazo->tam_proceso = tam_proceso;
-	  	args_largo_plazo->estimacion_rafaga = estimacionInicial;
-	  	//args_largo_plazo->semaforo_pid_puntero = semaforo_pid_puntero;
+
 	  	pthread_create(&largo_plazo_thread, NULL, hilo_de_largo_plazo, args_largo_plazo);
 	  	pthread_join(largo_plazo_thread, NULL);
 	  	printf("Terminó el largo plazo! \n");

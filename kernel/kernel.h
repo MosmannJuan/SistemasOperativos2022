@@ -18,12 +18,9 @@ char * ipMemoria;
 char * ipKernel;
 int puertoMemoria;
 char * ipCpu;
-char * algoritmoPlanificacion;
 int puertoCpuInterrupt;
 int puertoCpuDispatch;
 char * puertoEscucha;
-unsigned int estimacionInicial;
-int alfa;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
 
