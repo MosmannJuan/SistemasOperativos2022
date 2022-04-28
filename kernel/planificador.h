@@ -75,5 +75,6 @@ void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
 void * hilo_de_corto_plazo_fifo_running(void* argumentos);
 unsigned int calcular_estimacion_rafaga();
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
+void * hilo_de_corto_plazo_sjf_running(void* argumentos);
 
 #endif /* PLANIFICADOR_H_ */

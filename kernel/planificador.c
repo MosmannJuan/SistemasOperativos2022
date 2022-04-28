@@ -200,7 +200,37 @@ bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb){
 	return pcbUno->rafaga <  pcbDos->rafaga;
 }
 
+
 unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior){
 	return alfa * rafaga_real_anterior + (1-alfa) * estimacion_anterior;
+}
+
+
+void * hilo_de_corto_plazo_sjf_running(void* argumentos){
+	unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
+	while(1){
+		//Espera mensaje de cpu por socket de dispatch (pcb actualizado y mensaje para switch)
+		mensaje_dispatch dummy_mensaje;
+		switch(dummy_mensaje.mensaje){
+			case PASAR_A_BLOQUEADO:
+				list_remove(running, 0);
+				dummy_mensaje.pcb_actualizado->rafaga = calcular_estimacion_rafaga(real_anterior,dummy_mensaje.pcb_actualizado->rafaga);
+				list_add(bloqueado, dummy_mensaje.pcb_actualizado);
+				argumentos_hilo_bloqueo* args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
+				args_bloqueo->tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
+				args_bloqueo->pcb_actualizado = dummy_mensaje.pcb_actualizado;
+				pthread_t hilo_bloqueo; // falta preguntar en hilo si es sjf para ordenar
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+				break;
+			case PASAR_A_READY:
+				list_remove(running, 0);
+				sem_wait(&semaforo_lista_ready_add);
+				list_add(ready, dummy_mensaje.pcb_actualizado);
+				sem_post(&semaforo_lista_ready_add);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
