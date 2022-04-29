@@ -97,7 +97,11 @@ void * hilo_de_largo_plazo(void * args_p) {
 
 }
 
+
+//---------------------------------------------------------------
 // ----------------- PLANIFICADOR MEDIANO PLAZO -----------------
+//---------------------------------------------------------------
+
 
 void * hilo_mediano_plazo_ready(void * argumentos) {
   while (1) {
@@ -133,14 +137,23 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   //Saca el PCB actual de la lista de suspendido bloqueado.
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
-  list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
-  list_add(ready_suspendido, pcb_actualizado);
+  list_remove_by_condition(bloqueado_sus pendido, es_pid_a_desbloquear);
   sem_post( & semaforo_pid_comparacion);
+  if(strcmp(algoritmoPlanificacion, "SRT") == 0)
+	  list_add_sorted(ready_suspendido, pcb_actualizado, ordenar_por_estimacion_rafaga);
+  else
+	  list_add(ready_suspendido, pcb_actualizado);
 
   return NULL;
 }
 
+
+
+
+//--------------------------------------------------------------
 // ----------------- PLANIFICADOR CORTO PLAZO  -----------------
+//--------------------------------------------------------------
+
 
 void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
   while (1) {
@@ -254,7 +267,10 @@ void * hilo_bloqueo_proceso(void * argumentos) {
     sem_post( & semaforo_pid_comparacion);
 
     sem_wait( & semaforo_lista_ready_add);
-    list_add(ready, pcb_actualizado);
+    if(strcmp(algoritmoPlanificacion, "SRT") == 0)
+    	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
+    else
+    	list_add(ready, pcb_actualizado);
     sem_post( & semaforo_lista_ready_add);
   }
 
@@ -276,3 +292,7 @@ bool ordenar_por_estimacion_rafaga(void * unPcb, void * otroPcb) {
 unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior) {
   return alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
 }
+
+
+
+
