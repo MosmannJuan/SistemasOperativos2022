@@ -29,7 +29,7 @@ typedef struct Instruccion {
 }Instruccion;
 
 typedef struct {
-  int * cliente_fd;
+  int cliente_fd;
   t_list * instrucciones;
   unsigned int estimacion_inicial;
 

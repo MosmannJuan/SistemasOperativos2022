@@ -4,10 +4,9 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	//Recibimos el int del cliente como un void* y lo reconvertimos mediante una asignación y utilizando (int*)
 	// para indicar que guarde el void* como int* en cliente.
 	argumentos* pointer_args = (argumentos*) pointer_argumentos;
-	int cliente_fd = *pointer_args->cliente_fd;
+	int cliente_fd = pointer_args->cliente_fd;
 	t_list* instrucciones = pointer_args->instrucciones;
 	unsigned int estimacionInicial = pointer_args->estimacion_inicial;
-	free(pointer_args->cliente_fd);
 	free(pointer_args);
 
 	//sleep para testing de multiples conexiones.

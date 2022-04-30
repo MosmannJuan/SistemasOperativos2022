@@ -34,16 +34,12 @@ int main(int argc, char ** argv) {
 	t_list * instrucciones = list_create();
 	argumentos *argumentos = malloc(sizeof(argumentos));
 	argumentos->instrucciones = instrucciones;
-	argumentos->cliente_fd = malloc(sizeof(int));
     argumentos->estimacion_inicial = estimacionInicial;
-    int socket_cliente = esperar_cliente(conexion);
-    *argumentos->cliente_fd = socket_cliente;
+	argumentos->cliente_fd = esperar_cliente(conexion);
 
 
-
-    if (*argumentos->cliente_fd < 0) {
+    if (argumentos->cliente_fd < 0) {
       //handlear error en logger y free para evitar memory leak.
-      free(argumentos->cliente_fd );
       free(argumentos);
       log_info(loggerKernel, "Falló conexión con el cliente.");
     }
@@ -54,7 +50,6 @@ int main(int argc, char ** argv) {
     	//La funcion (3er argumento) que recibe pthread debe ser del tipo void* y los argumentos (4to argumento) deben ser void*
     	if(pthread_create(&handler, NULL, atender_instrucciones_cliente,argumentos) != 0) {
     		// Si el pthread_create falla, handlea el error en el logger del kernel y free para evitar memory leak.
-    	    free(argumentos->cliente_fd );
     	    free(argumentos);
     		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
     	} else {
