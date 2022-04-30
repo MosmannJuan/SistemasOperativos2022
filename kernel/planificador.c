@@ -1,6 +1,7 @@
 #include "planificador.h"
 
 unsigned int pid_contador = 0; //Process id
+unsigned int grado_multiprogramacion = 0;
 
 // ----------------- INICIALIZACION GENERAL DE LISTAS -----------------
 void inicializar_listas_procesos() {
@@ -13,7 +14,9 @@ void inicializar_listas_procesos() {
   exit_estado = list_create();
 }
 
+//-------------------------------------------------------------
 // ----------------- PLANIFICADOR LARGO PLAZO -----------------
+//-------------------------------------------------------------
 
 // PROCESO DE CREACION DE PCB
 
@@ -49,6 +52,7 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
   pcb -> rafaga = estimacion_inicial;
 
   printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n", pcb -> id, pcb -> tam_proceso, list_size(pcb -> instrucciones), pcb -> pc, pcb -> rafaga);
+
   return pcb;
 }
 
@@ -85,13 +89,21 @@ void * hilo_de_largo_plazo(void * args_p) {
   sem_wait( & semaforo_lista_new_remove);
   pcb * pcb_ready = list_remove(new, 0);
   sem_post( & semaforo_lista_new_remove);
+
   printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(new));
   printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
+
   sem_wait( & semaforo_lista_ready_add);
   if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
     list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
   } else list_add(ready, pcb_ready);
   sem_post( & semaforo_lista_ready_add);
+
+  sem_wait( & semaforo_grado_multiprogramacion);
+  grado_multiprogramacion++;
+  sem_post( & semaforo_grado_multiprogramacion);
+
+
   printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
   return NULL;
 
@@ -108,6 +120,12 @@ void * exit_largo_plazo(void * argumentos){
     //Eviar mensaje a memoria para hacer free
     //Memoria devuelve que fue ok
     //Saco de Exit
+
+
+    sem_wait( & semaforo_grado_multiprogramacion);
+    grado_multiprogramacion--;
+    sem_post( & semaforo_grado_multiprogramacion);
+
     return NULL;
 }
 
@@ -146,6 +164,10 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
   list_add(bloqueado_suspendido, pcb_actualizado);
   sem_post( & semaforo_pid_comparacion);
+
+  sem_wait( & semaforo_grado_multiprogramacion);
+  grado_multiprogramacion--;
+  sem_post( & semaforo_grado_multiprogramacion);
 
   sleep(tiempo_bloqueo / 1000);
 

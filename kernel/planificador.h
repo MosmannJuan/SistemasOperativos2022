@@ -16,12 +16,14 @@ sem_t semaforo_lista_ready_remove;
 sem_t semaforo_lista_ready_suspendido_remove;
 sem_t semaforo_lista_ready_suspendido_add;
 sem_t semaforo_lista_running_remove;
+sem_t semaforo_grado_multiprogramacion;
 
 int alfa;
 char * algoritmoPlanificacion;
 unsigned int pid_comparacion;
 unsigned int estimacion_inicial;
 int tiempoMaximoBloqueado;
+
 
 
 // ---- ESTRUCTURAS Y ENUMS ----//
