@@ -6,6 +6,8 @@ int main(int argc, char ** argv) {
 
   pthread_t hilo_ready;
   pthread_t hilo_running;
+  pthread_t hilo_new_ready;
+  pthread_t hilo_exit;
   inicializar_listas_procesos();
 
 
@@ -28,6 +30,7 @@ int main(int argc, char ** argv) {
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
+  inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
 
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
 
@@ -80,6 +83,11 @@ void inicializar_semaforos(){
     sem_init(&semaforo_lista_ready_suspendido_add, 0,1);
     sem_init(&semaforo_grado_multiprogramacion,0,1);
     sem_init(&semaforo_grado_multiprogramacion,0,1);
+}
+
+void inicializar_planificador_largo_plazo(pthread_t * hilo_new_ready, pthread_t  * hilo_exit){
+	pthread_create(hilo_new_ready, NULL, hilo_new_ready, NULL);
+	pthread_create(hilo_exit, NULL, exit_largo_plazo, NULL);
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){

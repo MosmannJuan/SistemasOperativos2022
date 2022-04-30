@@ -127,25 +127,27 @@ void * hilo_new_ready(void * argumentos){
 
 void * exit_largo_plazo(void * argumentos){
 	//CPU lee la instruccion exit y comunica a Kernel que el proceso deja de ejecutar
-	sem_wait( & semaforo_lista_running_remove);
-	pcb * pcb_exit= list_remove(running, 0);
-    sem_post( & semaforo_lista_running_remove);
-    list_add(exit_estado, pcb_exit);
+	while(1){
+		sem_wait( & semaforo_lista_running_remove);
+		pcb * pcb_exit= list_remove(running, 0);
+		sem_post( & semaforo_lista_running_remove);
+		list_add(exit_estado, pcb_exit);
 
-    //Eviar mensaje a memoria para hacer free
-    //Memoria devuelve que fue ok
-    //Saco de Exit
+		//Eviar mensaje a memoria para hacer free
+		//Memoria devuelve que fue ok
 
+		list_remove(exit_estado,0);
+		pcb_destroy(pcb_exit);
 
-    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+		printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
 
-    sem_wait( & semaforo_grado_multiprogramacion);
-    grado_multiprogramacion--;
-    sem_post( & semaforo_grado_multiprogramacion);
+		sem_wait( & semaforo_grado_multiprogramacion);
+		grado_multiprogramacion--;
+		sem_post( & semaforo_grado_multiprogramacion);
 
-    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+		printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
 
-
+	}
     return NULL;
 }
 
@@ -167,6 +169,8 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       sem_post( & semaforo_lista_ready_suspendido_remove);
       printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(ready_suspendido));
       printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
+      //TODO Enviar mensaje a Memoria para volver a asignar lugar
+
       sem_wait( & semaforo_lista_ready_add);
       if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
         list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
@@ -192,8 +196,11 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
   list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
-  list_add(bloqueado_suspendido, pcb_actualizado);
   sem_post( & semaforo_pid_comparacion);
+
+  list_add(bloqueado_suspendido, pcb_actualizado);
+
+  //Se envia a memoria para que pase a disco
 
   sem_wait( & semaforo_grado_multiprogramacion);
   grado_multiprogramacion--;
@@ -341,14 +348,14 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
   //Esperamos el tiempo que corresponde según la instrucción
   unsigned int tiempo_extra = tiempo_bloqueo - tiempoMaximoBloqueado;
-  if (tiempo_extra > 0) sleep(tiempoMaximoBloqueado / 1000);
-  else sleep(tiempo_bloqueo / 1000);
 
-  if (tiempo_bloqueo > tiempoMaximoBloqueado / 1000) {
+  if (tiempo_bloqueo > tiempoMaximoBloqueado){
+	sleep(tiempoMaximoBloqueado / 1000);
     mediano_plazo_bloqueado_suspendido(pcb_actualizado, tiempo_extra);
-  } else {
+  }
+  else {
+	sleep(tiempo_bloqueo / 1000);
     //TODO: Al final del tiempo enviamos el mensaje de interrupt a CPU por socket de interrupt
-
     //Enviamos de bloqueado a ready
     sem_wait( & semaforo_pid_comparacion);
     pid_comparacion = pcb_actualizado -> id;
@@ -356,10 +363,12 @@ void * hilo_bloqueo_proceso(void * argumentos) {
     sem_post( & semaforo_pid_comparacion);
 
     sem_wait( & semaforo_lista_ready_add);
+
     if(strcmp(algoritmoPlanificacion, "SRT") == 0)
     	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
     else
     	list_add(ready, pcb_actualizado);
+
     sem_post( & semaforo_lista_ready_add);
   }
 
