@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <cpu.h>
+#include "cpu.h"
 
 
 int main(void) {
@@ -9,7 +7,7 @@ int main(void) {
 }
 
 
-void abrirArchivoConfifuracion(){
+void abrirArchivoConfiguracion(){
 	t_log *loggerCpu = log_create("cpu.log", "cpu.c", 1, LOG_LEVEL_DEBUG);
 
 		entradasTlb = config_get_int_value(cpuConfig,"ENTRADAS_TLB");
@@ -29,23 +27,24 @@ void abrirArchivoConfifuracion(){
 
 }*/
 
-void* fetch( Pcb pcb){
+void* fetch(Pcb * pcb_fetch){
 
-	return list_get(pcb->instrucciones,pcb->pc);
+	return list_get(pcb_fetch->instrucciones,pcb_fetch->pc);
 
 }
 
-void* decodeExecute ( Pcb pcb, Instruccion instruccion ){
-	pcb->pc++;
+void* decode_execute (Pcb * pcb_decode, Instruccion * instruccion_decode){
+	pcb_decode->pc++;
+	DireccionLogica * dir_logica;
 
-	switch(instruccion->tipo){
+	switch(instruccion_decode->tipo){
 	case NO_OP:
 		sleep(retardoNoop);
 	break;
 	case  I_O:
-		pcb->estado = BLOQUEADO
-		send(conexionDispatch, &pcb , sizeof(Pcb), 0);
-		send(conexionDispatch, &instruccion->params[0],sizeof(int),0);
+		pcb_decode->estado = BLOQUEADO;
+		send(conexionDispatch, pcb_decode , sizeof(Pcb), 0);
+		send(conexionDispatch, &instruccion_decode->params[0],sizeof(int),0);
 	break;
 	case  READ:
 	//	send(conexionMemoria,  )
@@ -53,21 +52,19 @@ void* decodeExecute ( Pcb pcb, Instruccion instruccion ){
 	case WRITE:
 	break;
 	case  COPY:
-		fetchOperands(instruccion->params);
+		dir_logica  = fetch_operands(instruccion_decode->params);
 	break;
 	case  EXIT:
-		pcb->estado = FINALIZADO;
-		send(conexionDispatch, &pcb , sizeof(Pcb), 0);
+		pcb_decode->estado = FINALIZADO;
+		send(conexionDispatch, pcb_decode , sizeof(Pcb), 0);
 	break;
 	}
 
 return(NULL);
 }
 
-DireccionLogica	fetchOperands(int[]){
-
-	DireccionLogica dir = malloc(sizeof(DireccionLogica));
-// obtener primer nivel a memoria, segundo nivel y desplazamiento
-
-return(dir);
+DireccionLogica* fetch_operands(unsigned int* operandos){
+	DireccionLogica *direccion = malloc(sizeof(DireccionLogica));
+	//obtener primer nivel a memoria, segundo nivel y desplazamiento
+	return(direccion);
 }

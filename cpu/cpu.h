@@ -1,12 +1,17 @@
 #ifndef CPU_H_
 #define CPU_H_
-#include <stdio.h>
-#include <stdlib.h>
-#include <sharedUtils.c>
+
+
+//#include <sharedUtils.c>
 #include <commons/log.h>
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int	entradasTlb ;
 char*	reemplazoTlb;
@@ -21,6 +26,12 @@ int conexionInterrupt;
 
 t_config* cpuConfig;
 
+typedef enum {
+	BLOQUEADO,
+	INTERRUPCION,
+	FINALIZADO
+}EstadoPcb;
+
 typedef struct {
 	unsigned int id;
     unsigned int tam_proceso;
@@ -31,13 +42,6 @@ typedef struct {
 	double rafaga;
 }Pcb;
 
-void* fetch( Pcb pcb);
-
-typedef enum {
-	BLOQUEADO,
-	INTERRUPCION,
-	FINALIZADO
-}EstadoPcb;
 
 typedef enum {
 	NO_OP,
@@ -59,7 +63,9 @@ typedef struct DireccionLogica{
 	int desplazamiento;
 }DireccionLogica;
 
-DireccionLogica	fetchOperands(int[]);
-void* decodeExecute(Instruccion);
+DireccionLogica* fetch_operands(unsigned int* operandos);
+void* decode_execute (Pcb * pcb_decode, Instruccion * instruccion_decode);
+void* fetch(Pcb * pcb_fetch);
+void abrirArchivoConfiguracion();
 
 #endif /* CPU_H_ */
