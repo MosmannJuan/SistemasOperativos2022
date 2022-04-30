@@ -12,8 +12,10 @@ sem_t semaforo_pid_comparacion;
 sem_t semaforo_lista_new_add;
 sem_t semaforo_lista_new_remove;
 sem_t semaforo_lista_ready_add;
+sem_t semaforo_lista_ready_remove;
 sem_t semaforo_lista_ready_suspendido_remove;
 sem_t semaforo_lista_ready_suspendido_add;
+sem_t semaforo_lista_running_remove;
 
 int alfa;
 char * algoritmoPlanificacion;
@@ -25,7 +27,8 @@ int tiempoMaximoBloqueado;
 // ---- ESTRUCTURAS Y ENUMS ----//
 typedef enum{
 	PASAR_A_BLOQUEADO,
-	PASAR_A_READY
+	PASAR_A_READY,
+	PASAR_A_EXIT
 } mensaje_cpu;
 
 typedef struct {
@@ -81,5 +84,6 @@ void * hilo_de_corto_plazo_fifo_running(void* argumentos);
 unsigned int calcular_estimacion_rafaga();
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void * hilo_de_corto_plazo_sjf_running(void* argumentos);
+void * exit_largo_plazo(void * argumentos);
 
 #endif /* PLANIFICADOR_H_ */

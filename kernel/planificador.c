@@ -98,6 +98,21 @@ void * hilo_de_largo_plazo(void * args_p) {
 }
 
 
+void * exit_largo_plazo(void * argumentos){
+	//CPU lee la instruccion exit y comunica a Kernel que el proceso deja de ejecutar
+	sem_wait( & semaforo_lista_running_remove);
+	pcb * pcb_exit= list_remove(running, 0);
+    sem_post( & semaforo_lista_running_remove);
+    list_add(exit_estado, pcb_exit);
+
+    //Eviar mensaje a memoria para hacer free
+    //Memoria devuelve que fue ok
+    //Saco de Exit
+    return NULL;
+}
+
+
+
 //---------------------------------------------------------------
 // ----------------- PLANIFICADOR MEDIANO PLAZO -----------------
 //---------------------------------------------------------------
