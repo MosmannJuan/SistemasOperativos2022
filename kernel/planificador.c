@@ -3,7 +3,9 @@
 unsigned int pid_contador = 0; //Process id
 unsigned int grado_multiprogramacion = 0;
 
+
 // ----------------- INICIALIZACION GENERAL DE LISTAS -----------------
+
 void inicializar_listas_procesos() {
   new = list_create();
   bloqueado = list_create();
@@ -18,7 +20,6 @@ void inicializar_listas_procesos() {
 // ----------------- PLANIFICADOR LARGO PLAZO -----------------
 //-------------------------------------------------------------
 
-// PROCESO DE CREACION DE PCB
 
 pcb * pcb_create() {
   pcb * pcb;
@@ -63,9 +64,9 @@ void pcb_destroy(pcb * pcb) {
   free(pcb);
 }
 
-// FUNCION DE THREAD
 
-void * hilo_de_largo_plazo(void * args_p) {
+
+void * hilo_pcb_new(void * args_p) {
   //Acceder a args
   argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
   t_list * instrucciones = pointer_args -> instrucciones;
@@ -75,40 +76,54 @@ void * hilo_de_largo_plazo(void * args_p) {
   pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
   //Asignar pcb a new
   printf("El tamaño de la lista de new antes de asignar es: %d \n", list_size(new));
+
   sem_wait( & semaforo_lista_new_add);
   list_add(new, pcb_nuevo);
   sem_post( & semaforo_lista_new_add);
+
   printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
   sleep(5);
-  //TODO Evaluar multiprogramacion
-  //TODO Enviar mensaje a memoria
 
-  //TODO Asignar tabla de páginas a pcb
-
-  //Eliminar pcb de new y mover a ready
-  sem_wait( & semaforo_lista_new_remove);
-  pcb * pcb_ready = list_remove(new, 0);
-  sem_post( & semaforo_lista_new_remove);
-
-  printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(new));
-  printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
-
-  sem_wait( & semaforo_lista_ready_add);
-  if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
-    list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
-  } else list_add(ready, pcb_ready);
-  sem_post( & semaforo_lista_ready_add);
-
-  sem_wait( & semaforo_grado_multiprogramacion);
-  grado_multiprogramacion++;
-  sem_post( & semaforo_grado_multiprogramacion);
-
-
-  printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
   return NULL;
 
 }
 
+
+void * hilo_new_ready(void * argumentos){
+	while (1){
+		  if(grado_multiprogramacion < limite_grado_multiprogramacion && list_size(ready_suspendido) == 0 && list_size(new)>0){
+			  //TODO Enviar mensaje a memoria
+
+			  //TODO Asignar tabla de páginas a pcb
+
+			  //Eliminar pcb de new y mover a ready
+
+
+			  sem_wait( & semaforo_lista_new_remove);
+			  pcb * pcb_ready = list_remove(new, 0);
+			  sem_post( & semaforo_lista_new_remove);
+
+			  printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(new));
+			  printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
+
+			  sem_wait( & semaforo_lista_ready_add);
+			  if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
+				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
+			  } else list_add(ready, pcb_ready);
+			  sem_post( & semaforo_lista_ready_add);
+
+			  sem_wait( & semaforo_grado_multiprogramacion);
+			  grado_multiprogramacion++;
+			  sem_post( & semaforo_grado_multiprogramacion);
+
+
+			  printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
+
+		  }
+	}
+
+	return NULL;
+}
 
 void * exit_largo_plazo(void * argumentos){
 	//CPU lee la instruccion exit y comunica a Kernel que el proceso deja de ejecutar
@@ -122,9 +137,14 @@ void * exit_largo_plazo(void * argumentos){
     //Saco de Exit
 
 
+    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+
     sem_wait( & semaforo_grado_multiprogramacion);
     grado_multiprogramacion--;
     sem_post( & semaforo_grado_multiprogramacion);
+
+    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+
 
     return NULL;
 }
@@ -137,8 +157,11 @@ void * exit_largo_plazo(void * argumentos){
 
 
 void * hilo_mediano_plazo_ready(void * argumentos) {
+
+    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+
   while (1) {
-    if (list_size(ready_suspendido) > 0) {
+    if (list_size(ready_suspendido) > 0 && grado_multiprogramacion < limite_grado_multiprogramacion) {
       sem_wait( & semaforo_lista_ready_suspendido_remove);
       pcb * pcb_ready = list_remove(ready_suspendido, 0);
       sem_post( & semaforo_lista_ready_suspendido_remove);
@@ -152,6 +175,13 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       }
       sem_post( & semaforo_lista_ready_add);
       printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
+
+      sem_wait( & semaforo_grado_multiprogramacion);
+      grado_multiprogramacion++;
+      sem_post( & semaforo_grado_multiprogramacion);
+
+      printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+
       return NULL;
     }
   }
@@ -284,6 +314,25 @@ void * hilo_de_corto_plazo_sjf_running(void * argumentos) {
   }
 }
 
+
+bool es_pid_a_desbloquear(void * pcb_recibido) {
+  pcb * pcb_comparacion = (pcb * ) pcb_recibido;
+  return pcb_comparacion -> id == pid_comparacion;
+}
+
+bool ordenar_por_estimacion_rafaga(void * unPcb, void * otroPcb) {
+  pcb * pcbUno = (pcb * ) unPcb;
+  pcb * pcbDos = (pcb * ) otroPcb;
+
+  return pcbUno -> rafaga < pcbDos -> rafaga;
+}
+
+unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior) {
+	return alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
+}
+
+
+
 void * hilo_bloqueo_proceso(void * argumentos) {
   argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo * ) argumentos;
   unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
@@ -316,23 +365,3 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
   return NULL;
 }
-
-bool es_pid_a_desbloquear(void * pcb_recibido) {
-  pcb * pcb_comparacion = (pcb * ) pcb_recibido;
-  return pcb_comparacion -> id == pid_comparacion;
-}
-
-bool ordenar_por_estimacion_rafaga(void * unPcb, void * otroPcb) {
-  pcb * pcbUno = (pcb * ) unPcb;
-  pcb * pcbDos = (pcb * ) otroPcb;
-
-  return pcbUno -> rafaga < pcbDos -> rafaga;
-}
-
-unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior) {
-  return alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
-}
-
-
-
-

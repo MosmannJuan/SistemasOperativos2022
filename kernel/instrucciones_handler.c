@@ -60,7 +60,7 @@ void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proces
 	  	args_largo_plazo->instrucciones = instrucciones;
 	  	args_largo_plazo->tam_proceso = tam_proceso;
 
-	  	pthread_create(&largo_plazo_thread, NULL, hilo_de_largo_plazo, args_largo_plazo);
+	  	pthread_create(&largo_plazo_thread, NULL, hilo_pcb_new, args_largo_plazo);
 	  	pthread_join(largo_plazo_thread, NULL);
 	  	printf("Terminó el largo plazo! \n");
 }

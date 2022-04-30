@@ -23,6 +23,7 @@ char * algoritmoPlanificacion;
 unsigned int pid_comparacion;
 unsigned int estimacion_inicial;
 int tiempoMaximoBloqueado;
+unsigned int limite_grado_multiprogramacion;
 
 
 
@@ -77,7 +78,7 @@ pcb* pcb_create();
 void pcb_destroy(pcb * pcb);
 void * hilo_de_largo_plazo (void * args);
 void inicializar_listas_procesos();
-void * hilo_de_largo_plazo (void * args_p);
+void * hilo_pcb_new (void * args_p);
 void * hilo_bloqueo_proceso (void* args_p);
 bool es_pid_a_desbloquear(void * pcb);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
