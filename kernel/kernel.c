@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
   int conexion = iniciar_servidor(ipKernel, puertoEscucha);
 
   //Inicializamos el semáforo para el process id del planificador de largo plazo
-  sem_init(&semaforo_pid, 0, 1);
+  inicializar_semaforos();
 
   while (1) {
 	// pthread requiere que el 4to argumento (argumentos de la funcion que pasamos) sea un void*
@@ -60,29 +60,16 @@ int main(int argc, char ** argv) {
     		//printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
     	}
 
-
-
-    	/*
-    	 *
-    	 * HANDLER DE INSTRUCCIONES DE CLIENTE MEDIANTE CREADO DE PROCESOS HIJO
-    	 *
-      procesoHijo = fork();
-      if (procesoHijo < 0) {
-        //fallo en creación del proceso hijo
-        log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
-        return EXIT_FAILURE;
-      } else if (procesoHijo == 0) {
-        //CHEQUEO DE CONEXIÓN, HAY QUE REMOVER LUEGO.
-        sleep(5);
-        printf("\n %s %d %s %d %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "\n");
-        atender_instrucciones_cliente(cliente_fd);
-        //Finalizar el fork, queda en loop infinito.
-        return EXIT_SUCCESS;
-      }
-      */
-
     }
   }
 
+}
+
+void inicializar_semaforos(){
+	sem_init(&semaforo_pid, 0, 1);
+	sem_init(&semaforo_lista_new_add, 0, 1);
+	sem_init(&semaforo_lista_ready_add, 0, 1);
+	sem_init(&semaforo_lista_new_remove, 0, 1);
+	sem_init(&semaforo_lista_ready_remove, 0, 1);
 }
 

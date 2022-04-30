@@ -7,6 +7,10 @@
 // ---- VARIABLES ----//
 
 sem_t semaforo_pid;
+sem_t semaforo_lista_new_add;
+sem_t semaforo_lista_ready_add;
+sem_t semaforo_lista_new_remove;
+sem_t semaforo_lista_ready_remove;
 
 // ---- ESTRUCTURAS Y ENUMS ----//
 

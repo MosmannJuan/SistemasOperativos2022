@@ -75,7 +75,9 @@ void * hilo_de_largo_plazo (void * args_p){
 	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso, estimacion_rafaga);
 	//Asignar pcb a new
 	printf("El tamaño de la lista de new antes de asignar es: %d \n", list_size(new));
+	sem_wait(&semaforo_lista_new_add);
 	list_add(new, pcb_nuevo);
+	sem_post(&semaforo_lista_new_add);
 	printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
 	sleep(5);
 	//TODO Evaluar multiprogramacion
@@ -84,10 +86,14 @@ void * hilo_de_largo_plazo (void * args_p){
 	//TODO Asignar tabla de páginas a pcb
 
 	//Eliminar pcb de new y mover a ready
+	sem_wait(&semaforo_lista_new_remove);
 	pcb* pcb_ready = list_remove(new, 0);
+	sem_post(&semaforo_lista_new_remove);
 	printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(new));
 	printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
+	sem_wait(&semaforo_lista_ready_add);
 	list_add(ready, pcb_ready);
+	sem_post(&semaforo_lista_ready_add);
 	printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
 	return NULL;
 
