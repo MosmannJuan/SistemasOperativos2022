@@ -4,7 +4,10 @@
 
 int main(int argc, char ** argv) {
 
+	pthread_t hilo_ready;
+	pthread_t hilo_running;
   inicializar_listas_procesos();
+  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
 
   t_log * loggerKernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
 
@@ -71,5 +74,10 @@ void inicializar_semaforos(){
 	sem_init(&semaforo_lista_ready_add, 0, 1);
 	sem_init(&semaforo_lista_new_remove, 0, 1);
 	sem_init(&semaforo_lista_ready_remove, 0, 1);
+}
+
+void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
+	pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
+	pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL);
 }
 

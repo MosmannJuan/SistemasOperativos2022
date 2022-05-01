@@ -29,7 +29,9 @@ int tiempoMaximoBloqueado;
 
 t_config * kernel_config;
 
+
 void inicializar_semaforos();
+void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running);
 
 
 #endif /* KERNEL_H_ */

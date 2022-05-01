@@ -103,3 +103,69 @@ void * hilo_de_largo_plazo (void * args_p){
 // ----------------- PLANIFICADOR MEDIANO PLAZO -----------------
 
 // ----------------- PLANIFICADOR CORTO PLAZO  -----------------
+void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
+	while(1){
+		if(list_size(ready) > 0 && list_size(running) == 0){
+			//Sacamos de lista de ready
+			pcb* pcb_running = list_remove(ready, 0);
+			//TODO: Mandamos mensaje a CPU
+
+			//Enviamos a running
+			list_add(running, pcb_running);
+		}
+	}
+}
+
+void * hilo_de_corto_plazo_fifo_running(void* argumentos){
+	while(1){
+		//Espera mensaje de cpu por socket de dispatch (pcb actualizado y mensaje para switch)
+		mensaje_dispatch dummy_mensaje;
+		switch(dummy_mensaje.mensaje){
+			case PASAR_A_BLOQUEADO:
+				list_remove(running, 0);
+				list_add(bloqueado, dummy_mensaje.pcb_actualizado);
+				argumentos_hilo_bloqueo* args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
+				args_bloqueo->tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
+				args_bloqueo->pcb_actualizado = dummy_mensaje.pcb_actualizado;
+				pthread_t hilo_bloqueo;
+				pthread_create(&hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+				break;
+			case PASAR_A_READY:
+				list_remove(running, 0);
+				sem_wait(&semaforo_lista_ready_add);
+				list_add(ready, dummy_mensaje.pcb_actualizado);
+				sem_post(&semaforo_lista_ready_add);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+void * hilo_bloqueo_proceso(void * argumentos){
+	argumentos_hilo_bloqueo* args = (argumentos_hilo_bloqueo *) argumentos;
+	unsigned int tiempo_bloqueo = args->tiempo_bloqueo;
+	pcb * pcb_actualizado = args->pcb_actualizado;
+	free(args);
+
+	//Esperamos el tiempo que corresponde según la instrucción
+	sleep(tiempo_bloqueo/1000);
+
+	//TODO: Al final del tiempo enviamos el mensaje de interrupt a CPU por socket de interrupt
+
+	//Enviamos de bloqueado a ready
+	pid_comparacion = pcb_actualizado->id;
+	list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
+
+	sem_wait(&semaforo_lista_ready_add);
+	list_add(ready, pcb_actualizado);
+	sem_post(&semaforo_lista_ready_add);
+
+	return NULL;
+}
+
+bool es_pid_a_desbloquear(void * pcb_recibido){
+	pcb* pcb_comparacion = (pcb*) pcb_recibido;
+	return pcb_comparacion->id == pid_comparacion;
+}
+
