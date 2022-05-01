@@ -107,11 +107,15 @@ void * hilo_de_corto_plazo_fifo_ready(void* argumentos){
 	while(1){
 		if(list_size(ready) > 0 && list_size(running) == 0){
 			//Sacamos de lista de ready
+			printf("El tamaño de la lista de ready antes de eliminar es: %d \n", list_size(ready));
 			pcb* pcb_running = list_remove(ready, 0);
+			printf("El tamaño de la lista de ready después de eliminar es: %d \n", list_size(ready));
 			//TODO: Mandamos mensaje a CPU
 
 			//Enviamos a running
+			printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
 			list_add(running, pcb_running);
+			printf("El tamaño de la lista de running despues de asignar es: %d \n", list_size(running));
 		}
 	}
 }
@@ -154,8 +158,10 @@ void * hilo_bloqueo_proceso(void * argumentos){
 	//TODO: Al final del tiempo enviamos el mensaje de interrupt a CPU por socket de interrupt
 
 	//Enviamos de bloqueado a ready
+	sem_wait(&semaforo_pid_comparacion);
 	pid_comparacion = pcb_actualizado->id;
 	list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
+	sem_post(&semaforo_pid_comparacion);
 
 	sem_wait(&semaforo_lista_ready_add);
 	list_add(ready, pcb_actualizado);
