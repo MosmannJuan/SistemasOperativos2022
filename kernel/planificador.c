@@ -137,12 +137,14 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   //Saca el PCB actual de la lista de suspendido bloqueado.
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
-  list_remove_by_condition(bloqueado_sus pendido, es_pid_a_desbloquear);
+  list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
   sem_post( & semaforo_pid_comparacion);
+  sem_wait(&semaforo_lista_ready_suspendido_add);
   if(strcmp(algoritmoPlanificacion, "SRT") == 0)
 	  list_add_sorted(ready_suspendido, pcb_actualizado, ordenar_por_estimacion_rafaga);
   else
 	  list_add(ready_suspendido, pcb_actualizado);
+  sem_post(&semaforo_lista_ready_suspendido_add);
 
   return NULL;
 }
@@ -235,7 +237,8 @@ void * hilo_de_corto_plazo_sjf_running(void * argumentos) {
     case PASAR_A_READY:
       list_remove(running, 0);
       sem_wait( & semaforo_lista_ready_add);
-      list_add(ready, dummy_mensaje.pcb_actualizado);
+      //TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
+      list_add_sorted(ready, dummy_mensaje.pcb_actualizado, ordenar_por_estimacion_rafaga);
       sem_post( & semaforo_lista_ready_add);
       break;
     default:

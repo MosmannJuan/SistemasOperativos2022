@@ -13,6 +13,7 @@ sem_t semaforo_lista_new_add;
 sem_t semaforo_lista_new_remove;
 sem_t semaforo_lista_ready_add;
 sem_t semaforo_lista_ready_suspendido_remove;
+sem_t semaforo_lista_ready_suspendido_add;
 
 int alfa;
 char * algoritmoPlanificacion;

@@ -76,6 +76,7 @@ void inicializar_semaforos(){
 	sem_init(&semaforo_lista_new_remove, 0, 1);
 	sem_init(&semaforo_pid_comparacion, 0, 1);
     sem_init(&semaforo_lista_ready_suspendido_remove, 0,1);
+    sem_init(&semaforo_lista_ready_suspendido_add, 0,1);
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
