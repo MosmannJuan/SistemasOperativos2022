@@ -65,7 +65,7 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 	break;
 	case  I_O:
 		ejecutar_I_O(pcb_a_ejecutar, instruccion_decode->params[0]);
-		log_info(cpuLogger,"Ejecuto la I_O");
+
 	break;
 //	case  READ:
 //		log_info(cpuLogger,"Ejecuto el READ");
@@ -81,9 +81,7 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 //
 //	break;
 	case  EXIT:
-		log_info(cpuLogger,"Ejecuto el EXIT");
-		paquete_pcb_decode->estado = FINALIZADO;
-		send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
+		ejecutar_exit(pcb_a_ejecutar);
 	break;
 	}
 
@@ -107,7 +105,13 @@ void ejecutar_NO_OP(unsigned int parametro){
 }
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
+	log_info(cpuLogger,"Ejecuto la I_O");
+	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexionDispatch);
+}
 
+void ejecutar_exit(){
+	log_info(cpuLogger,"Ejecuto el EXIT");
+	enviar_exit(conexionDispatch);
 }
 
 

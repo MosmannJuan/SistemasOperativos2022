@@ -25,6 +25,13 @@ typedef enum {
 	EXIT
 }TipoInstruccion;
 
+typedef enum{
+	PASAR_A_BLOQUEADO,
+	PASAR_A_READY,
+	PASAR_A_EXIT,
+	EVALUAR_DESALOJO
+} mensaje_cpu;
+
 typedef struct {
 	unsigned int id;
 	unsigned int tam_proceso;
@@ -40,6 +47,22 @@ typedef struct Instruccion {
 	unsigned int params[2];
 }Instruccion;
 
+typedef struct {
+	void* datos;
+	mensaje_cpu mensaje;
+} mensaje_dispatch;
+
+typedef struct {
+	pcb* pcb_a_bloquear;
+	double rafaga_real_anterior;
+	unsigned int tiempo_bloqueo; //Esta sería la estructura correcta a recibir en el void* datos en el caso de que se envíe a bloquear un proceso
+} bloqueo_pcb;
+
+typedef struct {
+	pcb* pcb_a_interrumpir;
+	double rafaga_real_anterior;
+} interrupcion_pcb;
+
 // ---- FUNCIONES ----//
 
 pcb * pcb_create();
@@ -48,7 +71,9 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 int conexion_servidor(char * ip, char * puerto);
 int iniciar_servidor(char * , char * );
 int esperar_cliente(int);
-int esperar_cliente(int);
+void enviar_exit(int socket_cliente);
+void* serializar_mensaje_bloqueo(mensaje_dispatch* mensaje_a_enviar, int bytes);
+void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente);
 void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config);
 
 #endif /* UTILS_H_ */

@@ -17,14 +17,49 @@ pcb * pcb_create() {
   return pcb;
 }
 
-void enviar_pcb_bloqueo(pcb* pcb_a_enviar, int socket_cliente)
-{
-	int bytes = 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
-	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
+void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
+	int bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 
+	mensaje_dispatch* mensaje_a_enviar = malloc(bytes);
+	bloqueo_pcb* datos_mensaje = malloc(sizeof(bloqueo_pcb));
+	datos_mensaje->pcb_a_bloquear = pcb_a_enviar;
+	datos_mensaje->rafaga_real_anterior = 4; //TODO: Se hardcodea, armar contador en cpu
+	datos_mensaje->tiempo_bloqueo = tiempo_bloqueo;
+	mensaje_a_enviar->datos = datos_mensaje;
+	mensaje_a_enviar->mensaje = PASAR_A_BLOQUEADO;
+
+	void* a_enviar = serializar_mensaje_bloqueo(mensaje_a_enviar, bytes);
+
+
+	//Enviamos el tamaño de la estructura a enviar
+	send(socket_cliente, &bytes, sizeof(int), 0);
+	//Enviamos estructura de bloqueo de pcb
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+}
+
+void* serializar_mensaje_bloqueo(mensaje_dispatch* mensaje_a_enviar, int bytes){
+
+	void* memoria_asignada = malloc(bytes);
+	int desplazamiento = 0;
+
+	memcpy(memoria_asignada + desplazamiento, mensaje_a_enviar->datos, sizeof(bloqueo_pcb));
+	desplazamiento  += sizeof(bloqueo_pcb);
+	memcpy(memoria_asignada + desplazamiento, &mensaje_a_enviar->mensaje, sizeof(int));
+	desplazamiento  += sizeof(int);
+
+	return memoria_asignada;
+}
+
+void enviar_exit(int socket_cliente){
+	mensaje_dispatch* mensaje = malloc(sizeof(mensaje_dispatch));
+
+	mensaje->mensaje = PASAR_A_EXIT;
+	int size = sizeof(mensaje_dispatch);
+
+	send(socket_cliente, &size, sizeof(int), 0);
+	send(socket_cliente, mensaje, sizeof(mensaje_dispatch), 0);
 }
 
 pcb * recibir_pcb(int socket_cliente){

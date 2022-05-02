@@ -35,40 +35,21 @@ int conexionInterrupt;
 t_config* cpu_config;
 t_log * cpuLogger;
 
-typedef enum{
-	PASAR_A_BLOQUEADO,
-	PASAR_A_READY,
-	PASAR_A_EXIT,
-	EVALUAR_DESALOJO
-} mensaje_cpu;
-
 typedef struct DireccionLogica{
 	int primerNivel;
 	int segundoNivel;
 	int desplazamiento;
 }DireccionLogica;
 
-typedef struct {
-	void* datos;
-	mensaje_cpu mensaje;
-} mensaje_dispatch_posta; //TODO: Renombrar luego del refactor
-
-typedef struct {
-	pcb* pcb_a_bloquear;
-	double rafaga_real_anterior;
-	unsigned int tiempo_bloqueo; //Esta sería la estructura correcta a recibir en el void* datos en el caso de que se envíe a bloquear un proceso
-} bloqueo_pcb;
-
-typedef struct {
-	pcb* pcb_a_interrumpir;
-	double rafaga_real_anterior;
-} interrupcion_pcb;
 
 DireccionLogica* fetch_operands(unsigned int* operandos);
-void* decode_execute (pcb* pcb_decode, Instruccion * instruccion_decode);
+void* decode (pcb* pcb_decode, Instruccion * instruccion_decode);
 void* fetch(pcb* pcb_fetch);
 void abrirArchivoConfiguracion();
 void ciclo(pcb* paquetePcb);
+void ejecutar_NO_OP(unsigned int parametro);
+void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo);
+void ejecutar_exit();
 
 
 #endif /* CPU_H_ */
