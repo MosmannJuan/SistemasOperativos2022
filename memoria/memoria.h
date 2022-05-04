@@ -9,17 +9,18 @@
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
+#include <unistd.h>
 
 t_config* memoria_config;
 #endif /* MEMORIA_H_ */
 
 /////FIJARSE SI CAMBIAR A uint32_t
+char* ipMemoria;
 char* puertoEscucha;
 int tamMemoria;
 int tamPagina;
 int paginasPorTabla;
 int retardoMemoria;
-char* algoritmoReemplazo;
 int marcosPorProceso;
 int retardoSwap;
 void* baseMemoria;
@@ -27,6 +28,12 @@ char* pathSwap;
 t_list* memoriaPrimerNivelList;
 pthread_mutex_t mutexMemoria;
 t_log *loggerMemoria;
+char* algoritmoReemplazo;
+char* pathSwap;
+
+int conexion;
+
+
 void abrirArchivoConfifuracion();
 void configurarMemoria();
 void atenderMensajes();

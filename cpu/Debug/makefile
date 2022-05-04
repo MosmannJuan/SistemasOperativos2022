@@ -22,19 +22,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: memoria
+all: cpu
 
 # Tool invocations
-memoria: $(OBJS) $(USER_OBJS)
+cpu: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/Debug -o "memoria" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "cpu" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) memoria
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) cpu
 	-@echo ' '
 
 .PHONY: all clean dependents

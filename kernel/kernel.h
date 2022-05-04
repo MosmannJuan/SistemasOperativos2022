@@ -11,49 +11,33 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "instrucciones_handler.h"
 
-typedef enum {
-  NO_OP,
-  I_O,
-  READ,
-  WRITE,
-  COPY,
-  EXIT
-}
-TipoInstruccion;
 
-typedef struct Instruccion {
-  TipoInstruccion tipo;
-  unsigned int params[2];
-}
-Instruccion;
-
-t_list * instrucciones;
 char * ipMemoria;
+char * puertoMemoria;
 char * ipKernel;
-int puertoMemoria;
-char * ipCpu;
-char * algoritmoPlanificacion;
-int puertoCpuInterrupt;
-int puertoCpuDispatch;
 char * puertoEscucha;
-int estimacionInicial;
-int alfa;
+char * ipCpu;
+char * puertoCpuInterrupt;
+char * puertoCpuDispatch;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
-pid_t procesoHijo;
 
-typedef struct {
-  int conn_kernel;
-  //int conn_memoria;
-  //char *ipMemoria;
-  //char *puertoMemoria;
-}
-conexiones;
+int conexion_con_memoria;
+
+int conexionConsola;
+int conexionDispatch;
+int conexionInterrupt;
+
+int dispatch;
+int interrupt;
 
 t_config * kernel_config;
-int recibir_int(int socket_cliente);
-void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
+
+
+void inicializar_semaforos();
+void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running);
 
 
 #endif /* KERNEL_H_ */

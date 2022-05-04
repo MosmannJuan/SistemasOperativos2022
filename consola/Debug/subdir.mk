@@ -5,14 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../consola.c \
+../parser.c \
 ../utils.c 
 
 OBJS += \
 ./consola.o \
+./parser.o \
 ./utils.o 
 
 C_DEPS += \
 ./consola.d \
+./parser.d \
 ./utils.d 
 
 

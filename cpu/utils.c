@@ -1,6 +1,6 @@
 #include "utils.h"
 
-int conexion_a_memoria(char * ip, char * puerto) {
+int conexion_servidor(char * ip, char * puerto) {
   struct addrinfo hints;
   struct addrinfo * server_info;
 
