@@ -2,9 +2,13 @@
 int main(void) {
 	abrirArchivoConfifuracion();
 	configurarMemoria();
+	conexion = iniciar_servidor(ipMemoria, puertoEscucha);
+
 	while(1){
-	//	atenderMensajes();
+		int cliente = esperar_cliente(conexion);
+		if(cliente !=0) printf("cliente_kernel: %d", cliente);
 	}
+	  terminar_programa(conexion, loggerMemoria, memoria_config);
 	return EXIT_SUCCESS;
 }
 
@@ -20,6 +24,7 @@ void abrirArchivoConfifuracion(){
 		marcosPorProceso = config_get_int_value(memoria_config,"MARCOS_POR_PROCESO");
 		retardoSwap = config_get_int_value(memoria_config,"RETARDO_SWAP");
 		pathSwap = strdup(config_get_string_value(algoritmoReemplazo,"PATH_SWAP"));
+		tamTabla = tamMemoria / tamPagina;
 	}
 
 void configurarMemoria(){
@@ -31,6 +36,7 @@ void configurarMemoria(){
 		memoriaPrimerNivel* tabla = malloc(sizeof(memoriaPrimerNivel));
 		tabla->id = i;
 		tabla->memoriaSegundoNivelList = list_create();
+		tabla->nroProceso = NULL;
 		while (j < paginasPorTabla) {
 			memoriaSegundoNivel* memoriasegunda = malloc(sizeof(memoriaSegundoNivel));
 			memoriasegunda->marco = j;
@@ -88,16 +94,52 @@ void borrar(int pagina, int marco){
 		}
 	}
 }
-paginaEspesifica* escribir(int dato, int pid){
-	paginaEspesifica* paginaARetonar = escirbirSinSwap();
-	if (paginaARetonar == NULL){
-		paginaEspesifica* paginaASwappear = obtenerPaginaASwapear();
-		paginaARetonar = swappear(dato, pid,paginaASwappear);
-	}
-	return paginaARetonar();
+bool obtenerTablaVacia(memoriaPrimerNivel *tabla){
+	return tabla->nroProceso == NULL;
 }
-paginaEspesifica* obtenerPaginaASwapear(){
-	paginaEspesifica * paginaARetornar = malloc(sizeof(paginaEspesifica));
+bool obtenerPaginaVacia(memoriaSegundoNivel *pagina){
+	return pagina->uso == "0";
+}
+void crearProceso(int procesId){
+	memoriaPrimerNivel * mem =list_find(memoriaPrimerNivelList,(void*) obtenerTablaVacia);
+	if(mem == NULL){
+		log_error(loggerMemoria,"NO QUEDA ESPACIO PARA UN NUEVO PROCESO");
+	}else{
+		mem->nroProceso = procesId;
+		log_info(loggerMemoria,"CREO PROCESO EXISTOSAMENTE");
+	}
+}
+
+PaginaEspesifica* escribir(int dato, int pid){
+	PaginaEspesifica * paginaARetonar = escirbirSinSwap(dato,pid);
+	if (paginaARetonar == NULL){
+		PaginaEspesifica* paginaASwappear = obtenerPaginaASwapear();
+		//paginaARetonar = swappear(dato, pid,paginaASwappear);
+	}
+	return paginaARetonar;
+}
+PaginaEspesifica* escirbirSinSwap(int dato, int pid){
+	memoriaPrimerNivel * mem = list_find(memoriaPrimerNivelList,(void*) obtenerTablaVacia);
+	if(mem == NULL){
+		//NO DEBERIA PASAR NUNCA..
+		return NULL;
+	}
+	memoriaSegundoNivel * pag = list_find(mem->memoriaSegundoNivelList,(void*) obtenerPaginaVacia);
+	if(pag == NULL){
+		return NULL;
+	}
+	pag->uso = "1";
+	pag->presencia = "1";
+	pag->modificado = "1";
+	memcpy(&baseMemoria + mem->id*tamTabla + tamPagina * pag->id,dato,sizeof(int));
+	PaginaEspesifica* paginaEspesifica = malloc(sizeof(PaginaEspesifica));
+	paginaEspesifica->idMarco = pag->marco;
+	paginaEspesifica->idTabla = mem->id;
+	log_info(loggerMemoria,"ESCRIBO PROCESO EXITOSAMENTE");
+	return paginaEspesifica;
+}
+PaginaEspesifica* obtenerPaginaASwapear(){
+	PaginaEspesifica * paginaARetornar = malloc(sizeof(PaginaEspesifica));
 	t_list_iterator *list_iterator = list_iterator_create(memoriaPrimerNivelList);
 	memoriaPrimerNivel* paginaActual;
 	while (list_iterator_has_next(list_iterator))

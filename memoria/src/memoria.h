@@ -19,6 +19,7 @@ char* ipMemoria;
 char* puertoEscucha;
 int tamMemoria;
 int tamPagina;
+int tamTabla;
 int paginasPorTabla;
 int retardoMemoria;
 int marcosPorProceso;
@@ -34,15 +35,6 @@ char* pathSwap;
 int conexion;
 
 
-void abrirArchivoConfifuracion();
-void configurarMemoria();
-void atenderMensajes();
-void borrar(int pagina, int marco);
-paginaEspesifica* obtenerPaginaASwapear();
-paginaEspesifica* swappear(int dato, int pid,paginaEspesifica* paginaASwappear);
-paginaEspesifica* escribir(int dato, int pid);
-paginaEspesifica* escirbirSinSwap();
-
 typedef struct memoriaSegundoNivel
 {
 	int id;
@@ -50,7 +42,6 @@ typedef struct memoriaSegundoNivel
 	char* presencia;
 	char* uso;
 	char* modificado;
-	int pid;
 } memoriaSegundoNivel;
 
 typedef struct memoriaPrimerNivel
@@ -60,8 +51,22 @@ typedef struct memoriaPrimerNivel
 	t_list* memoriaSegundoNivelList;
 } memoriaPrimerNivel;
 
-typedef struct memoriaPrimerNivel
+typedef struct PaginaEspesifica
 {
 	int idTabla;
 	int idMarco;
-} paginaEspesifica;
+} PaginaEspesifica;
+
+
+void abrirArchivoConfifuracion();
+void configurarMemoria();
+void atenderMensajes();
+void borrar(int pagina, int marco);
+bool obtenerPaginaVacia(memoriaSegundoNivel *pagina);
+bool obtenerTablaVacia(memoriaPrimerNivel *tabla);
+void crearProceso(int procesId);
+PaginaEspesifica* obtenerPaginaASwapear();
+PaginaEspesifica* swappear(int dato, int pid,PaginaEspesifica* paginaASwappear);
+PaginaEspesifica* escribir(int dato, int pid);
+PaginaEspesifica* escirbirSinSwap(int dato, int pid);
+
