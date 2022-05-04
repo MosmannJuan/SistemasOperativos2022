@@ -4,10 +4,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sharedUtils.c>
+#include <sharedUtils.h>
 #include <commons/log.h>
 #include <stdint.h>
-#include<commons/collections/list.h>
+#include <commons/collections/list.h>
 #include <commons/config.h>
 
 t_config* memoria_config;
@@ -22,13 +22,19 @@ int retardoMemoria;
 char* algoritmoReemplazo;
 int marcosPorProceso;
 int retardoSwap;
+void* baseMemoria;
 char* pathSwap;
-
-
+t_list* memoriaPrimerNivelList;
+pthread_mutex_t mutexMemoria;
+t_log *loggerMemoria;
 void abrirArchivoConfifuracion();
 void configurarMemoria();
 void atenderMensajes();
-
+void borrar(int pagina, int marco);
+paginaEspesifica* obtenerPaginaASwapear();
+paginaEspesifica* swappear(int dato, int pid,paginaEspesifica* paginaASwappear);
+paginaEspesifica* escribir(int dato, int pid);
+paginaEspesifica* escirbirSinSwap();
 
 typedef struct memoriaSegundoNivel
 {
@@ -37,15 +43,18 @@ typedef struct memoriaSegundoNivel
 	char* presencia;
 	char* uso;
 	char* modificado;
-
+	int pid;
 } memoriaSegundoNivel;
 
 typedef struct memoriaPrimerNivel
 {
 	int id;
-	void* numeroPagina;
+	void* nroProceso;
 	t_list* memoriaSegundoNivelList;
 } memoriaPrimerNivel;
 
-t_list* memoriaPrimerNivelList;
-
+typedef struct memoriaPrimerNivel
+{
+	int idTabla;
+	int idMarco;
+} paginaEspesifica;

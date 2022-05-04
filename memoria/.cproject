@@ -28,13 +28,20 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1978835568" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.1452998367" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.702160288" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/shared-utils/src}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/src"/>
+								</option>
+								<option id="gnu.c.compiler.option.include.files.114580549" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" useByScannerDiscovery="false" valueType="includeFiles">
+									<listOptionValue builtIn="false" value="/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/src/sharedUtils.h"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1784026343" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.257742397" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
-								<option id="gnu.c.link.option.libs.1208930214" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+								<option id="gnu.c.link.option.libs.1208930214" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="commons"/>
+									<listOptionValue builtIn="false" value="shared-utils"/>
+								</option>
+								<option id="gnu.c.link.option.paths.186149152" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/Debug"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.175468912" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -44,6 +51,24 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.563786251" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1697937312" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.17373536" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1521804108.1977491013" name="/" resourcePath="src">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1948922534" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1611846084" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.648397639"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1025031098" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2140908281"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.102619298" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.744207669">
+								<option id="gnu.c.compiler.option.include.paths.1330317186" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/src"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1000747972" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1508950559" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug.257742397"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.708900802" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.563786251"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.279599803" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug.1697937312">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.271182750" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
