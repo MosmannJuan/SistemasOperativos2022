@@ -12,7 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <semaphore.h>
 
+int interrupciones = 0;
 int	entradasTlb ;
 char*	reemplazoTlb;
 int	retardoNoop;
@@ -21,6 +23,10 @@ char*	puertoMemoria;
 char* 	ipKernel;
 char*	puertoEscuchaDispatch;
 char*	puertoEscuchaInterrupt;
+
+sem_t *sem_interrupcion;
+sem_t *sem_dispatch;
+
 
 int conexionMemoria;
 int conexionDispatch;
@@ -38,12 +44,17 @@ typedef enum {
 typedef struct {
 	unsigned int id;
     unsigned int tam_proceso;
-	EstadoPcb estado;
 	t_list * instrucciones;
 	unsigned int pc;
 	/* TABLA PAGINAS ??? */
 	double rafaga;
 }Pcb;
+
+typedef struct {
+	Pcb *pcb;
+	EstadoPcb estado;
+
+}PaquetePcb;
 
 
 typedef enum {
@@ -67,8 +78,10 @@ typedef struct DireccionLogica{
 }DireccionLogica;
 
 DireccionLogica* fetch_operands(unsigned int* operandos);
-void* decode_execute (Pcb * pcb_decode, Instruccion * instruccion_decode);
+void* decode_execute (PaquetePcb * pcb_decode, Instruccion * instruccion_decode);
 void* fetch(Pcb * pcb_fetch);
 void abrirArchivoConfiguracion();
+void ciclo(PaquetePcb *paquetePcb);
+
 
 #endif /* CPU_H_ */
