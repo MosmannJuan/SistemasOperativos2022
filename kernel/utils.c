@@ -61,6 +61,50 @@ int esperar_cliente(int socket_servidor) {
   return socket_cliente;
 }
 
+void* serializar_pcb(pcb* pcb_a_enviar, int bytes){
+
+	void* memoria_asignada = malloc(bytes);
+	int desplazamiento = 0;
+
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->id), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tam_proceso), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->pc), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
+	desplazamiento  += sizeof(double);
+
+	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
+	return memoria_asignada;
+}
+
+void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones){
+	int contador_de_instrucciones = 0;
+	int cantidad_de_instrucciones = list_size(instrucciones);
+
+	//Indicamos la cantidad de instrucciones que debe leer cpu
+	memcpy(memoria_asignada + desplazamiento, &(cantidad_de_instrucciones), sizeof(int));
+	desplazamiento  += sizeof(int);
+
+	while(contador_de_instrucciones != cantidad_de_instrucciones){
+		memcpy(memoria_asignada + desplazamiento, list_remove(instrucciones, 0), sizeof(Instruccion));
+		desplazamiento  += sizeof(Instruccion);
+		contador_de_instrucciones++;
+	}
+}
+
+void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente)
+{
+	int bytes = 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	free(a_enviar);
+}
+
+
 void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config) {
   log_destroy(logger);
   config_destroy(config);

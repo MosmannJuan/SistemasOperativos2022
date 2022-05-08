@@ -10,9 +10,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <semaphore.h>
+#include "utils.h"
 
 int interrupciones = 0;
 int	entradasTlb ;
@@ -55,21 +55,6 @@ typedef struct {
 	EstadoPcb estado;
 
 }PaquetePcb;
-
-
-typedef enum {
-	NO_OP,
-	I_O,
-	READ,
-	WRITE,
-	COPY,
-	EXIT
-}TipoInstruccion;
-
-typedef struct Instruccion {
-	TipoInstruccion tipo;
-	unsigned int params[2];
-}Instruccion;
 
 typedef struct DireccionLogica{
 	int primerNivel;

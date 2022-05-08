@@ -1,6 +1,62 @@
 #include "utils.h"
 
-int conexion_servidor(char * ip, char * puerto) {
+pcb * pcb_create() {
+  pcb * pcb;
+  pcb = malloc(sizeof(pcb));
+
+  if (pcb == NULL) {
+    return NULL;
+  }
+
+  pcb -> instrucciones = list_create();
+  if (pcb -> instrucciones == NULL) {
+    free(pcb);
+    return NULL;
+  }
+
+  return pcb;
+}
+
+pcb * recibir_pcb(int socket_cliente){
+	pcb* pcb_leido;
+
+	pcb_leido = pcb_create();
+
+	leer_y_asignar_pcb(socket_cliente, pcb_leido);
+
+	return pcb_leido;
+}
+
+void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
+
+	int cantidad_de_instrucciones;
+	int contador = 0;
+	Instruccion * instruccion_aux;
+
+	//Recibo el process id
+	recv(socket_cliente, &(pcb_leido->id), sizeof(unsigned int), MSG_WAITALL);
+
+	//Recibo el tamaño del proceso
+	recv(socket_cliente, &(pcb_leido->tam_proceso), sizeof(unsigned int), MSG_WAITALL);
+
+	//Recibo el program counter
+	recv(socket_cliente, &(pcb_leido->pc), sizeof(unsigned int), MSG_WAITALL);
+
+	//Recibo la estimacion de rafaga
+	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
+
+	//Recibo la cantidad de instrucciones que posee el proceso
+	recv(socket_cliente, &(cantidad_de_instrucciones), sizeof(int), MSG_WAITALL);
+
+	//Recibo las instrucciones del proceso
+	while(contador < cantidad_de_instrucciones){
+		instruccion_aux = malloc(sizeof(Instruccion));
+		recv(socket_cliente, instruccion_aux, sizeof(Instruccion), MSG_WAITALL);
+		list_add(pcb_leido->instrucciones, instruccion_aux);
+	}
+}
+
+int conexion_servidor(char * ip, char * puerto){
   struct addrinfo hints;
   struct addrinfo * server_info;
 
