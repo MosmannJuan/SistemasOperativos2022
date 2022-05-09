@@ -12,22 +12,22 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	//sleep para testing de multiples conexiones.
     sleep(5);
     printf("\n %s %d %s %d %s %lu %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "HILO:", pthread_self(), "\n");
-  Instruccion instruccionAux;
   while (1) {
+	Instruccion* instruccionAux = malloc(sizeof(Instruccion));
     int cod_op = recibir_int(cliente_fd);
-    instruccionAux.tipo = cod_op;
+    instruccionAux->tipo = cod_op;
     switch (cod_op) {
     case I_O:
     case NO_OP:
     case READ:
-      instruccionAux.params[0] = recibir_int(cliente_fd);
-      printf("Recibí la instruccion %d, con el param %d \n", cod_op, instruccionAux.params[0]);
+      instruccionAux->params[0] = recibir_int(cliente_fd);
+      printf("Recibí la instruccion %d, con el param %d \n", cod_op, instruccionAux->params[0]);
       break;
     case WRITE:
     case COPY:
-      instruccionAux.params[0] = recibir_int(cliente_fd);
-      instruccionAux.params[1] = recibir_int(cliente_fd);
-      printf("Recibí la instruccion %d, con el params %d y %d \n", cod_op, instruccionAux.params[0], instruccionAux.params[1]);
+      instruccionAux->params[0] = recibir_int(cliente_fd);
+      instruccionAux->params[1] = recibir_int(cliente_fd);
+      printf("Recibí la instruccion %d, con el params %d y %d \n", cod_op, instruccionAux->params[0], instruccionAux->params[1]);
       break;
     case EXIT:
       printf("Lei correctamente el codigo completo. \n");
@@ -40,7 +40,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       printf("No recibi un codigo de operacion valido. \n");
       break;
     }
-    list_add(instrucciones, & instruccionAux);
+    list_add(instrucciones, instruccionAux);
 
     //int server = esperar_cliente(connection);
     //conexiones *conn = malloc(sizeof(conexiones));

@@ -30,9 +30,6 @@ int conexionConsola;
 int conexionDispatch;
 int conexionInterrupt;
 
-int dispatch;
-int interrupt;
-
 t_config * kernel_config;
 
 

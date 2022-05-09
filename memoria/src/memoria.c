@@ -1,6 +1,6 @@
 #include "memoria.h"
 int main(void) {
-	abrirArchivoConfifuracion();
+	abrirArchivoConfiguracion();
 	configurarMemoria();
 	conexion = iniciar_servidor(ipMemoria, puertoEscucha);
 
@@ -12,32 +12,34 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
-void abrirArchivoConfifuracion(){
+void abrirArchivoConfiguracion(){
 		loggerMemoria = log_create("memoria.log", "memoria.c", 1, LOG_LEVEL_DEBUG);
 
+		memoria_config = config_create("memoria.config");
+		ipMemoria = strdup(config_get_string_value(memoria_config,"IP_MEMORIA"));
 		puertoEscucha = strdup(config_get_string_value(memoria_config,"PUERTO_ESCUCHA"));
-		tamMemoria = config_get_int_value(memoria_config,"TAMAÑO_MEMORIA");
-		tamPagina = config_get_int_value(memoria_config,"TAMAÑO_PAGINA");
-		paginasPorTabla = config_get_int_value(memoria_config,"PAGINAS_POR_TABLA");
+		tamMemoria = config_get_int_value(memoria_config,"TAM_MEMORIA");
+		tamPagina = config_get_int_value(memoria_config,"TAM_PAGINA");
+		entradasPorTabla = config_get_int_value(memoria_config,"ENTRADAS_POR_TABLA");
 		retardoMemoria = config_get_int_value(memoria_config,"RETARDO_MEMORIA");
-		algoritmoReemplazo = strdup(config_get_string_value(algoritmoReemplazo,"ALGORITMO_REEMPLAZO"));
+		algoritmoReemplazo = strdup(config_get_string_value(memoria_config,"ALGORITMO_REEMPLAZO"));
 		marcosPorProceso = config_get_int_value(memoria_config,"MARCOS_POR_PROCESO");
 		retardoSwap = config_get_int_value(memoria_config,"RETARDO_SWAP");
-		pathSwap = strdup(config_get_string_value(algoritmoReemplazo,"PATH_SWAP"));
+		pathSwap = strdup(config_get_string_value(memoria_config,"PATH_SWAP"));
 		tamTabla = tamMemoria / tamPagina;
 	}
 
 void configurarMemoria(){
 	memoriaPrimerNivelList = list_create();
 	int i = 0;
-	baseMemoria = mallinfo(tamMemoria);
-	while (i < paginasPorTabla){
+//	baseMemoria = mallinfo(tamMemoria);
+	while (i < entradasPorTabla){
 		int j = 0;
 		memoriaPrimerNivel* tabla = malloc(sizeof(memoriaPrimerNivel));
 		tabla->id = i;
 		tabla->memoriaSegundoNivelList = list_create();
 		tabla->nroProceso = NULL;
-		while (j < paginasPorTabla) {
+		while (j < entradasPorTabla) {
 			memoriaSegundoNivel* memoriasegunda = malloc(sizeof(memoriaSegundoNivel));
 			memoriasegunda->marco = j;
 			memoriasegunda->modificado = "0";
@@ -98,14 +100,14 @@ bool obtenerTablaVacia(memoriaPrimerNivel *tabla){
 	return tabla->nroProceso == NULL;
 }
 bool obtenerPaginaVacia(memoriaSegundoNivel *pagina){
-	return pagina->uso == "0";
+	return strcmp(pagina->uso, "0") == 0;
 }
 void crearProceso(int procesId){
 	memoriaPrimerNivel * mem =list_find(memoriaPrimerNivelList,(void*) obtenerTablaVacia);
 	if(mem == NULL){
 		log_error(loggerMemoria,"NO QUEDA ESPACIO PARA UN NUEVO PROCESO");
 	}else{
-		mem->nroProceso = procesId;
+		mem->nroProceso = &procesId;
 		log_info(loggerMemoria,"CREO PROCESO EXISTOSAMENTE");
 	}
 }
@@ -131,7 +133,7 @@ PaginaEspesifica* escirbirSinSwap(int dato, int pid){
 	pag->uso = "1";
 	pag->presencia = "1";
 	pag->modificado = "1";
-	memcpy(&baseMemoria + mem->id*tamTabla + tamPagina * pag->id,dato,sizeof(int));
+	memcpy(&baseMemoria + mem->id*tamTabla + tamPagina * pag->id,&dato,sizeof(int));
 	PaginaEspesifica* paginaEspesifica = malloc(sizeof(PaginaEspesifica));
 	paginaEspesifica->idMarco = pag->marco;
 	paginaEspesifica->idTabla = mem->id;
@@ -151,8 +153,8 @@ PaginaEspesifica* obtenerPaginaASwapear(){
 		while (list_iterator_has_next(pag_iterator))
 		{
 			marcoActual = list_iterator_next(pag_iterator);
-			if(algoritmoReemplazo == "CLOCK"){
-				if (marcoActual->uso == "0"){
+			if(strcmp(algoritmoReemplazo, "CLOCK") == 0){
+				if (strcmp(marcoActual->uso, "0") == 0){
 					//marcoActual->uso = "1";
 					log_info(loggerMemoria, "Encontró una pagina por clock");
 					paginaARetornar->idTabla = paginaActual->id;
@@ -162,7 +164,7 @@ PaginaEspesifica* obtenerPaginaASwapear(){
 					marcoActual->uso = "0";
 				}
 			}else{
-				if (marcoActual->uso == "0" && marcoActual->modificado == "0"){
+				if (strcmp(marcoActual->uso, "0") == 0 && strcmp(marcoActual->modificado, "0") == 0){
 					//marcoActual->uso = "1";
 					log_info(loggerMemoria, "Encontró una pagina por clock modificado");
 					paginaARetornar->idTabla = paginaActual->id;

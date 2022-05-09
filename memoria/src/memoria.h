@@ -4,12 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sharedUtils.h>
+//#include <sharedUtils.h>
 #include <commons/log.h>
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <unistd.h>
+#include "../utils.h"
 
 t_config* memoria_config;
 #endif /* MEMORIA_H_ */
@@ -20,7 +21,7 @@ char* puertoEscucha;
 int tamMemoria;
 int tamPagina;
 int tamTabla;
-int paginasPorTabla;
+int entradasPorTabla;
 int retardoMemoria;
 int marcosPorProceso;
 int retardoSwap;
@@ -58,7 +59,7 @@ typedef struct PaginaEspesifica
 } PaginaEspesifica;
 
 
-void abrirArchivoConfifuracion();
+void abrirArchivoConfiguracion();
 void configurarMemoria();
 void atenderMensajes();
 void borrar(int pagina, int marco);

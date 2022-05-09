@@ -239,7 +239,7 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
       pcb * pcb_running = list_remove(ready, 0);
       printf("El tamaño de la lista de ready después de eliminar es: %d \n", list_size(ready));
       //TODO: Mandamos mensaje a CPU
-
+      enviar_pcb(pcb_running, dispatch);
       //Enviamos a running
       printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
       list_add(running, pcb_running);
@@ -254,21 +254,24 @@ void * hilo_de_corto_plazo_fifo_running(void * argumentos) {
     mensaje_dispatch dummy_mensaje;
     dummy_mensaje.mensaje = 5;
     switch (dummy_mensaje.mensaje) {
-    case PASAR_A_BLOQUEADO:
-      list_remove(running, 0);
-      list_add(bloqueado, dummy_mensaje.pcb_actualizado);
-      argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
-      args_bloqueo -> tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
-      args_bloqueo -> pcb_actualizado = dummy_mensaje.pcb_actualizado;
-      pthread_t hilo_bloqueo;
-      pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
-      break;
-    case PASAR_A_READY:
-      list_remove(running, 0);
-      sem_wait( & semaforo_lista_ready_add);
-      list_add(ready, dummy_mensaje.pcb_actualizado);
-      sem_post( & semaforo_lista_ready_add);
-      break;
+    	case PASAR_A_BLOQUEADO:
+    		list_remove(running, 0);
+    		list_add(bloqueado, dummy_mensaje.pcb_actualizado);
+    		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
+    		args_bloqueo -> tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
+    		args_bloqueo -> pcb_actualizado = dummy_mensaje.pcb_actualizado;
+    		pthread_t hilo_bloqueo;
+    		pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+    		break;
+    	case PASAR_A_READY:
+    		list_remove(running, 0);
+    		sem_wait( & semaforo_lista_ready_add);
+    		list_add(ready, dummy_mensaje.pcb_actualizado);
+    		sem_post( & semaforo_lista_ready_add);
+    		break;
+    	default:
+    		break;
+
     }
   }
 }
@@ -372,4 +375,53 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   }
 
   return NULL;
+}
+
+//---------------------------------------------------------------
+// ----------------- SERIALIZACION Y ENVIO DE PCB ---------------
+//---------------------------------------------------------------
+
+void* serializar_pcb(pcb* pcb_a_enviar, int bytes){
+
+	void* memoria_asignada = malloc(bytes);
+	int desplazamiento = 0;
+
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->id), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tam_proceso), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->pc), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
+	desplazamiento  += sizeof(double);
+
+	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
+	return memoria_asignada;
+}
+
+void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones){
+	int contador_de_instrucciones = 0;
+	int cantidad_de_instrucciones = list_size(instrucciones);
+
+	//Indicamos la cantidad de instrucciones que debe leer cpu
+	memcpy(memoria_asignada + desplazamiento, &(cantidad_de_instrucciones), sizeof(int));
+	desplazamiento  += sizeof(int);
+
+	while(contador_de_instrucciones < cantidad_de_instrucciones){
+		Instruccion* instruccion_aux = (Instruccion *)list_remove(instrucciones, 0);
+		printf("\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
+		memcpy(memoria_asignada + desplazamiento, instruccion_aux, sizeof(Instruccion));
+		desplazamiento  += sizeof(Instruccion);
+		contador_de_instrucciones++;
+	}
+}
+
+void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente)
+{
+	int bytes = 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
 }

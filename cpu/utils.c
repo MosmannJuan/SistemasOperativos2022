@@ -35,7 +35,7 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 
 	//Recibo el process id
 	recv(socket_cliente, &(pcb_leido->id), sizeof(unsigned int), MSG_WAITALL);
-
+	printf("Recibiendo pcb");
 	//Recibo el tamaño del proceso
 	recv(socket_cliente, &(pcb_leido->tam_proceso), sizeof(unsigned int), MSG_WAITALL);
 
@@ -53,7 +53,10 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 		instruccion_aux = malloc(sizeof(Instruccion));
 		recv(socket_cliente, instruccion_aux, sizeof(Instruccion), MSG_WAITALL);
 		list_add(pcb_leido->instrucciones, instruccion_aux);
+		contador++;
 	}
+
+	printf("pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, list_size(pcb_leido->instrucciones));
 }
 
 int conexion_servidor(char * ip, char * puerto){

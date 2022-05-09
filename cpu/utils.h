@@ -48,7 +48,6 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 int conexion_servidor(char * ip, char * puerto);
 int iniciar_servidor(char * , char * );
 int esperar_cliente(int);
-void recibir_mensaje(int);
 int esperar_cliente(int);
 void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config);
 

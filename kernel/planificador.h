@@ -25,6 +25,9 @@ unsigned int estimacion_inicial;
 int tiempoMaximoBloqueado;
 unsigned int limite_grado_multiprogramacion;
 
+// ---- SOCKETS ----//
+int dispatch;
+int interrupt;
 
 
 // ---- ESTRUCTURAS Y ENUMS ----//
@@ -89,5 +92,8 @@ unsigned int calcular_estimacion_rafaga();
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void * hilo_de_corto_plazo_sjf_running(void* argumentos);
 void * exit_largo_plazo(void * argumentos);
+void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
+void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
+void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
 
 #endif /* PLANIFICADOR_H_ */

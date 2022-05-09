@@ -23,10 +23,13 @@ int main(void) {
 	entradasTlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
 	reemplazoTlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
 	retardoNoop = config_get_int_value(cpu_config,"RETARDO_NOOP");
-
+	printf("asd0");
 
 	while(1){
 		//hacer el recieve
+		printf("asd1");
+		recibir_pcb(conexionDispatch);
+		printf("asd2");
 		sem_wait(sem_dispatch);
 		PaquetePcb* paquetePcb = malloc(sizeof(PaquetePcb));
 		ciclo(paquetePcb);
@@ -44,7 +47,7 @@ void ciclo(PaquetePcb* paquetePcb){
 	interrupciones = 0;
 }
 
-void* fetch(Pcb * pcb_fetch){
+void* fetch(pcb * pcb_fetch){
 
 	return list_get(pcb_fetch->instrucciones,pcb_fetch->pc);
 
@@ -60,13 +63,13 @@ void* decode_execute (PaquetePcb * paquete_pcb_decode, Instruccion * instruccion
 		sleep(retardoNoop);
 		if(interrupciones == 1){
 			paquete_pcb_decode->estado = INTERRUPCION;
-			send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+			send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 		}
 	break;
 	case  I_O:
 		log_info(cpuLogger,"Ejecuto la I_O");
 		paquete_pcb_decode->estado = BLOQUEADO;
-		send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+		send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 		send(conexionDispatch, &instruccion_decode->params[0],sizeof(int),0);
 	break;
 	case  READ:
@@ -74,14 +77,14 @@ void* decode_execute (PaquetePcb * paquete_pcb_decode, Instruccion * instruccion
 	//	send(conexionMemoria,  )
 		if(interrupciones == 1){
 			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 				}
 	break;
 	case WRITE:
 		log_info(cpuLogger,"Ejecuto el WRITE");
 		if(interrupciones == 1){
 			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 				}
 	break;
 	case  COPY:
@@ -89,13 +92,13 @@ void* decode_execute (PaquetePcb * paquete_pcb_decode, Instruccion * instruccion
 		dir_logica  = fetch_operands(instruccion_decode->params);
 		if(interrupciones == 1){
 			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 				}
 	break;
 	case  EXIT:
 		log_info(cpuLogger,"Ejecuto el EXIT");
 		paquete_pcb_decode->estado = FINALIZADO;
-		send(conexionDispatch, paquete_pcb_decode , sizeof(Pcb), 0);
+		send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
 	break;
 	}
 

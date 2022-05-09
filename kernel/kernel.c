@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
   estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
   algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
   alfa = config_get_int_value(kernel_config,"ALFA");
-  //gradoMultiprogramacion = config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
+  limite_grado_multiprogramacion = (unsigned int) config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
   conexion_con_memoria = conexion_a_memoria(ipMemoria, puertoMemoria);

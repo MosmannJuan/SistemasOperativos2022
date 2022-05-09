@@ -42,16 +42,7 @@ typedef enum {
 }EstadoPcb;
 
 typedef struct {
-	unsigned int id;
-    unsigned int tam_proceso;
-	t_list * instrucciones;
-	unsigned int pc;
-	/* TABLA PAGINAS ??? */
-	double rafaga;
-}Pcb;
-
-typedef struct {
-	Pcb *pcb;
+	pcb *pcb;
 	EstadoPcb estado;
 
 }PaquetePcb;
@@ -64,7 +55,7 @@ typedef struct DireccionLogica{
 
 DireccionLogica* fetch_operands(unsigned int* operandos);
 void* decode_execute (PaquetePcb * pcb_decode, Instruccion * instruccion_decode);
-void* fetch(Pcb * pcb_fetch);
+void* fetch(pcb * pcb_fetch);
 void abrirArchivoConfiguracion();
 void ciclo(PaquetePcb *paquetePcb);
 
