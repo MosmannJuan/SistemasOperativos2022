@@ -51,7 +51,7 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	//Recibo las instrucciones del proceso
 	while(contador < cantidad_de_instrucciones){
 		instruccion_aux = malloc(sizeof(Instruccion));
-		recv(socket_cliente, instruccion_aux, sizeof(Instruccion), MSG_WAITALL);
+		recv(socket_cliente, instruccion_aux, sizeof(Instruccion), 0);
 		list_add(pcb_leido->instrucciones, instruccion_aux);
 		contador++;
 	}
