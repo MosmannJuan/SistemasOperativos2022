@@ -34,7 +34,8 @@ int interrupt;
 typedef enum{
 	PASAR_A_BLOQUEADO,
 	PASAR_A_READY,
-	PASAR_A_EXIT
+	PASAR_A_EXIT,
+	EVALUAR_DESALOJO
 } mensaje_cpu;
 
 typedef struct {
@@ -61,7 +62,18 @@ typedef struct {
 	pcb * pcb_actualizado;
 	unsigned int tiempo_bloqueo;
 	mensaje_cpu mensaje;
-} mensaje_dispatch;
+} mensaje_dispatch; //Dejo definida esta estructura para que compile mientras hago el refactor
+
+typedef struct {
+	void* datos;
+	mensaje_cpu mensaje;
+} mensaje_dispatch_posta; //TODO: Renombrar luego del refactor
+
+typedef struct {
+	pcb* pcb_a_bloquear;
+	unsigned int tiempo_bloqueo; //Esta sería la estructura correcta a recibir en el void* datos en el caso de que se envíe a bloquear un proceso
+} bloqueo_pcb;
+
 
 // ---- LISTA DE ESTADOS ----//
 
@@ -92,6 +104,8 @@ unsigned int calcular_estimacion_rafaga();
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void * hilo_de_corto_plazo_sjf_running(void* argumentos);
 void * exit_largo_plazo(void * argumentos);
+void * cpu_dispatch_handler(void * argumentos);
+mensaje_dispatch_posta* recibir_mensaje_dispatch();
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);

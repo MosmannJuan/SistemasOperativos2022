@@ -340,8 +340,6 @@ unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsig
 	return alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
 }
 
-
-
 void * hilo_bloqueo_proceso(void * argumentos) {
   argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo * ) argumentos;
   unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
@@ -375,6 +373,44 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   }
 
   return NULL;
+}
+
+//---------------------------------------------------------------
+// ------------ MANEJO DE COMUNICACIÓN CON CPU DISPATCH ---------
+//---------------------------------------------------------------
+
+void* cpu_dispatch_handler(void* args){
+	while(1){
+		mensaje_dispatch_posta* mensaje_dispatch = recibir_mensaje_dispatch();
+		switch(mensaje_dispatch->mensaje){
+			case PASAR_A_BLOQUEADO:
+			case PASAR_A_READY:
+				if(strcmp(algoritmoPlanificacion, "SRT") == 0){
+					hilo_de_corto_plazo_sjf_running(mensaje_dispatch); //Hacerle refactor a esta función para que no sea más un hilo
+				}else
+					hilo_de_corto_plazo_fifo_running(mensaje_dispatch);//Idem otra función
+				break;
+			case EVALUAR_DESALOJO:
+				//Definir la función del hilo de corto plazo que evalúa desalojo y luego envía mensaje por interrupt en caso de desalojar
+				break;
+			case PASAR_A_EXIT:
+				exit_largo_plazo(mensaje_dispatch); //Idem otras funciones, hacer refactor
+				break;
+			default:
+				//Loggear error: no se ha podido interpretar el mensaje de cpu. ERROR DE KERNEL
+				break;
+		}
+	}
+}
+
+mensaje_dispatch_posta* recibir_mensaje_dispatch(){
+	//El size del struct es variable, podría cpu enviarnos primero el size?
+	//Quedando de esta manera
+	int size; //Almacena el tamaño en bytes que tendrá toda la estructura
+	recv(dispatch, &size, sizeof(int), MSG_WAITALL);
+	mensaje_dispatch_posta* mensaje_recibido = malloc(size); //Quizás habría que definir un create para esta struct
+	recv(dispatch, mensaje_recibido, size, 0);
+	return mensaje_recibido;
 }
 
 //---------------------------------------------------------------
