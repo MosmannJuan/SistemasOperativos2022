@@ -71,6 +71,7 @@ typedef struct {
 
 typedef struct {
 	pcb* pcb_a_bloquear;
+	double rafaga_real_anterior;
 	unsigned int tiempo_bloqueo; //Esta sería la estructura correcta a recibir en el void* datos en el caso de que se envíe a bloquear un proceso
 } bloqueo_pcb;
 
@@ -99,15 +100,16 @@ void * hilo_bloqueo_proceso (void* args_p);
 bool es_pid_a_desbloquear(void * pcb);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
 void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
-void * hilo_de_corto_plazo_fifo_running(void* argumentos);
+void hilo_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
 unsigned int calcular_estimacion_rafaga();
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
-void * hilo_de_corto_plazo_sjf_running(void* argumentos);
-void * exit_largo_plazo(void * argumentos);
+void hilo_de_corto_plazo_sjf_running(mensaje_dispatch_posta* argumentos);
+void exit_largo_plazo(mensaje_dispatch_posta* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
 mensaje_dispatch_posta* recibir_mensaje_dispatch();
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
+void evaluar_desalojo(mensaje_dispatch_posta * mensaje_cpu);
 
 #endif /* PLANIFICADOR_H_ */

@@ -102,10 +102,10 @@ void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  *
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
 	if(strcmp(algoritmoPlanificacion, "SRT") == 0) {
 		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_sjf_ready, NULL);
-		pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL);
+		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL); Ya no es más hilo
 	} else {
 		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
-		pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL);
+		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL); Ya no es más hilo
 	}
 }
 

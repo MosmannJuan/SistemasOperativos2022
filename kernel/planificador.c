@@ -125,9 +125,7 @@ void * hilo_new_ready(void * argumentos){
 	return NULL;
 }
 
-void * exit_largo_plazo(void * argumentos){
-	//CPU lee la instruccion exit y comunica a Kernel que el proceso deja de ejecutar
-	while(1){
+void exit_largo_plazo(mensaje_dispatch_posta* mensaje_cpu){
 		sem_wait( & semaforo_lista_running_remove);
 		pcb * pcb_exit= list_remove(running, 0);
 		sem_post( & semaforo_lista_running_remove);
@@ -146,9 +144,6 @@ void * exit_largo_plazo(void * argumentos){
 		sem_post( & semaforo_grado_multiprogramacion);
 
 		printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
-
-	}
-    return NULL;
 }
 
 
@@ -248,31 +243,25 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
   }
 }
 
-void * hilo_de_corto_plazo_fifo_running(void * argumentos) {
-  while (1) {
-    //Espera mensaje de cpu por socket de dispatch (pcb actualizado y mensaje para switch)
-    mensaje_dispatch dummy_mensaje;
-    dummy_mensaje.mensaje = 5;
-    switch (dummy_mensaje.mensaje) {
-    	case PASAR_A_BLOQUEADO:
+void hilo_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
+    //mensaje_dispatch dummy_mensaje;
+    //dummy_mensaje.mensaje = 5;
+    switch (mensaje_cpu->mensaje) {
+    	case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
+    		//Casteo los datos según lo necesario en el caso particular
+			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
+			//TODO: Ver de hacer free a este pcb.
     		list_remove(running, 0);
-    		list_add(bloqueado, dummy_mensaje.pcb_actualizado);
+    		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
-    		args_bloqueo -> tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
-    		args_bloqueo -> pcb_actualizado = dummy_mensaje.pcb_actualizado;
+    		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
+    		args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;
     		pthread_t hilo_bloqueo;
     		pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
     		break;
-    	case PASAR_A_READY:
-    		list_remove(running, 0);
-    		sem_wait( & semaforo_lista_ready_add);
-    		list_add(ready, dummy_mensaje.pcb_actualizado);
-    		sem_post( & semaforo_lista_ready_add);
-    		break;
     	default:
+    		//TODO: Loggear error de no se ha podido interpretar el mensaje de cpu
     		break;
-
-    }
   }
 }
 
@@ -294,32 +283,34 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
   }
 }
 
-void * hilo_de_corto_plazo_sjf_running(void * argumentos) {
-  unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
-  while (1) {
-    //Espera mensaje de cpu por socket de dispatch (pcb actualizado y mensaje para switch)
-    mensaje_dispatch dummy_mensaje;
-    switch (dummy_mensaje.mensaje) {
-    case PASAR_A_BLOQUEADO:
-      list_remove(running, 0);
-      dummy_mensaje.pcb_actualizado -> rafaga = calcular_estimacion_rafaga(real_anterior, dummy_mensaje.pcb_actualizado -> rafaga);
-      list_add(bloqueado, dummy_mensaje.pcb_actualizado);
-      argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
-      args_bloqueo -> tiempo_bloqueo = dummy_mensaje.tiempo_bloqueo;
-      args_bloqueo -> pcb_actualizado = dummy_mensaje.pcb_actualizado;
-      pthread_t hilo_bloqueo; // falta preguntar en hilo si es sjf para ordenar
-      pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
-      break;
-    case PASAR_A_READY:
-      list_remove(running, 0);
-      sem_wait( & semaforo_lista_ready_add);
-      //TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
-      list_add_sorted(ready, dummy_mensaje.pcb_actualizado, ordenar_por_estimacion_rafaga);
-      sem_post( & semaforo_lista_ready_add);
-      break;
-    default:
-      break;
-    }
+void hilo_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
+  //unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
+    switch (mensaje_cpu->mensaje) {
+		case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
+			//Casteo los datos según lo necesario en el caso particular
+			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
+			//TODO: Deberíamos hacer el free a este pcb?? Evaluar posible memory leak
+			list_remove(running, 0);
+			datos_bloqueo->pcb_a_bloquear->rafaga = calcular_estimacion_rafaga(datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
+			list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
+			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
+			args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
+			args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;
+			pthread_t hilo_bloqueo;
+			pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+			break;
+		case PASAR_A_READY: ;//Para arreglar error con la declaración de datos_bloqueo
+			//Casteo los datos según lo necesario en el caso particular
+			//TODO: ver si no debemos recibir también el tiempo transcurrido y modificar la ráfaga
+			pcb* pcb_interrumpido = (pcb*) mensaje_cpu->datos;
+			list_remove(running, 0);
+			sem_wait( & semaforo_lista_ready_add);
+			//TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
+			list_add_sorted(ready, pcb_interrumpido, ordenar_por_estimacion_rafaga);
+			sem_post( & semaforo_lista_ready_add);
+			break;
+		default:
+			break;
   }
 }
 
@@ -373,6 +364,37 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   }
 
   return NULL;
+}
+
+void evaluar_desalojo(mensaje_dispatch_posta * mensaje_cpu){
+	double rafaga_cpu_ejecutada = *(double*) mensaje_cpu->datos;
+
+	//Saco el pcb en running y le actualizo su ráfaga
+	sem_wait(&semaforo_lista_running_remove);
+	pcb* pcb_running = list_remove(running, 0);
+	sem_post(&semaforo_lista_running_remove);
+	pcb_running->rafaga -= rafaga_cpu_ejecutada;
+
+	//Saco el pcb de mayor prioridad de la lista de ready
+	sem_wait(&semaforo_lista_ready_remove);
+	pcb* pcb_mayor_prioridad_ready = list_remove(ready, 0);
+	sem_post(&semaforo_lista_ready_remove);
+
+	//Luego de evaluar dejo las listas como estaban. Ya que el planificador de corto plazo actúa en función de esto.
+	//TODO:Evaluar si está bien así o si se debe extraer esta lógica
+	list_add(running, pcb_running);
+
+	sem_wait(&semaforo_lista_ready_add);
+	list_add_sorted(ready, pcb_mayor_prioridad_ready, ordenar_por_estimacion_rafaga);
+	sem_post(&semaforo_lista_ready_add);
+
+	//Comparo sus ráfagas
+	if(pcb_mayor_prioridad_ready->rafaga < pcb_running->rafaga){
+		//Se envía mensaje de interrumpir por socket interrupt
+		//TODO: Modificar en función de lo necesario para cpu
+		char * mensaje_interrupt = "Interrumpir!!";
+		send(interrupt, mensaje_interrupt, sizeof(mensaje_interrupt), 0);
+	}
 }
 
 //---------------------------------------------------------------
