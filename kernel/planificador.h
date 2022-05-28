@@ -75,6 +75,12 @@ typedef struct {
 	unsigned int tiempo_bloqueo; //Esta sería la estructura correcta a recibir en el void* datos en el caso de que se envíe a bloquear un proceso
 } bloqueo_pcb;
 
+typedef struct {
+	pcb* pcb_a_interrumpir;
+	double rafaga_real_anterior;
+} interrupcion_pcb;
+
+
 
 // ---- LISTA DE ESTADOS ----//
 

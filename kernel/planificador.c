@@ -301,12 +301,13 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			break;
 		case PASAR_A_READY: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
-			//TODO: ver si no debemos recibir también el tiempo transcurrido y modificar la ráfaga. SI
-			pcb* pcb_interrumpido = (pcb*) mensaje_cpu->datos;
+		    interrupcion_pcb* datos_interrupcion = (interrupcion_pcb*) mensaje_cpu->datos;
 			pcb_destroy((pcb*)list_remove(running, 0));
+			pcb* pcb_interrupcion = datos_interrupcion->pcb_a_interrumpir;
 			sem_wait( & semaforo_lista_ready_add);
 			//TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
-			list_add_sorted(ready, pcb_interrumpido, ordenar_por_estimacion_rafaga);
+			pcb_interrupcion->rafaga -= datos_interrupcion->rafaga_real_anterior;
+			list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);
 			sem_post( & semaforo_lista_ready_add);
 			break;
 		default:
