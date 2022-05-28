@@ -243,7 +243,7 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
   }
 }
 
-void hilo_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
+void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
     //mensaje_dispatch dummy_mensaje;
     //dummy_mensaje.mensaje = 5;
     switch (mensaje_cpu->mensaje) {
@@ -251,7 +251,7 @@ void hilo_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
     		//Casteo los datos según lo necesario en el caso particular
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
 			//TODO: Ver de hacer free a este pcb.
-    		list_remove(running, 0);
+    		pcb_destroy((pcb*)list_remove(running, 0));
     		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
     		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
@@ -283,14 +283,14 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
   }
 }
 
-void hilo_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
+void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
   //unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
     switch (mensaje_cpu->mensaje) {
 		case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
 			//TODO: Deberíamos hacer el free a este pcb?? Evaluar posible memory leak
-			list_remove(running, 0);
+			pcb_destroy((pcb*)list_remove(running, 0));
 			datos_bloqueo->pcb_a_bloquear->rafaga = calcular_estimacion_rafaga(datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
 			list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
 			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
@@ -301,9 +301,9 @@ void hilo_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
 			break;
 		case PASAR_A_READY: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
-			//TODO: ver si no debemos recibir también el tiempo transcurrido y modificar la ráfaga
+			//TODO: ver si no debemos recibir también el tiempo transcurrido y modificar la ráfaga. SI
 			pcb* pcb_interrumpido = (pcb*) mensaje_cpu->datos;
-			list_remove(running, 0);
+			pcb_destroy((pcb*)list_remove(running, 0));
 			sem_wait( & semaforo_lista_ready_add);
 			//TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
 			list_add_sorted(ready, pcb_interrumpido, ordenar_por_estimacion_rafaga);
@@ -408,15 +408,15 @@ void* cpu_dispatch_handler(void* args){
 			case PASAR_A_BLOQUEADO:
 			case PASAR_A_READY:
 				if(strcmp(algoritmoPlanificacion, "SRT") == 0){
-					hilo_de_corto_plazo_sjf_running(mensaje_dispatch); //Hacerle refactor a esta función para que no sea más un hilo
+					planificador_de_corto_plazo_sjf_running(mensaje_dispatch);
 				}else
-					hilo_de_corto_plazo_fifo_running(mensaje_dispatch);//Idem otra función
+					planificador_de_corto_plazo_fifo_running(mensaje_dispatch);
 				break;
 			case EVALUAR_DESALOJO:
-				//Definir la función del hilo de corto plazo que evalúa desalojo y luego envía mensaje por interrupt en caso de desalojar
+				evaluar_desalojo(mensaje_dispatch);
 				break;
 			case PASAR_A_EXIT:
-				exit_largo_plazo(mensaje_dispatch); //Idem otras funciones, hacer refactor
+				exit_largo_plazo(mensaje_dispatch);
 				break;
 			default:
 				//Loggear error: no se ha podido interpretar el mensaje de cpu. ERROR DE KERNEL
