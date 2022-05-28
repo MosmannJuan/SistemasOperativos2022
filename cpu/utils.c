@@ -17,6 +17,16 @@ pcb * pcb_create() {
   return pcb;
 }
 
+void enviar_pcb_bloqueo(pcb* pcb_a_enviar, int socket_cliente)
+{
+	int bytes = 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+}
+
 pcb * recibir_pcb(int socket_cliente){
 	pcb* pcb_leido;
 

@@ -28,11 +28,11 @@ int main(void) {
 	while(1){
 		//hacer el recieve
 		printf("asd1");
-		recibir_pcb(conexionDispatch);
+		pcb* pcb_a_ejecutar = recibir_pcb(conexionDispatch);
 		printf("asd2");
 		sem_wait(sem_dispatch);
-		PaquetePcb* paquetePcb = malloc(sizeof(PaquetePcb));
-		ciclo(paquetePcb);
+
+		ciclo(pcb_a_ejecutar);
 		sem_post(sem_dispatch);
 	}
 
@@ -40,9 +40,12 @@ int main(void) {
 }
 
 
-void ciclo(PaquetePcb* paquetePcb){
-	while ((paquetePcb->pcb)->pc == list_size(paquetePcb->pcb->instrucciones) || interrupciones == 1 ){
-		decode_execute(paquetePcb,fetch(paquetePcb->pcb));
+void ciclo(pcb* pcb_a_ejecutar){
+	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) || interrupciones == 1 ){
+		decode(pcb_a_ejecutar,fetch(pcb_a_ejecutar));
+		pcb_a_ejecutar->pc++;
+		//Evaluar Interrupcion
+
 	}
 	interrupciones = 0;
 }
@@ -53,48 +56,30 @@ void* fetch(pcb * pcb_fetch){
 
 }
 
-void* decode_execute (PaquetePcb * paquete_pcb_decode, Instruccion * instruccion_decode){
-	paquete_pcb_decode->pcb->pc++;
+void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 	DireccionLogica * dir_logica;
 
 	switch(instruccion_decode->tipo){
 	case NO_OP:
-		log_info(cpuLogger,"Ejecuto el NO_OP");
-		sleep(retardoNoop);
-		if(interrupciones == 1){
-			paquete_pcb_decode->estado = INTERRUPCION;
-			send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
-		}
+		ejecutar_NO_OP(instruccion_decode->params[0]);
 	break;
 	case  I_O:
+		ejecutar_I_O(pcb_a_ejecutar, instruccion_decode->params[0]);
 		log_info(cpuLogger,"Ejecuto la I_O");
-		paquete_pcb_decode->estado = BLOQUEADO;
-		send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
-		send(conexionDispatch, &instruccion_decode->params[0],sizeof(int),0);
 	break;
-	case  READ:
-		log_info(cpuLogger,"Ejecuto el READ");
-	//	send(conexionMemoria,  )
-		if(interrupciones == 1){
-			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
-				}
-	break;
-	case WRITE:
-		log_info(cpuLogger,"Ejecuto el WRITE");
-		if(interrupciones == 1){
-			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
-				}
-	break;
-	case  COPY:
-		log_info(cpuLogger,"Ejecuto el COPY");
-		dir_logica  = fetch_operands(instruccion_decode->params);
-		if(interrupciones == 1){
-			paquete_pcb_decode->estado = INTERRUPCION;
-					send(conexionDispatch, paquete_pcb_decode , sizeof(pcb), 0);
-				}
-	break;
+//	case  READ:
+//		log_info(cpuLogger,"Ejecuto el READ");
+//
+//	break;
+//	case WRITE:
+//		log_info(cpuLogger,"Ejecuto el WRITE");
+//
+//	break;
+//	case  COPY:
+//		log_info(cpuLogger,"Ejecuto el COPY");
+//		dir_logica  = fetch_operands(instruccion_decode->params);
+//
+//	break;
 	case  EXIT:
 		log_info(cpuLogger,"Ejecuto el EXIT");
 		paquete_pcb_decode->estado = FINALIZADO;
@@ -110,3 +95,19 @@ DireccionLogica* fetch_operands(unsigned int* operandos){
 	//obtener primer nivel a memoria, segundo nivel y desplazamiento
 	return(direccion);
 }
+
+void ejecutar_NO_OP(unsigned int parametro){
+	log_info(cpuLogger,"Ejecuto el NO_OP");
+	int contador = 0;
+
+	while(contador != parametro){
+		sleep(retardoNoop);
+		contador++;
+	}
+}
+
+void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
+
+}
+
+
