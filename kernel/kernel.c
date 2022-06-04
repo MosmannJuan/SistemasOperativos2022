@@ -6,6 +6,7 @@ int main(int argc, char ** argv) {
 
   pthread_t hilo_ready;
   pthread_t hilo_running;
+  pthread_t hilo_dispatch_handler;
   pthread_t hilo_new_ready;
   pthread_t hilo_exit;
   inicializar_listas_procesos();
@@ -32,16 +33,16 @@ int main(int argc, char ** argv) {
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
   conexion_con_memoria = conexion_a_memoria(ipMemoria, puertoMemoria);
-
-  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
-  inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
-
   conexionConsola = iniciar_servidor(ipKernel, puertoEscucha);
   conexionDispatch = iniciar_servidor(ipKernel, puertoCpuDispatch);
   conexionInterrupt = iniciar_servidor(ipKernel, puertoCpuInterrupt);
 
   dispatch = esperar_cliente(conexionDispatch);
   interrupt = esperar_cliente(conexionInterrupt);
+
+  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
+  inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
+  inicializar_cpu_dispatch_handler(&hilo_dispatch_handler);
 
   //Inicializamos el semáforo para el process id del planificador de largo plazo
   inicializar_semaforos();
@@ -84,14 +85,16 @@ int main(int argc, char ** argv) {
 
 void inicializar_semaforos(){
 	sem_init(&semaforo_pid, 0, 1);
-	sem_init(&semaforo_lista_new_add, 0, 1);
-	sem_init(&semaforo_lista_ready_add, 0, 1);
-	sem_init(&semaforo_lista_new_remove, 0, 1);
 	sem_init(&semaforo_pid_comparacion, 0, 1);
+	sem_init(&semaforo_lista_new_add, 0, 1);
+	sem_init(&semaforo_lista_new_remove, 0, 1);
+	sem_init(&semaforo_lista_ready_add, 0, 1);
+	sem_init(&semaforo_lista_ready_remove, 0, 1);
     sem_init(&semaforo_lista_ready_suspendido_remove, 0,1);
     sem_init(&semaforo_lista_ready_suspendido_add, 0,1);
+    sem_init(&semaforo_lista_running_remove, 0,1);
     sem_init(&semaforo_grado_multiprogramacion,0,1);
-    sem_init(&semaforo_grado_multiprogramacion,0,1);
+    sem_init(&sem_sincro_running,0,0);
 }
 
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
@@ -100,6 +103,7 @@ void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  *
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
+
 	if(strcmp(algoritmoPlanificacion, "SRT") == 0) {
 		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_sjf_ready, NULL);
 		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL); Ya no es más hilo
@@ -107,5 +111,9 @@ void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hi
 		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
 		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL); Ya no es más hilo
 	}
+}
+
+void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler){
+	pthread_create(hilo_dispatch_handler, NULL, cpu_dispatch_handler, NULL);
 }
 

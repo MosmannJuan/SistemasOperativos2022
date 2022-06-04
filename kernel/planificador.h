@@ -17,6 +17,7 @@ sem_t semaforo_lista_ready_suspendido_remove;
 sem_t semaforo_lista_ready_suspendido_add;
 sem_t semaforo_lista_running_remove;
 sem_t semaforo_grado_multiprogramacion;
+sem_t sem_sincro_running;
 
 int alfa;
 char * algoritmoPlanificacion;
@@ -97,25 +98,27 @@ t_list * exit_estado;
 
 pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso);
 pcb* pcb_create();
-void pcb_destroy(pcb * pcb);
+void pcb_destroy(pcb * pcb_destruir);
 void * hilo_new_ready (void* args);
 void * hilo_de_largo_plazo (void * args);
 void inicializar_listas_procesos();
 void * hilo_pcb_new (void * args_p);
 void * hilo_bloqueo_proceso (void* args_p);
-bool es_pid_a_desbloquear(void * pcb);
+bool es_pid_a_desbloquear(void * pcb_desbloqueo);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
 void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
 void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
 unsigned int calcular_estimacion_rafaga();
 void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta* argumentos);
-void exit_largo_plazo(mensaje_dispatch_posta* argumentos);
+void exit_largo_plazo();
 void * cpu_dispatch_handler(void * argumentos);
 mensaje_dispatch_posta* recibir_mensaje_dispatch();
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
-void evaluar_desalojo(mensaje_dispatch_posta * mensaje_cpu);
+void evaluar_desalojo(double tiempo_ejecucion_actual);
+pcb* recibir_pcb(int socket_cliente);
+void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 
 #endif /* PLANIFICADOR_H_ */

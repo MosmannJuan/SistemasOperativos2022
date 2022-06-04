@@ -14,6 +14,7 @@
 #include <semaphore.h>
 #include "utils.h"
 
+bool detener_ejecucion;
 int interrupciones = 0;
 int	entradasTlb ;
 char*	reemplazoTlb;

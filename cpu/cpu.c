@@ -26,14 +26,8 @@ int main(void) {
 	printf("asd0");
 
 	while(1){
-		//hacer el recieve
-		printf("asd1");
 		pcb* pcb_a_ejecutar = recibir_pcb(conexionDispatch);
-		printf("asd2");
-		sem_wait(sem_dispatch);
-
 		ciclo(pcb_a_ejecutar);
-		sem_post(sem_dispatch);
 	}
 
 	terminar_programa(conexionMemoria, conexionDispatch, conexionInterrupt, cpuLogger, cpu_config);
@@ -41,13 +35,12 @@ int main(void) {
 
 
 void ciclo(pcb* pcb_a_ejecutar){
-	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) || interrupciones == 1 ){
+	detener_ejecucion = false;
+	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) && !detener_ejecucion){
 		decode(pcb_a_ejecutar,fetch(pcb_a_ejecutar));
 		pcb_a_ejecutar->pc++;
 		//Evaluar Interrupcion
-
 	}
-	interrupciones = 0;
 }
 
 void* fetch(pcb * pcb_fetch){
@@ -99,19 +92,23 @@ void ejecutar_NO_OP(unsigned int parametro){
 	int contador = 0;
 
 	while(contador != parametro){
-		sleep(retardoNoop);
+		sleep(retardoNoop/1000);
 		contador++;
 	}
 }
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 	log_info(cpuLogger,"Ejecuto la I_O");
+	pcb_a_bloquear->pc++;
 	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexionDispatch);
+	detener_ejecucion = true;
+
 }
 
 void ejecutar_exit(){
 	log_info(cpuLogger,"Ejecuto el EXIT");
 	enviar_exit(conexionDispatch);
+	detener_ejecucion = true;
 }
 
 

@@ -36,5 +36,6 @@ t_config * kernel_config;
 void inicializar_semaforos();
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running);
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit);
+void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler);
 
 #endif /* KERNEL_H_ */

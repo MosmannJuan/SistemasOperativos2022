@@ -1,65 +1,100 @@
 #include "utils.h"
 
 pcb * pcb_create() {
-  pcb * pcb;
-  pcb = malloc(sizeof(pcb));
+  pcb * pcb_nuevo;
+  pcb_nuevo = malloc(sizeof(pcb));
 
-  if (pcb == NULL) {
+  if (pcb_nuevo == NULL) {
     return NULL;
   }
 
-  pcb -> instrucciones = list_create();
-  if (pcb -> instrucciones == NULL) {
-    free(pcb);
+  pcb_nuevo -> instrucciones = list_create();
+  if (pcb_nuevo -> instrucciones == NULL) {
+    free(pcb_nuevo);
     return NULL;
   }
 
-  return pcb;
+  return pcb_nuevo;
 }
 
 void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
-	int bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int pcb_bytes = 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + sizeof(int);
+	//	mensaje_dispatch* mensaje_a_enviar = malloc(bytes);
+//	bloqueo_pcb* datos_mensaje = malloc(sizeof(bloqueo_pcb));
+//	datos_mensaje->pcb_a_bloquear = pcb_a_enviar;
+//	datos_mensaje->rafaga_real_anterior = 4; //TODO: Se hardcodea, armar contador en cpu
+//	datos_mensaje->tiempo_bloqueo = tiempo_bloqueo;
+//	mensaje_a_enviar->datos = datos_mensaje;
+//	mensaje_a_enviar->mensaje = PASAR_A_BLOQUEADO;
 
-	mensaje_dispatch* mensaje_a_enviar = malloc(bytes);
-	bloqueo_pcb* datos_mensaje = malloc(sizeof(bloqueo_pcb));
-	datos_mensaje->pcb_a_bloquear = pcb_a_enviar;
-	datos_mensaje->rafaga_real_anterior = 4; //TODO: Se hardcodea, armar contador en cpu
-	datos_mensaje->tiempo_bloqueo = tiempo_bloqueo;
-	mensaje_a_enviar->datos = datos_mensaje;
-	mensaje_a_enviar->mensaje = PASAR_A_BLOQUEADO;
+	void* a_enviar = serializar_mensaje_bloqueo(pcb_a_enviar, tiempo_bloqueo, bytes);
 
-	void* a_enviar = serializar_mensaje_bloqueo(mensaje_a_enviar, bytes);
-
-
-	//Enviamos el tamaño de la estructura a enviar
-	send(socket_cliente, &bytes, sizeof(int), 0);
 	//Enviamos estructura de bloqueo de pcb
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
 }
 
-void* serializar_mensaje_bloqueo(mensaje_dispatch* mensaje_a_enviar, int bytes){
+void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes){
 
+	printf("Antes de malloc 1 \n");
 	void* memoria_asignada = malloc(bytes);
+	printf("Después de malloc 1 \n");
 	int desplazamiento = 0;
+	mensaje_cpu mensaje = PASAR_A_BLOQUEADO;
+	double rafaga_anterior = 4.0; //Se hardcodea, necesitamos enviar el valor real de ejecucion medido
 
-	memcpy(memoria_asignada + desplazamiento, mensaje_a_enviar->datos, sizeof(bloqueo_pcb));
-	desplazamiento  += sizeof(bloqueo_pcb);
-	memcpy(memoria_asignada + desplazamiento, &mensaje_a_enviar->mensaje, sizeof(int));
+	memcpy(memoria_asignada + desplazamiento, &mensaje , sizeof(int));
 	desplazamiento  += sizeof(int);
+	memcpy(memoria_asignada + desplazamiento, &tiempo_bloqueo , sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &rafaga_anterior , sizeof(double));
+	desplazamiento  += sizeof(double);
+	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
+
+
 
 	return memoria_asignada;
 }
 
+void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamiento){
+
+
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->id), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tam_proceso), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->pc), sizeof(unsigned int));
+	desplazamiento  += sizeof(unsigned int);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
+	desplazamiento  += sizeof(double);
+
+	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
+	return memoria_asignada;
+}
+
+void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones){
+	int contador_de_instrucciones = 0;
+	int cantidad_de_instrucciones = list_size(instrucciones);
+
+	//Indicamos la cantidad de instrucciones que debe leer cpu
+	memcpy(memoria_asignada + desplazamiento, &(cantidad_de_instrucciones), sizeof(int));
+	desplazamiento  += sizeof(int);
+
+	while(contador_de_instrucciones < cantidad_de_instrucciones){
+		Instruccion* instruccion_aux = (Instruccion *)list_get(instrucciones, contador_de_instrucciones);
+		printf("\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
+		memcpy(memoria_asignada + desplazamiento, instruccion_aux, sizeof(Instruccion));
+		desplazamiento  += sizeof(Instruccion);
+		contador_de_instrucciones++;
+	}
+}
+
 void enviar_exit(int socket_cliente){
-	mensaje_dispatch* mensaje = malloc(sizeof(mensaje_dispatch));
 
-	mensaje->mensaje = PASAR_A_EXIT;
-	int size = sizeof(mensaje_dispatch);
-
-	send(socket_cliente, &size, sizeof(int), 0);
-	send(socket_cliente, mensaje, sizeof(mensaje_dispatch), 0);
+	mensaje_cpu mensaje = PASAR_A_EXIT;
+	send(socket_cliente, &mensaje, sizeof(int), 0);
 }
 
 pcb * recibir_pcb(int socket_cliente){
