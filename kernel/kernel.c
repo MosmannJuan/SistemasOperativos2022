@@ -32,7 +32,7 @@ int main(int argc, char ** argv) {
   limite_grado_multiprogramacion = (unsigned int) config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
-  conexion_con_memoria = conexion_a_memoria(ipMemoria, puertoMemoria);
+  conexion_memoria = conexion_a_memoria(ipMemoria, puertoMemoria);
   conexionConsola = iniciar_servidor(ipKernel, puertoEscucha);
   conexionDispatch = iniciar_servidor(ipKernel, puertoCpuDispatch);
   conexionInterrupt = iniciar_servidor(ipKernel, puertoCpuInterrupt);

@@ -1,0 +1,9 @@
+[INFO] 22:06:46:845 memoria.c/(4940:4940): cliente_kernel: 6
+[INFO] 22:06:52:965 memoria.c/(4940:4940): cliente_cpu: 7
+[INFO] 22:06:52:973 memoria.c/(4940:5019): Esperando recibir accion en memoria
+[INFO] 22:07:10:258 memoria.c/(4940:5019): Recibí la accion: 0
+[INFO] 22:07:10:258 memoria.c/(4940:5019): Recibí el pid: 1
+[INFO] 22:07:10:258 memoria.c/(4940:5019): Recibí tamaño de proceso: 8
+[INFO] 22:07:10:259 memoria.c/(4940:5019): Se necesitan 0 tablas de segundo nivel
+[INFO] 22:07:10:259 memoria.c/(4940:5019): El identificador de tabla de paginas recibido es: 0
+[INFO] 22:07:10:259 memoria.c/(4940:5019): Esperando recibir accion en memoria

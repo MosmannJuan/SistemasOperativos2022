@@ -39,22 +39,23 @@ pcb * pcb_create() {
 }
 
 pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
-  pcb * pcb = pcb_create();
+  pcb * pcb_creado = pcb_create();
   //Enviamos la señal de wait al semáforo para bloquear el recurso
   sem_wait( & semaforo_pid);
   //Accedemos al recurso compartido y ejecutamos las instrucciones de la zona crítica
   pid_contador++;
-  pcb -> id = pid_contador;
+  pcb_creado -> id = pid_contador;
   //Enviamos la señal de post para liberar el recurso
   sem_post( & semaforo_pid);
-  pcb -> tam_proceso = tam_proceso;
-  pcb -> instrucciones = instrucciones;
-  pcb -> pc = 0;
-  pcb -> rafaga = estimacion_inicial;
+  pcb_creado -> tam_proceso = tam_proceso;
+  pcb_creado -> instrucciones = instrucciones;
+  pcb_creado -> pc = 0;
+  pcb_creado -> tabla_paginas = 0;
+  pcb_creado -> rafaga = estimacion_inicial;
 
-  printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n", pcb -> id, pcb -> tam_proceso, list_size(pcb -> instrucciones), pcb -> pc, pcb -> rafaga);
+  printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n", pcb_creado -> id, pcb_creado -> tam_proceso, list_size(pcb_creado -> instrucciones), pcb_creado -> pc, pcb_creado -> rafaga);
 
-  return pcb;
+  return pcb_creado;
 }
 
 // PROCESO DE FINALIZACION DE PROCESO
@@ -63,8 +64,6 @@ void pcb_destroy(pcb * pcb_destruir) {
   list_destroy(pcb_destruir -> instrucciones);
   free(pcb_destruir);
 }
-
-
 
 void * hilo_pcb_new(void * args_p) {
   //Acceder a args
@@ -88,16 +87,22 @@ void * hilo_pcb_new(void * args_p) {
 
 }
 
-
 void * hilo_new_ready(void * argumentos){
 	while (1){
 		  if(grado_multiprogramacion < limite_grado_multiprogramacion && list_size(ready_suspendido) == 0 && list_size(new)>0){
+
+			  sem_wait(&semaforo_lista_new_remove);
+			  pcb* pcb_new = (pcb*) list_get(new, 0);
+			  sem_post(&semaforo_lista_new_remove);
 			  //TODO Enviar mensaje a memoria
-
+			  accion_memoria accion_a_ejecutar = INICIALIZAR_ESTRUCTURAS;
+			  send(conexion_memoria, &accion_a_ejecutar, sizeof(int), 0);
+			  send(conexion_memoria, &pcb_new->id, sizeof(unsigned int), 0);
+			  send(conexion_memoria, &pcb_new->tam_proceso, sizeof(unsigned int), 0);
 			  //TODO Asignar tabla de páginas a pcb
-
+			  recv(conexion_memoria, &pcb_new->tabla_paginas, sizeof(int), 0);
+			  printf("Recibí la tabla de páginas: %d \n", pcb_new->tabla_paginas);
 			  //Eliminar pcb de new y mover a ready
-
 
 			  sem_wait( & semaforo_lista_new_remove);
 			  pcb * pcb_ready = list_remove(new, 0);

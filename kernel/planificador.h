@@ -29,6 +29,7 @@ unsigned int limite_grado_multiprogramacion;
 // ---- SOCKETS ----//
 int dispatch;
 int interrupt;
+int conexion_memoria;
 
 
 // ---- ESTRUCTURAS Y ENUMS ----//
@@ -44,7 +45,7 @@ typedef struct {
 	unsigned int tam_proceso;
 	t_list * instrucciones;
 	unsigned int pc;
-	/* TABLA PAGINAS ??? */
+	int tabla_paginas;
 	double rafaga;
 
 }pcb;
@@ -81,7 +82,9 @@ typedef struct {
 	double rafaga_real_anterior;
 } interrupcion_pcb;
 
-
+typedef enum {
+	INICIALIZAR_ESTRUCTURAS
+}accion_memoria;
 
 // ---- LISTA DE ESTADOS ----//
 

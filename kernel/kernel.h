@@ -24,8 +24,6 @@ char * puertoCpuDispatch;
 int gradoMultiprogramacion;
 int tiempoMaximoBloqueado;
 
-int conexion_con_memoria;
-
 int conexionConsola;
 int conexionDispatch;
 int conexionInterrupt;

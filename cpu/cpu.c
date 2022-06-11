@@ -44,9 +44,7 @@ void ciclo(pcb* pcb_a_ejecutar){
 }
 
 void* fetch(pcb * pcb_fetch){
-
 	return list_get(pcb_fetch->instrucciones,pcb_fetch->pc);
-
 }
 
 void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
