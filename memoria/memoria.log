@@ -7,3 +7,51 @@
 [INFO] 22:07:10:259 memoria.c/(4940:5019): Se necesitan 0 tablas de segundo nivel
 [INFO] 22:07:10:259 memoria.c/(4940:5019): El identificador de tabla de paginas recibido es: 0
 [INFO] 22:07:10:259 memoria.c/(4940:5019): Esperando recibir accion en memoria
+[INFO] 22:29:01:296 memoria.c/(5560:5560): cliente_kernel: 6
+[INFO] 22:29:06:875 memoria.c/(5560:5560): cliente_cpu: 7
+[INFO] 22:29:06:889 memoria.c/(5560:5634): Esperando recibir accion en memoria
+[INFO] 22:29:22:062 memoria.c/(5560:5634): Recibí la accion: 0
+[INFO] 22:29:22:062 memoria.c/(5560:5634): Recibí el pid: 1
+[INFO] 22:29:22:062 memoria.c/(5560:5634): Recibí tamaño de proceso: 8
+[INFO] 22:29:22:063 memoria.c/(5560:5634): Se necesitan 0 tablas de segundo nivel
+[INFO] 22:34:51:980 memoria.c/(5773:5773): cliente_kernel: 6
+[INFO] 22:34:56:738 memoria.c/(5773:5773): cliente_cpu: 7
+[INFO] 22:34:56:747 memoria.c/(5773:5820): Esperando recibir accion en memoria
+[INFO] 22:35:07:002 memoria.c/(5773:5820): Recibí la accion: 0
+[INFO] 22:35:07:003 memoria.c/(5773:5820): Recibí el pid: 1
+[INFO] 22:35:07:003 memoria.c/(5773:5820): Recibí tamaño de proceso: 8
+[INFO] 22:35:07:003 memoria.c/(5773:5820): Se necesitan 0 tablas de segundo nivel
+[INFO] 22:39:17:030 memoria.c/(5924:5924): cliente_kernel: 6
+[INFO] 22:39:24:597 memoria.c/(5924:5924): cliente_cpu: 7
+[INFO] 22:39:24:611 memoria.c/(5924:5979): Esperando recibir accion en memoria
+[INFO] 22:39:34:859 memoria.c/(5924:5979): Recibí la accion: 0
+[INFO] 22:39:34:859 memoria.c/(5924:5979): Recibí el pid: 1
+[INFO] 22:39:34:859 memoria.c/(5924:5979): Recibí tamaño de proceso: 8
+[INFO] 22:39:34:859 memoria.c/(5924:5979): Se necesitan 0 tablas de segundo nivel
+[INFO] 22:43:32:498 memoria.c/(6067:6067): cliente_kernel: 6
+[INFO] 22:43:49:366 memoria.c/(6067:6067): cliente_cpu: 7
+[INFO] 22:43:49:387 memoria.c/(6067:6144): Esperando recibir accion en memoria
+[INFO] 22:44:21:845 memoria.c/(6067:6144): Recibí la accion: 0
+[INFO] 22:44:21:846 memoria.c/(6067:6144): Recibí el pid: 1
+[INFO] 22:44:21:846 memoria.c/(6067:6144): Recibí tamaño de proceso: 8
+[INFO] 22:44:21:846 memoria.c/(6067:6144): Se necesitan 0 tablas de segundo nivel
+[INFO] 23:02:34:743 memoria.c/(6580:6580): cliente_kernel: 6
+[INFO] 23:02:42:337 memoria.c/(6580:6580): cliente_cpu: 7
+[INFO] 23:02:42:351 memoria.c/(6580:6631): Esperando recibir accion en memoria
+[INFO] 23:02:57:151 memoria.c/(6580:6631): Recibí la accion: 0
+[INFO] 23:02:57:151 memoria.c/(6580:6631): Recibí el pid: 1
+[INFO] 23:02:57:151 memoria.c/(6580:6631): Recibí tamaño de proceso: 8
+[INFO] 23:02:57:151 memoria.c/(6580:6631): Se necesitan 0 tablas de segundo nivel
+[INFO] 23:05:17:103 memoria.c/(6696:6696): cliente_kernel: 6
+[INFO] 23:05:29:636 memoria.c/(6696:6696): cliente_cpu: 7
+[INFO] 23:07:33:155 memoria.c/(6870:6870): cliente_kernel: 6
+[INFO] 23:07:36:386 memoria.c/(6870:6870): cliente_cpu: 7
+[INFO] 23:09:47:439 memoria.c/(6982:6982): cliente_kernel: 6
+[INFO] 23:09:51:476 memoria.c/(6982:6982): cliente_cpu: 7
+[INFO] 23:09:51:487 memoria.c/(6982:7012): Esperando recibir accion en memoria
+[INFO] 23:10:03:067 memoria.c/(6982:7012): Recibí la accion: 0
+[INFO] 23:10:03:067 memoria.c/(6982:7012): Recibí el pid: 1
+[INFO] 23:10:03:067 memoria.c/(6982:7012): Recibí tamaño de proceso: 8
+[INFO] 23:10:03:067 memoria.c/(6982:7012): Se necesitan 0 tablas de segundo nivel
+[INFO] 23:10:03:067 memoria.c/(6982:7012): El identificador de tabla de paginas recibido es: 0
+[INFO] 23:10:03:067 memoria.c/(6982:7012): Esperando recibir accion en memoria

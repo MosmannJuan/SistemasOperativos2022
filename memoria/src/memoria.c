@@ -1,6 +1,7 @@
 #include "memoria.h"
 int main(void) {
 	pthread_t hilo_kernel_handler;
+	int ejecuciones;
 
 	abrirArchivoConfiguracion();
 	conexion = iniciar_servidor(ipMemoria, puertoEscucha);
@@ -18,9 +19,9 @@ int main(void) {
 
 	inicializar_kernel_handler(&hilo_kernel_handler);
 	while(1){
-
+		ejecuciones = 0;
 	}
-	  terminar_programa(conexion, loggerMemoria, memoria_config);
+	terminar_programa(conexion, loggerMemoria, memoria_config);
 	return EXIT_SUCCESS;
 }
 
@@ -121,6 +122,8 @@ void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid){
 	string_append(&path_archivo_swap, nombre_archivo_swap);
 
 	FILE* archivo_swap = fopen(path_archivo_swap, "rw+");
+
+	//fclose(archivo_swap);
 
 	int rta_truncate = truncate(path_archivo_swap, tamanio_proceso);
 

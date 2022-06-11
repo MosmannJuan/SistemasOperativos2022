@@ -484,6 +484,8 @@ void* serializar_pcb(pcb* pcb_a_enviar, int bytes){
 	desplazamiento  += sizeof(unsigned int);
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
 	desplazamiento  += sizeof(double);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tabla_paginas), sizeof(int));
+	desplazamiento  += sizeof(int);
 
 	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
 	return memoria_asignada;
@@ -508,7 +510,7 @@ void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list
 
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente)
 {
-	int bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int bytes = 2*sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
@@ -545,6 +547,9 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
 	printf("rafaga: %f \n", pcb_leido->rafaga);
+	//Recibo la tabla de poaginas
+	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
+	printf("tabla de paginas: %d \n", pcb_leido->tabla_paginas);
 	//Recibo la cantidad de instrucciones que posee el proceso
 	recv(socket_cliente, &(cantidad_de_instrucciones), sizeof(int), MSG_WAITALL);
 	printf("cant instr: %d \n", cantidad_de_instrucciones);
@@ -558,5 +563,5 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	}
 	//pcb_leido->instrucciones = lista_aux;
 
-	printf("pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, list_size(pcb_leido->instrucciones));
+	printf("pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n tabla de paginas: %d \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, pcb_leido->tabla_paginas, list_size(pcb_leido->instrucciones));
 }

@@ -48,7 +48,6 @@ void* fetch(pcb * pcb_fetch){
 }
 
 void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
-	DireccionLogica * dir_logica;
 
 	switch(instruccion_decode->tipo){
 	case NO_OP:
@@ -77,12 +76,6 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 	}
 
 return(NULL);
-}
-
-DireccionLogica* fetch_operands(unsigned int* operandos){
-	DireccionLogica *direccion = malloc(sizeof(DireccionLogica));
-	//obtener primer nivel a memoria, segundo nivel y desplazamiento
-	return(direccion);
 }
 
 void ejecutar_NO_OP(unsigned int parametro){

@@ -37,7 +37,7 @@ typedef struct {
 	unsigned int tam_proceso;
 	t_list * instrucciones;
 	unsigned int pc;
-	/* TABLA PAGINAS ??? */
+	int tabla_paginas;
 	double rafaga;
 
 }pcb;
