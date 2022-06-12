@@ -276,7 +276,6 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		//Casteo los datos según lo necesario en el caso particular
     		printf("Pasar a bloqueado \n");
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
-			printf("pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
 			//TODO: Ver de hacer free a este pcb.
 			sem_wait(&sem_sincro_running);
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
@@ -284,6 +283,8 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		pcb_destroy(pcb_destruir);
     		printf("Llegó hasta acá \n");
     		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
+    		datos_bloqueo->pcb_a_bloquear->rafaga-= datos_bloqueo->rafaga_real_anterior;
+			printf("pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
     		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
     		args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;

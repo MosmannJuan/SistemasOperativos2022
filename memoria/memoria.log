@@ -55,3 +55,397 @@
 [INFO] 23:10:03:067 memoria.c/(6982:7012): Se necesitan 0 tablas de segundo nivel
 [INFO] 23:10:03:067 memoria.c/(6982:7012): El identificador de tabla de paginas recibido es: 0
 [INFO] 23:10:03:067 memoria.c/(6982:7012): Esperando recibir accion en memoria
+[INFO] 09:26:24:486 memoria.c/(11749:11749): cliente_kernel: 6
+[INFO] 09:27:22:803 memoria.c/(11783:11783): cliente_kernel: 6
+[INFO] 09:27:25:400 memoria.c/(11783:11783): cliente_cpu: 7
+[INFO] 09:27:25:400 memoria.c/(11783:11783): Recibí la accion: 4 de cpu
+[INFO] 09:27:25:400 memoria.c/(11783:11783): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:27:25:406 memoria.c/(11783:11815): Esperando recibir accion de cpu en memoria
+[INFO] 09:27:25:406 memoria.c/(11783:11814): Esperando recibir accion de kernel en memoria
+[INFO] 09:27:37:182 memoria.c/(11783:11814): Recibí la accion: 0 de kernel
+[INFO] 09:27:37:182 memoria.c/(11783:11814): Recibí el pid: 1
+[INFO] 09:27:37:182 memoria.c/(11783:11814): Recibí tamaño de proceso: 8
+[INFO] 09:27:37:182 memoria.c/(11783:11814): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:27:37:182 memoria.c/(11783:11814): El identificador de tabla de paginas recibido es: 0
+[INFO] 09:27:37:182 memoria.c/(11783:11814): Esperando recibir accion de kernel en memoria
+[INFO] 09:27:45:214 memoria.c/(11783:11814): Recibí la accion: 0 de kernel
+[INFO] 09:27:45:214 memoria.c/(11783:11814): Recibí el pid: 1
+[INFO] 09:27:45:214 memoria.c/(11783:11814): Recibí tamaño de proceso: 8
+[INFO] 09:27:45:214 memoria.c/(11783:11814): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:27:45:214 memoria.c/(11783:11814): El identificador de tabla de paginas recibido es: 1
+[INFO] 09:27:45:214 memoria.c/(11783:11814): Esperando recibir accion de kernel en memoria
+[INFO] 09:27:45:215 memoria.c/(11783:11814): Recibí la accion: 0 de kernel
+[INFO] 09:27:45:215 memoria.c/(11783:11814): Recibí el pid: 1
+[INFO] 09:27:45:215 memoria.c/(11783:11814): Recibí tamaño de proceso: 8
+[INFO] 09:27:45:215 memoria.c/(11783:11814): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:27:45:215 memoria.c/(11783:11814): El identificador de tabla de paginas recibido es: 2
+[INFO] 09:37:03:487 memoria.c/(11984:11984): cliente_kernel: 6
+[INFO] 09:37:05:169 memoria.c/(11984:11984): cliente_cpu: 7
+[INFO] 09:37:05:170 memoria.c/(11984:11984): Recibí la accion: 4 de cpu
+[INFO] 09:37:05:170 memoria.c/(11984:11984): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:37:05:189 memoria.c/(11984:12030): Esperando recibir accion de cpu en memoria
+[INFO] 09:37:05:194 memoria.c/(11984:12029): Esperando recibir accion de kernel en memoria
+[INFO] 09:37:20:030 memoria.c/(11984:12029): Recibí la accion: 0 de kernel
+[INFO] 09:37:20:030 memoria.c/(11984:12029): Recibí el pid: 1
+[INFO] 09:37:20:030 memoria.c/(11984:12029): Recibí tamaño de proceso: 8
+[INFO] 09:37:20:030 memoria.c/(11984:12029): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:37:20:030 memoria.c/(11984:12029): El identificador de tabla de paginas recibido es: 0
+[INFO] 09:37:20:030 memoria.c/(11984:12029): Esperando recibir accion de kernel en memoria
+[INFO] 09:37:28:054 memoria.c/(11984:12029): Recibí la accion: 0 de kernel
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Recibí el pid: 1
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Recibí tamaño de proceso: 8
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:37:28:055 memoria.c/(11984:12029): El identificador de tabla de paginas recibido es: 1
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Esperando recibir accion de kernel en memoria
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Recibí la accion: 0 de kernel
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Recibí el pid: 1
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Recibí tamaño de proceso: 8
+[INFO] 09:37:28:055 memoria.c/(11984:12029): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:37:28:055 memoria.c/(11984:12029): El identificador de tabla de paginas recibido es: 2
+[INFO] 09:43:14:952 memoria.c/(12129:12129): cliente_kernel: 6
+[INFO] 09:43:48:379 memoria.c/(12129:12129): cliente_cpu: 7
+[INFO] 09:43:56:409 memoria.c/(12129:12229): Esperando recibir accion de kernel en memoria
+[INFO] 09:44:00:944 memoria.c/(12129:12232): Esperando recibir accion de cpu en memoria
+[INFO] 09:44:00:945 memoria.c/(12129:12129): Recibí la accion: 4 de cpu
+[INFO] 09:44:00:945 memoria.c/(12129:12129): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:46:25:032 memoria.c/(12556:12556): cliente_kernel: 6
+[INFO] 09:46:38:460 memoria.c/(12556:12556): cliente_cpu: 7
+[INFO] 09:46:38:460 memoria.c/(12556:12556): Recibí la accion: 4 de cpu
+[INFO] 09:46:38:460 memoria.c/(12556:12556): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:46:38:472 memoria.c/(12556:12611): Esperando recibir accion de cpu en memoria
+[INFO] 09:46:38:476 memoria.c/(12556:12610): Esperando recibir accion de kernel en memoria
+[INFO] 09:49:50:724 memoria.c/(12556:12611): Recibí la accion: 0 de cpu
+[INFO] 09:49:50:724 memoria.c/(12556:12611): Recibí el numero_tabla_primer_nivel: -1216870421
+[INFO] 09:49:50:724 memoria.c/(12556:12611): Recibí entrada_primer_nivel: -0.000000
+[INFO] 09:53:32:195 memoria.c/(12791:12791): cliente_kernel: 6
+[INFO] 09:53:43:746 memoria.c/(12791:12791): cliente_cpu: 7
+[INFO] 09:53:43:746 memoria.c/(12791:12791): Envío la accion: 4 a cpu
+[INFO] 09:53:43:746 memoria.c/(12791:12791): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:53:43:746 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:53:43:753 memoria.c/(12791:12843): Esperando recibir accion de kernel en memoria
+[INFO] 09:54:26:060 memoria.c/(12791:12843): Recibí la accion: 0 de kernel
+[INFO] 09:54:26:061 memoria.c/(12791:12843): Recibí el pid: 1
+[INFO] 09:54:26:061 memoria.c/(12791:12843): Recibí tamaño de proceso: 8
+[INFO] 09:54:26:061 memoria.c/(12791:12843): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:54:26:061 memoria.c/(12791:12843): El identificador de tabla de paginas recibido es: 0
+[INFO] 09:54:26:061 memoria.c/(12791:12843): Esperando recibir accion de kernel en memoria
+[INFO] 09:58:13:997 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:997 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:997 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:997 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:998 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:13:999 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:000 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:001 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:002 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:003 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:004 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:004 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:004 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:005 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:006 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:008 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:011 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:014 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:018 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:019 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:020 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:021 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:022 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:023 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:026 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:027 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:030 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Esperando recibir accion de cpu en memoria
+[INFO] 09:58:14:031 memoria.c/(12791:12791): Recibí la accion: -1217757184 de cpu
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí la accion: 0 de kernel
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí el pid: 1
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí tamaño de proceso: 8
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:58:14:032 memoria.c/(12791:12843): El identificador de tabla de paginas recibido es: 1
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Esperando recibir accion de kernel en memoria
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí la accion: 0 de kernel
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí el pid: 1
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Recibí tamaño de proceso: 8
+[INFO] 09:58:14:032 memoria.c/(12791:12843): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:58:14:032 memoria.c/(12791:12843): El identificador de tabla de paginas recibido es: 2
+[INFO] 09:59:02:069 memoria.c/(13003:13003): cliente_kernel: 6
+[INFO] 09:59:05:918 memoria.c/(13003:13003): cliente_cpu: 7
+[INFO] 09:59:05:918 memoria.c/(13003:13003): Envío la accion: 4 a cpu
+[INFO] 09:59:05:918 memoria.c/(13003:13003): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 09:59:05:918 memoria.c/(13003:13003): Esperando recibir accion de cpu en memoria
+[INFO] 09:59:05:921 memoria.c/(13003:13050): Esperando recibir accion de kernel en memoria
+[INFO] 09:59:18:184 memoria.c/(13003:13050): Recibí la accion: 0 de kernel
+[INFO] 09:59:18:184 memoria.c/(13003:13050): Recibí el pid: 1
+[INFO] 09:59:18:184 memoria.c/(13003:13050): Recibí tamaño de proceso: 8
+[INFO] 09:59:18:184 memoria.c/(13003:13050): Se necesitan 0 tablas de segundo nivel
+[INFO] 09:59:18:184 memoria.c/(13003:13050): El identificador de tabla de paginas recibido es: 0
+[INFO] 09:59:18:184 memoria.c/(13003:13050): Esperando recibir accion de kernel en memoria

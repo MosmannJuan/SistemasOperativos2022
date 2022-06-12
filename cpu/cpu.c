@@ -48,9 +48,8 @@ int main(void) {
 				ciclo(pcb_a_ejecutar);
 				break;
 		}
-
-	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpuLogger, cpu_config);
 	}
+	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpuLogger, cpu_config);
 }
 
 
