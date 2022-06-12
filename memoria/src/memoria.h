@@ -61,7 +61,16 @@ typedef struct
 
 typedef enum {
 	INICIALIZAR_ESTRUCTURAS
-}accion_memoria;
+}accion_memoria_con_kernel;
+
+
+typedef enum {
+	OBTENER_TABLA_SEGUNDO_NIVEL,
+	OBTENER_NUMERO_MARCO,
+	LEER,
+	ESCRIBIR,
+	SOLICITAR_VALORES_GLOBALES
+} accion_memoria_con_cpu;
 
 void abrirArchivoConfiguracion();
 void configurarMemoria();
@@ -73,3 +82,6 @@ void inicializar_listas_procesos();
 void inicializar_marcos_disponibles();
 void* conexion_kernel_handler(void* args);
 void inicializar_kernel_handler(pthread_t *hilo_kernel_handler);
+void* conexion_cpu_handler(void* args);
+void inicializar_cpu_handler(pthread_t *hilo_cpu_handler);
+void enviar_globales();

@@ -1,6 +1,7 @@
 #include "memoria.h"
 int main(void) {
 	pthread_t hilo_kernel_handler;
+	pthread_t hilo_cpu_handler;
 	int ejecuciones;
 
 	abrirArchivoConfiguracion();
@@ -18,6 +19,9 @@ int main(void) {
 	if(conexion_cpu !=0) log_info(loggerMemoria, "cliente_cpu: %d", conexion_cpu);
 
 	inicializar_kernel_handler(&hilo_kernel_handler);
+	inicializar_cpu_handler(&hilo_cpu_handler);
+	enviar_globales();
+
 	while(1){
 		ejecuciones = 0;
 	}
@@ -157,10 +161,10 @@ void enviar_tabla_de_paginas(int identificador_tabla_de_paginas){
 
 void* conexion_kernel_handler(void* args){
 	while(1){
-		accion_memoria accion_recibida;
-		log_info(loggerMemoria, "Esperando recibir accion en memoria");
+		accion_memoria_con_kernel accion_recibida;
+		log_info(loggerMemoria, "Esperando recibir accion de kernel en memoria");
 		recv(conexion_kernel, &accion_recibida, sizeof(int), 0);
-		log_info(loggerMemoria, "Recibí la accion: %d", accion_recibida);
+		log_info(loggerMemoria, "Recibí la accion: %d de kernel", accion_recibida);
 		switch(accion_recibida){
 			case INICIALIZAR_ESTRUCTURAS: ;
 				unsigned int pid;
@@ -184,3 +188,58 @@ void* conexion_kernel_handler(void* args){
 void inicializar_kernel_handler(pthread_t *hilo_kernel_handler){
   pthread_create(hilo_kernel_handler, NULL, conexion_kernel_handler, NULL);
 }
+
+
+void* conexion_cpu_handler(void* args){
+	while(1){
+		accion_memoria_con_cpu accion_recibida;
+		log_info(loggerMemoria, "Esperando recibir accion de cpu en memoria");
+		recv(conexion_cpu, &accion_recibida, sizeof(int), 0);
+		log_info(loggerMemoria, "Recibí la accion: %d de cpu", accion_recibida);
+		switch(accion_recibida){
+			case OBTENER_TABLA_SEGUNDO_NIVEL: ;
+				int numero_tabla_primer_nivel;
+				recv(conexion_cpu, &numero_tabla_primer_nivel, sizeof(int), 0);
+				log_info(loggerMemoria, "Recibí el numero_tabla_primer_nivel: %d", numero_tabla_primer_nivel);
+				double entrada_1er_nivel;
+				recv(conexion_cpu, &entrada_1er_nivel, sizeof(double), 0);
+				log_info(loggerMemoria, "Recibí entrada_primer_nivel: %f", entrada_1er_nivel);
+				t_list * tabla_primer_nivel = (t_list *)list_get(tablas_primer_nivel, numero_tabla_primer_nivel);
+				entrada_primer_nivel* numero_tabla_segundo_nivel = (entrada_primer_nivel*)list_get(tabla_primer_nivel, (int)entrada_1er_nivel);
+				send(conexion_cpu, &numero_tabla_segundo_nivel->id_segundo_nivel, sizeof(unsigned int), 0);
+				break;
+			case OBTENER_NUMERO_MARCO: ;
+//
+				unsigned int nro_tabla_segundo_nivel;
+				recv(conexion_cpu, &nro_tabla_segundo_nivel, sizeof(unsigned int), 0);
+				log_info(loggerMemoria, "Recibí el nro_tabla_segundo_nivel: %d", nro_tabla_segundo_nivel);
+				double entrada_2do_nivel;
+				recv(conexion_cpu, &entrada_2do_nivel, sizeof(double), 0);
+				log_info(loggerMemoria, "Recibí el entrada_2do_nivel: %f", entrada_2do_nivel);
+				t_list * tabla_2do_nivel = (t_list *)list_get(tablas_segundo_nivel, nro_tabla_segundo_nivel);
+				uint32_t numero_marco = ((entrada_segundo_nivel*)list_get(tabla_2do_nivel, (int)entrada_2do_nivel))->marco;
+				send(conexion_cpu, &numero_marco, sizeof(uint32_t), 0);
+				break;
+			default:
+				//Loggear error de "Memoria no pudo interpretar el mensaje recibido"
+				break;
+		}
+	}
+}
+
+void inicializar_cpu_handler(pthread_t *hilo_cpu_handler){
+  pthread_create(hilo_cpu_handler, NULL, conexion_cpu_handler, NULL);
+}
+
+
+void enviar_globales(){
+	accion_memoria_con_cpu accion_a_enviar = SOLICITAR_VALORES_GLOBALES;
+	send(conexion_cpu, &accion_a_enviar, sizeof(int), 0);
+	log_info(loggerMemoria, "Recibí la accion: %d de cpu", accion_a_enviar);
+	log_info(loggerMemoria, "Se genera envio de tam_pag y cantidad_entradas_pagina");
+	send(conexion_cpu, &tam_pagina, sizeof(int), 0);
+	send(conexion_cpu, &entradas_por_tabla, sizeof(int), 0);
+}
+
+
+

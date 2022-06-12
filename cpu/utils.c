@@ -120,7 +120,7 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	printf("Program counter recibido: %d \n", pcb_leido->pc);
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
-	printf("Rafaga recibida: %d \n", pcb_leido->rafaga);
+	printf("Rafaga recibida: %f \n", pcb_leido->rafaga);
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
 	printf("Tabla de paginas recibida: %d \n", pcb_leido->tabla_paginas);

@@ -12,7 +12,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <semaphore.h>
+#include <math.h>
+#include <pthread.h>
 #include "utils.h"
+
+typedef enum {
+	OBTENER_TABLA_SEGUNDO_NIVEL,
+	OBTENER_NUMERO_MARCO,
+	LEER,
+	ESCRIBIR,
+	SOLICITAR_VALORES_GLOBALES
+} mensaje_memoria;
 
 bool detener_ejecucion;
 int interrupciones = 0;
@@ -24,26 +34,21 @@ char*	puertoMemoria;
 char* 	ipKernel;
 char*	puertoEscuchaDispatch;
 char*	puertoEscuchaInterrupt;
+int entradas_por_tabla;
+int tamanio_pagina;
+
 
 sem_t *sem_interrupcion;
 sem_t *sem_dispatch;
 
-
-int conexionMemoria;
+int conexion_memoria;
 int conexionDispatch;
 int conexionInterrupt;
 
 t_config* cpu_config;
 t_log * cpuLogger;
+t_log* cpu_info_logger;
 
-typedef struct DireccionLogica{
-	int primerNivel;
-	int segundoNivel;
-	int desplazamiento;
-}DireccionLogica;
-
-
-DireccionLogica* fetch_operands(unsigned int* operandos);
 void* decode (pcb* pcb_decode, Instruccion * instruccion_decode);
 void* fetch(pcb* pcb_fetch);
 void abrirArchivoConfiguracion();
@@ -51,6 +56,9 @@ void ciclo(pcb* paquetePcb);
 void ejecutar_NO_OP(unsigned int parametro);
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo);
 void ejecutar_exit();
+double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);
+void* conexion_memoria_handler(void*);
+void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria);
 
 
 #endif /* CPU_H_ */
