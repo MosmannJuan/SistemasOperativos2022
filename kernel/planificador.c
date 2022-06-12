@@ -233,7 +233,7 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   sem_post(&semaforo_lista_ready_suspendido_add);
   //Al terminar una entrada salida se envía un mensaje de interrupción
   int mensaje_interrupt = 1;
-  send(interrupt, mensaje_interrupt, sizeof(int), 0);
+  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 
   return NULL;
 }
@@ -253,7 +253,8 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
       printf("El tamaño de la lista de ready antes de eliminar es: %d \n", list_size(ready));
       pcb * pcb_running = list_remove(ready, 0);
       printf("El tamaño de la lista de ready después de eliminar es: %d \n", list_size(ready));
-      //TODO: Mandamos mensaje a CPU
+      mensaje_cpu mensaje_ejecutar = EJECUTAR;
+      send(dispatch,&mensaje_ejecutar, sizeof(int), 0);
       enviar_pcb(pcb_running, dispatch);
       //Enviamos a running
       printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
@@ -275,7 +276,6 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		//Casteo los datos según lo necesario en el caso particular
     		printf("Pasar a bloqueado \n");
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
-			printf("Casteo no crasheó \n");
 			printf("pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
 			//TODO: Ver de hacer free a este pcb.
 			sem_wait(&sem_sincro_running);
@@ -304,7 +304,8 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
       printf("El tamaño de la lista de ready antes de eliminar es: %d \n", list_size(ready));
       pcb * pcb_running = list_remove(ready, 0);
       printf("El tamaño de la lista de ready después de eliminar es: %d \n", list_size(ready));
-      //TODO: Mandamos mensaje a CPU
+      mensaje_cpu mensaje_ejecutar = EJECUTAR;
+      send(dispatch,&mensaje_ejecutar, sizeof(int), 0);
       enviar_pcb(pcb_running, dispatch);
       //Enviamos a running
       printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
@@ -397,7 +398,7 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   }
 
   int mensaje_interrupt = 1;
-  send(interrupt, mensaje_interrupt, sizeof(int), 0);
+  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 
 
   return NULL;
@@ -421,7 +422,7 @@ void evaluar_desalojo(double rafaga_cpu_ejecutada){
 		//Se envía mensaje de interrumpir por socket interrupt
 		//TODO: Modificar en función de lo necesario para cpu
 		int mensaje_interrupt = 1;
-		send(interrupt, mensaje_interrupt, sizeof(int), 0);
+		send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 	}
 }
 
