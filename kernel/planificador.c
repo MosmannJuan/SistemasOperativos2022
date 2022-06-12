@@ -116,6 +116,8 @@ void * hilo_new_ready(void * argumentos){
 				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
 			  } else list_add(ready, pcb_ready);
 			  sem_post( & semaforo_lista_ready_add);
+			  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+			  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
 
 			  sem_wait( & semaforo_grado_multiprogramacion);
 			  grado_multiprogramacion++;
@@ -172,6 +174,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       sem_wait( & semaforo_lista_ready_suspendido_remove);
       pcb * pcb_ready = list_remove(ready_suspendido, 0);
       sem_post( & semaforo_lista_ready_suspendido_remove);
+
       printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(ready_suspendido));
       printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
       //TODO Enviar mensaje a Memoria para volver a asignar lugar
@@ -183,6 +186,10 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
         list_add(ready, pcb_ready);
       }
       sem_post( & semaforo_lista_ready_add);
+      //Envío mensaje a cpu para que el planificador evalúe el desalojo
+	  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+	  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
+
       printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
 
       sem_wait( & semaforo_grado_multiprogramacion);
@@ -224,6 +231,9 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   else
 	  list_add(ready_suspendido, pcb_actualizado);
   sem_post(&semaforo_lista_ready_suspendido_add);
+  //Al terminar una entrada salida se envía un mensaje de interrupción
+  int mensaje_interrupt = 1;
+  send(interrupt, mensaje_interrupt, sizeof(int), 0);
 
   return NULL;
 }
@@ -369,7 +379,7 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   }
   else {
 	sleep(tiempo_bloqueo / 1000);
-    //TODO: Al final del tiempo enviamos el mensaje de interrupt a CPU por socket de interrupt
+
     //Enviamos de bloqueado a ready
     sem_wait( & semaforo_pid_comparacion);
     pid_comparacion = pcb_actualizado -> id;
@@ -385,6 +395,10 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
     sem_post( & semaforo_lista_ready_add);
   }
+
+  int mensaje_interrupt = 1;
+  send(interrupt, mensaje_interrupt, sizeof(int), 0);
+
 
   return NULL;
 }
@@ -406,8 +420,8 @@ void evaluar_desalojo(double rafaga_cpu_ejecutada){
 	if(pcb_mayor_prioridad_ready->rafaga < pcb_running->rafaga){
 		//Se envía mensaje de interrumpir por socket interrupt
 		//TODO: Modificar en función de lo necesario para cpu
-		char * mensaje_interrupt = "Interrumpir!!";
-		send(interrupt, mensaje_interrupt, sizeof(mensaje_interrupt), 0);
+		int mensaje_interrupt = 1;
+		send(interrupt, mensaje_interrupt, sizeof(int), 0);
 	}
 }
 
