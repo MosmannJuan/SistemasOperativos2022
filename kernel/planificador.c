@@ -114,10 +114,10 @@ void * hilo_new_ready(void * argumentos){
 			  sem_wait( & semaforo_lista_ready_add);
 			  if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
 				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
+				mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+				send(dispatch, &evaluar_desalojo, sizeof(int), 0);
 			  } else list_add(ready, pcb_ready);
 			  sem_post( & semaforo_lista_ready_add);
-			  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
-			  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
 
 			  sem_wait( & semaforo_grado_multiprogramacion);
 			  grado_multiprogramacion++;
