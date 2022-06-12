@@ -3,6 +3,9 @@
 
 int main(void) {
 	pthread_t hilo_conexion_memoria;
+	pthread_t hilo_contador_rafaga;
+	pthread_t hilo_interrupcion_handler;
+	contador_rafaga_inicializado = false;
 
 	cpuLogger = log_create("cpuErrors.log", "cpuError_logger", 1, LOG_LEVEL_ERROR);
 	cpu_info_logger = log_create("cpu_info.log", "cpu_info_logger", 1, LOG_LEVEL_INFO);
@@ -19,19 +22,35 @@ int main(void) {
 	puertoEscuchaDispatch = strdup(config_get_string_value(cpu_config,"PUERTO_ESCUCHA_DISPATCH"));
 	puertoEscuchaInterrupt = strdup(config_get_string_value(cpu_config,"PUERTO_ESCUCHA_INTERRUPT"));
 
-	conexionDispatch = conexion_servidor(ipKernel, puertoEscuchaDispatch);
-	conexionInterrupt = conexion_servidor(ipKernel, puertoEscuchaInterrupt);
+	conexion_dispatch = conexion_servidor(ipKernel, puertoEscuchaDispatch);
+	conexion_interrupt = conexion_servidor(ipKernel, puertoEscuchaInterrupt);
+
+	inicializar_hilo_conexion_interrupt(&hilo_interrupcion_handler);
 
 	entradasTlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
 	reemplazoTlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
 	retardoNoop = config_get_int_value(cpu_config,"RETARDO_NOOP");
 
 	while(1){
-		pcb* pcb_a_ejecutar = recibir_pcb(conexionDispatch);
-		ciclo(pcb_a_ejecutar);
-	}
+		mensaje_cpu mensaje_recibido;
+		recv(conexion_dispatch, &mensaje_recibido, sizeof(int), 0);
+		log_info(cpu_info_logger, "Recibí de kernel el mensaje: %d", mensaje_recibido);
+		switch(mensaje_recibido){
+			case EVALUAR_DESALOJO:
+				send(conexion_dispatch, &mensaje_recibido, sizeof(int), 0);
+				send(conexion_dispatch, &contador_rafaga, sizeof(double), 0);
+				break;
+			case EJECUTAR:
+				contador_rafaga = 0;
+				hay_interrupciones = false;
+				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
+				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
+				ciclo(pcb_a_ejecutar);
+				break;
+		}
 
-	terminar_programa(conexion_memoria, conexionDispatch, conexionInterrupt, cpuLogger, cpu_config);
+	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpuLogger, cpu_config);
+	}
 }
 
 
@@ -40,7 +59,7 @@ void ciclo(pcb* pcb_a_ejecutar){
 	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) && !detener_ejecucion){
 		decode(pcb_a_ejecutar,fetch(pcb_a_ejecutar));
 		pcb_a_ejecutar->pc++;
-		//Evaluar Interrupcion
+		if(hay_interrupciones) atender_interrupcion(pcb_a_ejecutar);
 	}
 }
 
@@ -92,14 +111,14 @@ void ejecutar_NO_OP(unsigned int parametro){
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 	log_info(cpuLogger,"Ejecuto la I_O");
 	pcb_a_bloquear->pc++;
-	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexionDispatch);
+	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexion_dispatch);
 	detener_ejecucion = true;
 
 }
 
 void ejecutar_exit(){
 	log_info(cpuLogger,"Ejecuto el EXIT");
-	enviar_exit(conexionDispatch);
+	enviar_exit(conexion_dispatch);
 	detener_ejecucion = true;
 }
 
@@ -142,13 +161,39 @@ void* conexion_memoria_handler(void* argumentos){
 			case SOLICITAR_VALORES_GLOBALES:
 				recv(conexion_memoria, &tamanio_pagina, sizeof(int), 0);
 				recv(conexion_memoria, &entradas_por_tabla, sizeof(int), 0);
+				log_info(cpu_info_logger, "Recibí de memoria el tamaño de pagina: %d y la cantidad de entradas por tabla: %d ", tamanio_pagina, entradas_por_tabla);
 				break;
 		}
 	}
+	return NULL;
 }
 
 void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria){
 	pthread_create(hilo_conexion_memoria, NULL, conexion_memoria_handler, NULL);
 }
 
+void* contador(void* args){
+	contador_rafaga_inicializado = true;
+	while(1){
+		sleep(1/1000000);
+		contador_rafaga++;
+	}
+	return NULL;
+}
 
+void* interrupcion_handler(void* args){
+	while(1){
+		int mensaje_interrupcion;
+		recv(conexion_interrupt, &mensaje_interrupcion, sizeof(int), 0);
+		if(mensaje_interrupcion == 1) hay_interrupciones = true;
+	}
+}
+
+void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler){
+	pthread_create(hilo_interrupcion_handler, NULL, interrupcion_handler, NULL);
+}
+
+void atender_interrupcion(pcb* pcb_interrumpido){
+	detener_ejecucion = true;
+	enviar_pcb_interrupcion(pcb_interrumpido, conexion_dispatch);
+}

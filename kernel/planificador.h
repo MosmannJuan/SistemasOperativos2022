@@ -37,7 +37,8 @@ typedef enum{
 	PASAR_A_BLOQUEADO,
 	PASAR_A_READY,
 	PASAR_A_EXIT,
-	EVALUAR_DESALOJO
+	EVALUAR_DESALOJO,
+	EJECUTAR
 } mensaje_cpu;
 
 typedef struct {

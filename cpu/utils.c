@@ -17,6 +17,32 @@ pcb * pcb_create() {
   return pcb_nuevo;
 }
 
+void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
+	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int bytes = pcb_bytes + sizeof(double) + 2*sizeof(int);
+
+	void* a_enviar = serializar_mensaje_interrupcion(pcb_a_enviar, bytes);
+
+	//Enviamos estructura de bloqueo de pcb
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+}
+
+void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
+	void* memoria_asignada = malloc(bytes);
+	int desplazamiento = 0;
+	mensaje_cpu mensaje = PASAR_A_READY;
+
+	memcpy(memoria_asignada + desplazamiento, &mensaje, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(memoria_asignada + desplazamiento, &contador_rafaga, sizeof(double));
+	desplazamiento += sizeof(double);
+	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
+
+	return memoria_asignada;
+}
+
 void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
 	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + 2*sizeof(int);
@@ -36,13 +62,12 @@ void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo,
 	printf("Después de malloc 1 \n");
 	int desplazamiento = 0;
 	mensaje_cpu mensaje = PASAR_A_BLOQUEADO;
-	double rafaga_anterior = 4; //Se hardcodea, necesitamos enviar el valor real de ejecucion medido
 
 	memcpy(memoria_asignada + desplazamiento, &mensaje , sizeof(int));
 	desplazamiento  += sizeof(int);
 	memcpy(memoria_asignada + desplazamiento, &tiempo_bloqueo , sizeof(unsigned int));
 	desplazamiento  += sizeof(unsigned int);
-	memcpy(memoria_asignada + desplazamiento, &rafaga_anterior , sizeof(double));
+	memcpy(memoria_asignada + desplazamiento, &contador_rafaga , sizeof(double));
 	desplazamiento  += sizeof(double);
 	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
 

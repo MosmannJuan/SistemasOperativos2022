@@ -13,6 +13,7 @@
 
 // ---- VARIABLES ----//
 t_log * logger;
+double contador_rafaga;
 
 // ---- ESTRUCTURAS Y ENUMS ----//
 
@@ -29,7 +30,8 @@ typedef enum{
 	PASAR_A_BLOQUEADO,
 	PASAR_A_READY,
 	PASAR_A_EXIT,
-	EVALUAR_DESALOJO
+	EVALUAR_DESALOJO,
+	EJECUTAR
 } mensaje_cpu;
 
 typedef struct {
@@ -77,4 +79,6 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config);
 void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamiento);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
+void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente);
+void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes);
 #endif /* UTILS_H_ */

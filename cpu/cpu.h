@@ -25,7 +25,6 @@ typedef enum {
 } mensaje_memoria;
 
 bool detener_ejecucion;
-int interrupciones = 0;
 int	entradasTlb ;
 char*	reemplazoTlb;
 int	retardoNoop;
@@ -36,14 +35,16 @@ char*	puertoEscuchaDispatch;
 char*	puertoEscuchaInterrupt;
 int entradas_por_tabla;
 int tamanio_pagina;
+bool contador_rafaga_inicializado;
+bool hay_interrupciones;
 
 
 sem_t *sem_interrupcion;
 sem_t *sem_dispatch;
 
 int conexion_memoria;
-int conexionDispatch;
-int conexionInterrupt;
+int conexion_dispatch;
+int conexion_interrupt;
 
 t_config* cpu_config;
 t_log * cpuLogger;
@@ -59,6 +60,9 @@ void ejecutar_exit();
 double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);
 void* conexion_memoria_handler(void*);
 void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria);
-
+void* contador(void* args);
+void* interrupcion_handler(void* args);
+void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler);
+void atender_interrupcion(pcb* pcb_interrumpido);
 
 #endif /* CPU_H_ */
