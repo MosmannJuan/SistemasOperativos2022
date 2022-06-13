@@ -11,11 +11,11 @@
 #include <commons/collections/list.h>
 #include <unistd.h>
 
-// ---- VARIABLES ----//
-t_log * logger;
-double contador_rafaga;
 
-// ---- ESTRUCTURAS Y ENUMS ----//
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
+
 
 typedef enum {
 	NO_OP,
@@ -65,20 +65,29 @@ typedef struct {
 	double rafaga_real_anterior;
 } interrupcion_pcb;
 
-// ---- FUNCIONES ----//
+
+t_log * logger;
+double contador_rafaga;
+
+
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
 
 pcb * pcb_create();
 pcb * recibir_pcb(int socket_cliente);
+void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes);
+void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamiento);
+void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes);
 void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
+void enviar_exit(int socket_cliente);
+void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente);
+void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config);
+void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
+void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente);
 int conexion_servidor(char * ip, char * puerto);
 int iniciar_servidor(char * , char * );
 int esperar_cliente(int);
-void enviar_exit(int socket_cliente);
-void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes);
-void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente);
-void terminar_programa(int conexionA, int conexionB, int conexionC, t_log * logger, t_config * config);
-void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamiento);
-void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
-void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente);
-void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes);
+
 #endif /* UTILS_H_ */

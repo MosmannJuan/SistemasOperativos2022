@@ -5,34 +5,13 @@
 #include <semaphore.h>
 #include <string.h>
 
-// ---- VARIABLES ----//
 
-sem_t semaforo_pid;
-sem_t semaforo_pid_comparacion;
-sem_t semaforo_lista_new_add;
-sem_t semaforo_lista_new_remove;
-sem_t semaforo_lista_ready_add;
-sem_t semaforo_lista_ready_remove;
-sem_t semaforo_lista_ready_suspendido_remove;
-sem_t semaforo_lista_ready_suspendido_add;
-sem_t semaforo_lista_running_remove;
-sem_t semaforo_grado_multiprogramacion;
-sem_t sem_sincro_running;
-
-int alfa;
-char * algoritmoPlanificacion;
-unsigned int pid_comparacion;
-unsigned int estimacion_inicial;
-int tiempoMaximoBloqueado;
-unsigned int limite_grado_multiprogramacion;
-
-// ---- SOCKETS ----//
-int dispatch;
-int interrupt;
-int conexion_memoria;
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
 
 
-// ---- ESTRUCTURAS Y ENUMS ----//
+
 typedef enum{
 	PASAR_A_BLOQUEADO,
 	PASAR_A_READY,
@@ -97,32 +76,58 @@ t_list * bloqueado_suspendido;
 t_list * ready_suspendido;
 t_list * exit_estado;
 
+sem_t semaforo_pid;
+sem_t semaforo_pid_comparacion;
+sem_t semaforo_lista_new_add;
+sem_t semaforo_lista_new_remove;
+sem_t semaforo_lista_ready_add;
+sem_t semaforo_lista_ready_remove;
+sem_t semaforo_lista_ready_suspendido_remove;
+sem_t semaforo_lista_ready_suspendido_add;
+sem_t semaforo_lista_running_remove;
+sem_t semaforo_grado_multiprogramacion;
+sem_t sem_sincro_running;
 
-// ---- FUNCIONES ----//
+unsigned int pid_comparacion;
+unsigned int estimacion_inicial;
+unsigned int limite_grado_multiprogramacion;
+int dispatch;
+int interrupt;
+int conexion_memoria;
+int alfa;
+int tiempo_maximo_bloqueado;
+char * algoritmo_planificacion;
 
+
+
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
+
+mensaje_dispatch_posta* recibir_mensaje_dispatch();
+pcb * recibir_pcb(int socket_cliente);
 pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso);
-pcb* pcb_create();
-void pcb_destroy(pcb * pcb_destruir);
-void * hilo_new_ready (void* args);
-void * hilo_de_largo_plazo (void * args);
-void inicializar_listas_procesos();
-void * hilo_pcb_new (void * args_p);
-void * hilo_bloqueo_proceso (void* args_p);
+pcb * pcb_create();
 bool es_pid_a_desbloquear(void * pcb_desbloqueo);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
-void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
-void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
-unsigned int calcular_estimacion_rafaga();
-void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
+void evaluar_desalojo(double tiempo_ejecucion_actual);
+void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
+void inicializar_listas_procesos();
+void pcb_destroy(pcb * pcb_destruir);
 void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta* argumentos);
 void exit_largo_plazo();
-void * cpu_dispatch_handler(void * argumentos);
-mensaje_dispatch_posta* recibir_mensaje_dispatch();
+void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
+void * hilo_new_ready (void* args);
+void * hilo_de_largo_plazo (void * args);
+void * hilo_pcb_new (void * args_p);
+void * hilo_bloqueo_proceso (void* args_p);
+void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
+void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
+void * cpu_dispatch_handler(void * argumentos);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
-void evaluar_desalojo(double tiempo_ejecucion_actual);
-pcb* recibir_pcb(int socket_cliente);
-void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
+unsigned int calcular_estimacion_rafaga();
 
 #endif /* PLANIFICADOR_H_ */

@@ -112,7 +112,7 @@ void * hilo_new_ready(void * argumentos){
 			  printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
 
 			  sem_wait( & semaforo_lista_ready_add);
-			  if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
+			  if (strcmp(algoritmo_planificacion, "SRT") == 0) {
 				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
 				mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
 				send(dispatch, &evaluar_desalojo, sizeof(int), 0);
@@ -180,7 +180,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       //TODO Enviar mensaje a Memoria para volver a asignar lugar
 
       sem_wait( & semaforo_lista_ready_add);
-      if (strcmp(algoritmoPlanificacion, "SRT") == 0) {
+      if (strcmp(algoritmo_planificacion, "SRT") == 0) {
         list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
       } else {
         list_add(ready, pcb_ready);
@@ -226,7 +226,7 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
   sem_post( & semaforo_pid_comparacion);
   sem_wait(&semaforo_lista_ready_suspendido_add);
-  if(strcmp(algoritmoPlanificacion, "SRT") == 0)
+  if(strcmp(algoritmo_planificacion, "SRT") == 0)
 	  list_add_sorted(ready_suspendido, pcb_actualizado, ordenar_por_estimacion_rafaga);
   else
 	  list_add(ready_suspendido, pcb_actualizado);
@@ -373,10 +373,10 @@ void * hilo_bloqueo_proceso(void * argumentos) {
   free(args);
 
   //Esperamos el tiempo que corresponde según la instrucción
-  unsigned int tiempo_extra = tiempo_bloqueo - tiempoMaximoBloqueado;
+  unsigned int tiempo_extra = tiempo_bloqueo - tiempo_maximo_bloqueado;
 
-  if (tiempo_bloqueo > tiempoMaximoBloqueado){
-	sleep(tiempoMaximoBloqueado / 1000);
+  if (tiempo_bloqueo > tiempo_maximo_bloqueado){
+	sleep(tiempo_maximo_bloqueado / 1000);
     mediano_plazo_bloqueado_suspendido(pcb_actualizado, tiempo_extra);
   }
   else {
@@ -390,7 +390,7 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
     sem_wait( & semaforo_lista_ready_add);
 
-    if(strcmp(algoritmoPlanificacion, "SRT") == 0)
+    if(strcmp(algoritmo_planificacion, "SRT") == 0)
     	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
     else
     	list_add(ready, pcb_actualizado);
@@ -448,7 +448,7 @@ void* cpu_dispatch_handler(void* args){
 				printf("rafaga_real_anterior recibida: %f", datos_bloqueo->rafaga_real_anterior);
 				datos_bloqueo->pcb_a_bloquear = recibir_pcb(dispatch);
 				printf("pcb a bloquear recién recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
-				if(strcmp(algoritmoPlanificacion, "SRT") == 0){
+				if(strcmp(algoritmo_planificacion, "SRT") == 0){
 					planificador_de_corto_plazo_sjf_running(mensaje_bloqueo);
 				}else{
 					planificador_de_corto_plazo_fifo_running(mensaje_bloqueo);
@@ -461,7 +461,7 @@ void* cpu_dispatch_handler(void* args){
 				mensaje_bloqueo->mensaje = accion_recibida;
 				recv(dispatch, &datos_interrupcion->rafaga_real_anterior, sizeof(double), 0);
 				datos_interrupcion->pcb_a_interrumpir = recibir_pcb(dispatch);
-				if(strcmp(algoritmoPlanificacion, "SRT") == 0){
+				if(strcmp(algoritmo_planificacion, "SRT") == 0){
 					planificador_de_corto_plazo_sjf_running(mensaje_interrupcion);
 				}else
 					planificador_de_corto_plazo_fifo_running(mensaje_interrupcion);

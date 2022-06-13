@@ -7,7 +7,7 @@ int main(void) {
 	pthread_t hilo_interrupcion_handler;
 	contador_rafaga_inicializado = false;
 
-	cpuLogger = log_create("cpuErrors.log", "cpuError_logger", 1, LOG_LEVEL_ERROR);
+	cpu_logger = log_create("cpuErrors.log", "cpuError_logger", 1, LOG_LEVEL_ERROR);
 	cpu_info_logger = log_create("cpu_info.log", "cpu_info_logger", 1, LOG_LEVEL_INFO);
 
 	cpu_config = config_create("cpu.config");
@@ -49,8 +49,13 @@ int main(void) {
 				break;
 		}
 	}
-	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpuLogger, cpu_config);
+	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpu_logger, cpu_config);
 }
+
+
+//---------------------------------------------------------------
+// ------------------ CICLO DE INSTRUCCION  ---------------------
+//---------------------------------------------------------------
 
 
 void ciclo(pcb* pcb_a_ejecutar){
@@ -77,15 +82,15 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 
 	break;
 //	case  READ:
-//		log_info(cpuLogger,"Ejecuto el READ");
+//		log_info(cpu_logger,"Ejecuto el READ");
 //
 //	break;
 //	case WRITE:
-//		log_info(cpuLogger,"Ejecuto el WRITE");
+//		log_info(cpu_logger,"Ejecuto el WRITE");
 //
 //	break;
 //	case  COPY:
-//		log_info(cpuLogger,"Ejecuto el COPY");
+//		log_info(cpu_logger,"Ejecuto el COPY");
 //		dir_logica  = fetch_operands(instruccion_decode->params);
 //
 //	break;
@@ -97,8 +102,13 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 return(NULL);
 }
 
+
+//---------------------------------------------------------------
+// --------------- EJECUCION DE INSTRUCCIONES -------------------
+//---------------------------------------------------------------
+
 void ejecutar_NO_OP(unsigned int parametro){
-	log_info(cpuLogger,"Ejecuto el NO_OP");
+	log_info(cpu_logger,"Ejecuto el NO_OP");
 	int contador = 0;
 
 	while(contador != parametro){
@@ -108,7 +118,7 @@ void ejecutar_NO_OP(unsigned int parametro){
 }
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
-	log_info(cpuLogger,"Ejecuto la I_O");
+	log_info(cpu_logger,"Ejecuto la I_O");
 	pcb_a_bloquear->pc++;
 	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexion_dispatch);
 	detener_ejecucion = true;
@@ -116,10 +126,16 @@ void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 }
 
 void ejecutar_exit(){
-	log_info(cpuLogger,"Ejecuto el EXIT");
+	log_info(cpu_logger,"Ejecuto el EXIT");
 	enviar_exit(conexion_dispatch);
 	detener_ejecucion = true;
 }
+
+
+
+//---------------------------------------------------------------
+// --------------------------- MMU  -----------------------------
+//---------------------------------------------------------------
 
 double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	//Calculamos numero de pagina y numero de entrada de la tabla de primer nivel
@@ -150,6 +166,12 @@ double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	return dir_fisica;
 }
 
+
+
+//---------------------------------------------------------------
+// ----------------- COMUNICACION CON MODULOS  ------------------
+//---------------------------------------------------------------
+
 void* conexion_memoria_handler(void* argumentos){
 	while(1){
 		mensaje_memoria mensaje_recibido;
@@ -171,6 +193,11 @@ void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria){
 	pthread_create(hilo_conexion_memoria, NULL, conexion_memoria_handler, NULL);
 }
 
+
+//---------------------------------------------------------------
+// --------------------------- CONTADOR   -----------------------
+//---------------------------------------------------------------
+
 void* contador(void* args){
 	contador_rafaga_inicializado = true;
 	while(1){
@@ -179,6 +206,13 @@ void* contador(void* args){
 	}
 	return NULL;
 }
+
+
+
+//---------------------------------------------------------------
+// ------------------------- INTERRUPCIONES  ---------------------
+//---------------------------------------------------------------
+
 
 void* interrupcion_handler(void* args){
 	while(1){

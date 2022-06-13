@@ -461,3 +461,15 @@
 [INFO] 11:58:38:887 memoria.c/(13710:13743): Se necesitan 1 tablas de segundo nivel
 [INFO] 11:58:38:887 memoria.c/(13710:13743): El identificador de tabla de paginas recibido es: 0
 [INFO] 11:58:38:887 memoria.c/(13710:13743): Esperando recibir accion de kernel en memoria
+[INFO] 13:49:18:835 memoria.c/(19267:19267): cliente_kernel: 6
+[INFO] 13:49:22:188 memoria.c/(19267:19267): cliente_cpu: 7
+[INFO] 13:49:22:189 memoria.c/(19267:19267): Envío la accion: 4 a cpu
+[INFO] 13:49:22:189 memoria.c/(19267:19267): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 13:49:22:189 memoria.c/(19267:19267): Esperando recibir accion de cpu en memoria
+[INFO] 13:49:22:195 memoria.c/(19267:19318): Esperando recibir accion de kernel en memoria
+[INFO] 13:49:31:279 memoria.c/(19267:19318): Recibí la accion: 0 de kernel
+[INFO] 13:49:31:280 memoria.c/(19267:19318): Recibí el pid: 1
+[INFO] 13:49:31:280 memoria.c/(19267:19318): Recibí tamaño de proceso: 8
+[INFO] 13:49:31:280 memoria.c/(19267:19318): Se necesitan 1 tablas de segundo nivel
+[INFO] 13:49:31:280 memoria.c/(19267:19318): El identificador de tabla de paginas recibido es: 0
+[INFO] 13:49:31:280 memoria.c/(19267:19318): Esperando recibir accion de kernel en memoria

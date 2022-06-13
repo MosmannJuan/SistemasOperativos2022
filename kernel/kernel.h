@@ -14,21 +14,31 @@
 #include "instrucciones_handler.h"
 
 
-char * ipMemoria;
-char * puertoMemoria;
-char * ipKernel;
-char * puertoEscucha;
-char * ipCpu;
-char * puertoCpuInterrupt;
-char * puertoCpuDispatch;
-int gradoMultiprogramacion;
-int tiempoMaximoBloqueado;
 
-int conexionConsola;
-int conexionDispatch;
-int conexionInterrupt;
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
 
+char * ip_memoria;
+char * puerto_memoria;
+char * ip_kernel;
+char * puerto_escucha;
+char * ip_cpu;
+char * puerto_cpu_interrupt;
+char * puerto_cpu_dispatch;
+int grado_multiprogramacion;
+int tiempo_maximo_bloqueado;
+int conexion_consola;
+int conexion_dispatch;
+int conexion_interrupt;
 t_config * kernel_config;
+
+
+
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
 
 
 void inicializar_semaforos();

@@ -13,8 +13,10 @@
 #include <commons/config.h>
 
 
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
 
-// ---- LISTA DE ENUMS Y ESTRUCURAS  ----//
 
 typedef enum {
   NO_OP,
@@ -33,7 +35,9 @@ typedef struct Instruccion {
 
 
 
-// ---- FUNCIONES ----//
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
 
 void enviar_instruccion(Instruccion instruccion, int conexion);
 int conexion_a_kernel(char * ip, char * puerto);

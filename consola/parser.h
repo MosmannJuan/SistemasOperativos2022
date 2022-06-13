@@ -3,7 +3,10 @@
 
 #include "utils.h"
 
-// ---- FUNCIONES ----//
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
 
 void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_log * logger, int conexion);
 void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file);

@@ -13,32 +13,32 @@ int main(int argc, char ** argv) {
 
 
 
-  t_log * loggerKernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
+  t_log * logger_kernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
 
   kernel_config = config_create("kernel.config");
-  ipKernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
-  puertoEscucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
+  ip_kernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
+  puerto_escucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
 
-  ipMemoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
-  puertoMemoria = config_get_string_value(kernel_config,"PUERTO_MEMORIA");
+  ip_memoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
+  puerto_memoria = config_get_string_value(kernel_config,"PUERTO_MEMORIA");
 
-  //ipCpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
-  puertoCpuDispatch = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_DISPATCH"));
-  puertoCpuInterrupt = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_INTERRUPT"));
+  //ip_cpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
+  puerto_cpu_dispatch = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_DISPATCH"));
+  puerto_cpu_interrupt = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_INTERRUPT"));
 
   estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
-  algoritmoPlanificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
+  algoritmo_planificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
   alfa = config_get_int_value(kernel_config,"ALFA");
   limite_grado_multiprogramacion = (unsigned int) config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
-  tiempoMaximoBloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
+  tiempo_maximo_bloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
-  conexion_memoria = conexion_a_memoria(ipMemoria, puertoMemoria);
-  conexionConsola = iniciar_servidor(ipKernel, puertoEscucha);
-  conexionDispatch = iniciar_servidor(ipKernel, puertoCpuDispatch);
-  conexionInterrupt = iniciar_servidor(ipKernel, puertoCpuInterrupt);
+  conexion_memoria = conexion_a_memoria(ip_memoria, puerto_memoria);
+  conexion_consola = iniciar_servidor(ip_kernel, puerto_escucha);
+  conexion_dispatch = iniciar_servidor(ip_kernel, puerto_cpu_dispatch);
+  conexion_interrupt = iniciar_servidor(ip_kernel, puerto_cpu_interrupt);
 
-  dispatch = esperar_cliente(conexionDispatch);
-  interrupt = esperar_cliente(conexionInterrupt);
+  dispatch = esperar_cliente(conexion_dispatch);
+  interrupt = esperar_cliente(conexion_interrupt);
 
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
   inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
@@ -53,13 +53,13 @@ int main(int argc, char ** argv) {
 	t_list * instrucciones = list_create();
 	argumentos *argumentos = malloc(sizeof(argumentos));
 	argumentos->instrucciones = instrucciones;
-	argumentos->cliente_fd = esperar_cliente(conexionConsola);
+	argumentos->cliente_fd = esperar_cliente(conexion_consola);
 
 
     if (argumentos->cliente_fd < 0) {
       //handlear error en logger y free para evitar memory leak.
       free(argumentos);
-      log_info(loggerKernel, "Falló conexión con el cliente.");
+      log_info(logger_kernel, "Falló conexión con el cliente.");
     }
 
     else {
@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
     	if(pthread_create(&handler, NULL, atender_instrucciones_cliente,argumentos) != 0) {
     		// Si el pthread_create falla, handlea el error en el logger del kernel y free para evitar memory leak.
     	    free(argumentos);
-    		log_info(loggerKernel, "No se pudo atender al cliente por error de Kernel.");
+    		log_info(logger_kernel, "No se pudo atender al cliente por error de Kernel.");
     	} else {
     		//pthread_join(handler, NULL);
     		printf("Holis");
@@ -80,7 +80,7 @@ int main(int argc, char ** argv) {
 
     }
   }
-  terminar_programa(conexionConsola, conexionDispatch, conexionInterrupt, loggerKernel, kernel_config);
+  terminar_programa(conexion_consola, conexion_dispatch, conexion_interrupt, logger_kernel, kernel_config);
 }
 
 void inicializar_semaforos(){
@@ -104,7 +104,7 @@ void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  *
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
 
-	if(strcmp(algoritmoPlanificacion, "SRT") == 0) {
+	if(strcmp(algoritmo_planificacion, "SRT") == 0) {
 		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_sjf_ready, NULL);
 		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL); Ya no es más hilo
 	} else {

@@ -19,31 +19,35 @@
 t_config* memoria_config;
 #endif /* MEMORIA_H_ */
 
-/////FIJARSE SI CAMBIAR A uint32_t
-char* ipMemoria;
-char* puertoEscucha;
-int tam_memoria;
-int tam_pagina;
-int tamTabla;
-int entradas_por_tabla;
-int retardoMemoria;
-int marcosPorProceso;
-int retardoSwap;
-void* baseMemoria;
-char* pathSwap;
-t_list* memoriaPrimerNivelList;
-pthread_mutex_t mutexMemoria;
-t_log *loggerMemoria;
-char* algoritmoReemplazo;
-char* pathSwap;
-t_list* tablas_primer_nivel;
-t_list* tablas_segundo_nivel;
-void* base_memoria;
-t_list*  marcos_disponibles;
+
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
+
 int conexion_kernel;
 int conexion_cpu;
-pthread_t *hilo_kernel_handler;
 int conexion;
+int tam_memoria;
+int tam_pagina;
+int entradas_por_tabla;
+int retardo_memoria;
+int marcos_por_proceso;
+int retardo_swap;
+char* ip_memoria;
+char* algoritmo_reemplazo;
+char* path_swap;
+char* puerto_escucha;
+void* base_memoria;
+t_list* tablas_primer_nivel;
+t_list* tablas_segundo_nivel;
+t_list*  marcos_disponibles;
+t_log* logger_memoria;
+pthread_t *hilo_kernel_handler;
+
+
+
+
+
 
 typedef struct
 {
@@ -72,16 +76,22 @@ typedef enum {
 	SOLICITAR_VALORES_GLOBALES
 } accion_memoria_con_cpu;
 
+
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
+
+int calcular_cantidad_tablas_necesarias(unsigned int tamanio_proceso);
+void inicializar_kernel_handler(pthread_t *hilo_kernel_handler);
+void inicializar_listas_procesos();
+void inicializar_marcos_disponibles();
 void abrirArchivoConfiguracion();
 void configurarMemoria();
 void atenderMensajes();
-void borrar(int pagina, int marco);
-void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid);
-int calcular_cantidad_tablas_necesarias(unsigned int tamanio_proceso);
-void inicializar_listas_procesos();
-void inicializar_marcos_disponibles();
-void* conexion_kernel_handler(void* args);
-void inicializar_kernel_handler(pthread_t *hilo_kernel_handler);
-void* conexion_cpu_handler(void* args);
 void inicializar_cpu_handler(pthread_t *hilo_cpu_handler);
 void enviar_globales();
+void borrar(int pagina, int marco);
+void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid);
+void* conexion_kernel_handler(void* args);
+void* conexion_cpu_handler(void* args);

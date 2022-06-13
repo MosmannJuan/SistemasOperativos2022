@@ -4,14 +4,18 @@
 #include <commons/collections/list.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h> //solo para pruebas printf
+#include <pthread.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <semaphore.h>
 #include "planificador.h"
 
 
-// ---- ESTRUCTURAS Y ENUMS ----//
+
+//---------------------------------------------------------------
+// ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
+//---------------------------------------------------------------
+
 
 typedef enum {
   NO_OP,
@@ -32,7 +36,10 @@ typedef struct {
   t_list * instrucciones;
 }argumentos;
 
-// ---- FUNCIONES ----//
+
+//---------------------------------------------------------------
+// ----------------- DECLARACION DE FUNCIONES  ------------------
+//---------------------------------------------------------------
 
 int recibir_int(int socket_cliente);
 void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);

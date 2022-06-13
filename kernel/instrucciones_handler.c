@@ -41,29 +41,23 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       break;
     }
     list_add(instrucciones, instruccionAux);
-
-    //int server = esperar_cliente(connection);
-    //conexiones *conn = malloc(sizeof(conexiones));
-    //conn->conn_kernel = server;
-    //conn->ipMemoria = ip_memoria;
-    //conn->puertoMemoria = puerto_memoria;
-    //pthread_create(&hilo_por_cliente, NULL, (void*) atender_kernel, conn);
-    //pthread_detach(hilo_por_cliente);
   }
 
 
 }
 
+
 void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso){
 	pthread_t largo_plazo_thread;
-	  	argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
-	  	args_largo_plazo->instrucciones = instrucciones;
-	  	args_largo_plazo->tam_proceso = tam_proceso;
+	argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
+	args_largo_plazo->instrucciones = instrucciones;
+	args_largo_plazo->tam_proceso = tam_proceso;
 
-	  	pthread_create(&largo_plazo_thread, NULL, hilo_pcb_new, args_largo_plazo);
-	  	pthread_join(largo_plazo_thread, NULL);
-	  	printf("Terminó el largo plazo! \n");
+	pthread_create(&largo_plazo_thread, NULL, hilo_pcb_new, args_largo_plazo);
+	pthread_join(largo_plazo_thread, NULL);
+	printf("Terminó el largo plazo! \n");
 }
+
 
 int recibir_int(int socket_cliente) {
   int leido;
