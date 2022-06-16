@@ -86,9 +86,9 @@ void inicializar_marcos_disponibles(){
 
 	int cantidad_de_marcos_disponibles = tam_memoria / tam_pagina;
 
-	for(int i = 0; i < cantidad_de_marcos_disponibles; i++){
+	for(uint32_t i = 0; i < cantidad_de_marcos_disponibles; i++){
 		uint32_t* marco = malloc(sizeof(uint32_t));
-		*marco = (uint32_t) i;
+		*marco = i;
 		list_add(marcos_disponibles, marco);
 	}
 }
