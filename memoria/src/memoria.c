@@ -110,19 +110,30 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 	int cantidad_tablas_segundo_nivel = calcular_cantidad_tablas_necesarias(tamanio_proceso);
 	log_info(logger_memoria, "Se necesitan %d tablas de segundo nivel", cantidad_tablas_segundo_nivel);
 
+	int marcos_asignados = 0;
+
 	for (int i = 1; i <= cantidad_tablas_segundo_nivel; i++){
 		//Creo tabla de segundo nivel
 		t_list* tabla_segundo_nivel =  list_create();
 		for(int j = 0; j < entradas_por_tabla; j++){
 			//inicializo tabla de segundo nivel
 			entrada_segundo_nivel* argumentos_tabla_segundo_nivel = malloc(sizeof(entrada_segundo_nivel)) ;
-			//inicializo tabla de segundo nivel
-			uint32_t* marco_a_asignar = list_remove(marcos_disponibles, 0);
-			argumentos_tabla_segundo_nivel->marco = *marco_a_asignar;
-			free(marco_a_asignar);
-			argumentos_tabla_segundo_nivel->presencia = true;
-			argumentos_tabla_segundo_nivel->uso = true;
-			argumentos_tabla_segundo_nivel->modificado=false;
+			if(marcos_asignados < marcos_por_proceso) {
+				//Asigno marcos posibles.
+				uint32_t* marco_a_asignar = list_remove(marcos_disponibles, 0);
+				argumentos_tabla_segundo_nivel->marco = *marco_a_asignar;
+				free(marco_a_asignar);
+				marcos_asignados++;
+				//inicializo bits de tabla con marcos morana.
+				argumentos_tabla_segundo_nivel->presencia = true;
+				argumentos_tabla_segundo_nivel->uso = true;
+				argumentos_tabla_segundo_nivel->modificado=false;
+			} else {
+				//inicializo bits de tabla sin marcos morana.
+				argumentos_tabla_segundo_nivel->presencia = false;
+				argumentos_tabla_segundo_nivel->uso = false;
+				argumentos_tabla_segundo_nivel->modificado=false;
+			}
 			list_add(tabla_segundo_nivel, argumentos_tabla_segundo_nivel);
 		}
 
