@@ -636,3 +636,36 @@
 [INFO] 14:06:03:475 memoria.c/(5823:5823): Recibí la accion: 2 de cpu
 [INFO] 14:06:03:476 memoria.c/(5823:5823): Esperando recibir accion de cpu en memoria
 [INFO] 14:06:03:476 memoria.c/(5823:5823): Recibí la accion: 2 de cpu
+[INFO] 14:22:08:927 memoria.c/(6392:6392): cliente_kernel: 6
+[INFO] 14:22:15:326 memoria.c/(6392:6392): cliente_cpu: 7
+[INFO] 14:22:15:327 memoria.c/(6392:6392): Se genera envio de tam_pag y cantidad_entradas_pagina
+[INFO] 14:22:15:327 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:15:336 memoria.c/(6392:6426): Esperando recibir accion de kernel en memoria
+[INFO] 14:22:31:410 memoria.c/(6392:6426): Recibí la accion: 0 de kernel
+[INFO] 14:22:31:411 memoria.c/(6392:6426): Recibí el pid: 1
+[INFO] 14:22:31:411 memoria.c/(6392:6426): Recibí tamaño de proceso: 8
+[INFO] 14:22:31:411 memoria.c/(6392:6426): Se necesitan 1 tablas de segundo nivel
+[INFO] 14:22:31:411 memoria.c/(6392:6426): El identificador de tabla de paginas recibido es: 0
+[INFO] 14:22:31:411 memoria.c/(6392:6426): Esperando recibir accion de kernel en memoria
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Recibí la accion: 0 de cpu
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Recibí el numero_tabla_primer_nivel: 0
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Recibí entrada_primer_nivel: 0.000000
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Send enviado
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:39:427 memoria.c/(6392:6392): Recibí la accion: 1 de cpu
+[INFO] 14:22:39:465 memoria.c/(6392:6392): Recibí el nro_tabla_segundo_nivel: 0
+[INFO] 14:22:39:465 memoria.c/(6392:6392): Recibí el entrada_2do_nivel: 0.000000
+[INFO] 14:22:39:465 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:39:466 memoria.c/(6392:6392): Recibí la accion: 3 de cpu
+[INFO] 14:22:39:504 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:39:505 memoria.c/(6392:6392): Recibí la accion: 0 de cpu
+[INFO] 14:22:39:545 memoria.c/(6392:6392): Recibí el numero_tabla_primer_nivel: 0
+[INFO] 14:22:39:545 memoria.c/(6392:6392): Recibí entrada_primer_nivel: 0.000000
+[INFO] 14:22:39:545 memoria.c/(6392:6392): Send enviado
+[INFO] 14:22:39:545 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:39:545 memoria.c/(6392:6392): Recibí la accion: 1 de cpu
+[INFO] 14:22:39:585 memoria.c/(6392:6392): Recibí el nro_tabla_segundo_nivel: 0
+[INFO] 14:22:39:585 memoria.c/(6392:6392): Recibí el entrada_2do_nivel: 0.000000
+[INFO] 14:22:39:585 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
+[INFO] 14:22:39:585 memoria.c/(6392:6392): Recibí la accion: 2 de cpu
+[INFO] 14:22:39:624 memoria.c/(6392:6392): Esperando recibir accion de cpu en memoria
