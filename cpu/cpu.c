@@ -2,7 +2,6 @@
 
 
 int main(void) {
-	pthread_t hilo_conexion_memoria;
 	pthread_t hilo_contador_rafaga;
 	pthread_t hilo_interrupcion_handler;
 	contador_rafaga_inicializado = false;
@@ -16,7 +15,7 @@ int main(void) {
 	puertoMemoria = strdup(config_get_string_value(cpu_config,"PUERTO_MEMORIA"));
 
 	conexion_memoria = conexion_servidor(ipMemoria, puertoMemoria);
-	inicializar_hilo_conexion_memoria(&hilo_conexion_memoria);
+	recibir_valores_globales_memoria();
 
 	ipKernel = strdup(config_get_string_value(cpu_config, "IP_KERNEL"));
 	puertoEscuchaDispatch = strdup(config_get_string_value(cpu_config,"PUERTO_ESCUCHA_DISPATCH"));
@@ -153,6 +152,11 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 	send(conexion_memoria, &mensaje_escritura, sizeof(int), 0);
 	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
 	send(conexion_memoria, &valor_a_escribir, sizeof(unsigned int), 0);
+
+	//Espero el mensaje de memoria indicando que terminó la escritura OK
+	int resultado_escritura;
+	recv(conexion_memoria, &resultado_escritura, sizeof(int), 0);
+	if(!(resultado_escritura == 1)) log_info(cpu_logger, "No se ha podido escribir el mensaje solicitado en memoria");
 }
 
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
@@ -209,27 +213,11 @@ double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 // ----------------- COMUNICACION CON MODULOS  ------------------
 //---------------------------------------------------------------
 
-void* conexion_memoria_handler(void* argumentos){
-	while(1){
-		mensaje_memoria mensaje_recibido;
-		recv(conexion_memoria, &mensaje_recibido, sizeof(int), 0);
-		log_info(cpu_info_logger, "Recibí de memoria el mensaje: %d", mensaje_recibido);
-
-		switch(mensaje_recibido){
-			case SOLICITAR_VALORES_GLOBALES:
-				recv(conexion_memoria, &tamanio_pagina, sizeof(int), 0);
-				recv(conexion_memoria, &entradas_por_tabla, sizeof(int), 0);
-				log_info(cpu_info_logger, "Recibí de memoria el tamaño de pagina: %d y la cantidad de entradas por tabla: %d ", tamanio_pagina, entradas_por_tabla);
-				break;
-		}
-	}
-	return NULL;
+void recibir_valores_globales_memoria(){
+	recv(conexion_memoria, &tamanio_pagina, sizeof(int), 0);
+	recv(conexion_memoria, &entradas_por_tabla, sizeof(int), 0);
+	log_info(cpu_info_logger, "Recibí de memoria el tamaño de pagina: %d y la cantidad de entradas por tabla: %d ", tamanio_pagina, entradas_por_tabla);
 }
-
-void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria){
-	pthread_create(hilo_conexion_memoria, NULL, conexion_memoria_handler, NULL);
-}
-
 
 //---------------------------------------------------------------
 // --------------------------- CONTADOR   -----------------------

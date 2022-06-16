@@ -95,3 +95,5 @@ void borrar(int pagina, int marco);
 void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid);
 void* conexion_kernel_handler(void* args);
 void* conexion_cpu_handler(void* args);
+unsigned int ejecutar_lectura(double dir_fisica);
+int ejecutar_escritura(double dir_fisica, unsigned int valor_escritura);

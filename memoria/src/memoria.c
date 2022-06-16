@@ -26,6 +26,26 @@ int main(void) {
 				recv(conexion_cpu, &accion_recibida, sizeof(int), 0);
 				log_info(logger_memoria, "Recibí la accion: %d de cpu", accion_recibida);
 				switch(accion_recibida){
+					case ESCRIBIR: ;
+						//Recibo la dirección física calculada por mmu y el valor a escribir
+						double dir_fisica_escritura;
+						recv(conexion_cpu, &dir_fisica_escritura, sizeof(double), 0);
+						unsigned int valor_a_escribir;
+						recv(conexion_cpu, &valor_a_escribir, sizeof(unsigned int), 0);
+						//Accedo a la dirección física y escribo el valor recibido
+						int respuesta_escritura = ejecutar_escritura(dir_fisica_escritura, valor_a_escribir);
+						//Envío el int indicando si la escritura fue correcta
+						send(conexion_cpu, &respuesta_escritura, sizeof(int), 0);
+						break;
+					case LEER: ;
+					//Recibo la dirección física calculada por mmu
+					double dir_fisica_lectura;
+					recv(conexion_cpu, &dir_fisica_lectura, sizeof(double), 0);
+					//Accedo a la dirección física y leo el valor almacenado
+					unsigned int valor_leido = ejecutar_lectura(dir_fisica_lectura);
+					//Envío el valor leído
+					send(conexion_cpu, &valor_leido, sizeof(unsigned int), 0);
+					break;
 					case OBTENER_TABLA_SEGUNDO_NIVEL: ;
 						int numero_tabla_primer_nivel;
 						recv(conexion_cpu, &numero_tabla_primer_nivel, sizeof(int), 0);
@@ -36,6 +56,7 @@ int main(void) {
 						t_list * tabla_primer_nivel = (t_list *)list_get(tablas_primer_nivel, numero_tabla_primer_nivel);
 						entrada_primer_nivel* numero_tabla_segundo_nivel = (entrada_primer_nivel*)list_get(tabla_primer_nivel, (int)entrada_1er_nivel);
 						send(conexion_cpu, &numero_tabla_segundo_nivel->id_segundo_nivel, sizeof(unsigned int), 0);
+						log_info(logger_memoria, "Send enviado");
 						break;
 					case OBTENER_NUMERO_MARCO: ;
 						unsigned int nro_tabla_segundo_nivel;
@@ -216,10 +237,26 @@ void inicializar_kernel_handler(pthread_t *hilo_kernel_handler){
 }
 
 void enviar_globales(){
-	accion_memoria_con_cpu accion_a_enviar = SOLICITAR_VALORES_GLOBALES;
-	send(conexion_cpu, &accion_a_enviar, sizeof(int), 0);
-	log_info(logger_memoria, "Envío la accion: %d a cpu", accion_a_enviar);
 	log_info(logger_memoria, "Se genera envio de tam_pag y cantidad_entradas_pagina");
 	send(conexion_cpu, &tam_pagina, sizeof(int), 0);
 	send(conexion_cpu, &entradas_por_tabla, sizeof(int), 0);
+}
+
+//---------------------------------------------------------------
+// -------------------- LECTURA Y ESCRITURA ---------------------
+//---------------------------------------------------------------
+
+unsigned int ejecutar_lectura(double dir_fisica){
+	unsigned int valor_leido;
+
+	memcpy(&valor_leido, base_memoria + (int) dir_fisica, sizeof(unsigned int));
+
+	return valor_leido;
+}
+
+int ejecutar_escritura(double dir_fisica, unsigned int valor_escritura){
+	memcpy(base_memoria + (int) dir_fisica, &valor_escritura, sizeof(unsigned int));
+
+	return 1;
+
 }

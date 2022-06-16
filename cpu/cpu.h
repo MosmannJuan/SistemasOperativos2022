@@ -23,8 +23,7 @@ typedef enum {
 	OBTENER_TABLA_SEGUNDO_NIVEL,
 	OBTENER_NUMERO_MARCO,
 	LEER,
-	ESCRIBIR,
-	SOLICITAR_VALORES_GLOBALES
+	ESCRIBIR
 } mensaje_memoria;
 
 
@@ -58,7 +57,6 @@ t_log* cpu_info_logger;
 
 void* contador(void* args);
 void* interrupcion_handler(void* args);
-void* conexion_memoria_handler(void*);
 void* decode (pcb* pcb_decode, Instruccion * instruccion_decode);
 void* fetch(pcb* pcb_fetch);
 void abrirArchivoConfiguracion();
@@ -66,12 +64,12 @@ void ciclo(pcb* paquetePcb);
 void ejecutar_NO_OP(unsigned int parametro);
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo);
 void ejecutar_exit();
-void inicializar_hilo_conexion_memoria(pthread_t* hilo_conexion_memoria);
 void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler);
 void atender_interrupcion(pcb* pcb_interrumpido);
 double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);
 void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir, int tabla_paginas);
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas);
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas);
+void recibir_valores_globales_memoria();
 
 #endif /* CPU_H_ */

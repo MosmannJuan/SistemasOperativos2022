@@ -17,7 +17,7 @@ int main(int argc, char ** argv) {
   //Parser de instrucciones
   path_archivo_instrucciones = argv[1];
 
-  leer_y_enviar_archivo_de_instrucciones("InstruccionesTest2.txt", logger, conexion);
+  leer_y_enviar_archivo_de_instrucciones("InstruccionTest3.txt", logger, conexion);
 
   //Finalizar conexion socket, logger y config.
    terminar_programa(conexion, logger, consola_config);
