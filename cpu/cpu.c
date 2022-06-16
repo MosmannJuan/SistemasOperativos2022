@@ -77,24 +77,22 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 	case NO_OP:
 		ejecutar_NO_OP(instruccion_decode->params[0]);
 	break;
-	case  I_O:
+	case I_O:
 		ejecutar_I_O(pcb_a_ejecutar, instruccion_decode->params[0]);
 
 	break;
-//	case  READ:
-//		log_info(cpu_logger,"Ejecuto el READ");
-//
-//	break;
-//	case WRITE:
-//		log_info(cpu_logger,"Ejecuto el WRITE");
-//
-//	break;
-//	case  COPY:
-//		log_info(cpu_logger,"Ejecuto el COPY");
-//		dir_logica  = fetch_operands(instruccion_decode->params);
-//
-//	break;
-	case  EXIT:
+	case READ:
+		ejecutar_READ(instruccion_decode->params[0], pcb_a_ejecutar->tabla_paginas);
+
+	break;
+	case WRITE:
+		ejecutar_WRITE(instruccion_decode->params[0], instruccion_decode->params[1], pcb_a_ejecutar->tabla_paginas);
+	break;
+	case COPY: ;
+		unsigned int operando = fetch_operands(instruccion_decode->params[0], pcb_a_ejecutar->tabla_paginas);
+		ejecutar_WRITE(instruccion_decode->params[1], operando, pcb_a_ejecutar->tabla_paginas);
+	break;
+	case EXIT:
 		ejecutar_exit(pcb_a_ejecutar);
 	break;
 	}
@@ -131,10 +129,49 @@ void ejecutar_exit(){
 	detener_ejecucion = true;
 }
 
+void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
+	//Calculo la dirección física a través de la MMU
+	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
 
+	//Envío el mensaje a memoria para la lectura
+	mensaje_memoria mensaje_lectura = LEER;
+	send(conexion_memoria, &mensaje_lectura, sizeof(int), 0);
+	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+
+	//Recibo el valor leído de memoria
+	unsigned int valor_leido;
+	recv(conexion_memoria, &valor_leido, sizeof(unsigned int), 0);
+	log_info(cpu_info_logger, "El valor leído es: %d", valor_leido);
+}
+
+void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir, int tabla_paginas){
+	//Calculo la dirección física a través de la MMU
+	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
+
+	//Envío el mensaje a memoria para la lectura
+	mensaje_memoria mensaje_escritura = ESCRIBIR;
+	send(conexion_memoria, &mensaje_escritura, sizeof(int), 0);
+	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &valor_a_escribir, sizeof(unsigned int), 0);
+}
+
+unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
+	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
+
+	//Envío el mensaje a memoria para la lectura
+	mensaje_memoria mensaje_lectura = LEER;
+	send(conexion_memoria, &mensaje_lectura, sizeof(int), 0);
+	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+
+	//Recibo el valor leído de memoria
+	unsigned int valor_leido;
+	recv(conexion_memoria, &valor_leido, sizeof(unsigned int), 0);
+
+	return valor_leido;
+}
 
 //---------------------------------------------------------------
-// --------------------------- MMU  -----------------------------
+// --------------------------- MMU ------------------------------
 //---------------------------------------------------------------
 
 double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
