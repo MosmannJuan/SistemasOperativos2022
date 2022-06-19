@@ -7,7 +7,8 @@ char * ip;
 char * puerto_kernel;
 char * path_archivo_instrucciones;
 t_config * consola_config;
-t_log * logger;
+t_log* error_logger;
+t_log* info_logger;
 
 
 #endif /* CONSOLA_H_ */

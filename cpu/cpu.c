@@ -130,12 +130,14 @@ void ejecutar_exit(){
 
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
 	//Calculo la dirección física a través de la MMU
-	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
+	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
 	//Envío el mensaje a memoria para la lectura
 	mensaje_memoria mensaje_lectura = LEER;
 	send(conexion_memoria, &mensaje_lectura, sizeof(int), 0);
-	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.tabla_segundo_nivel, sizeof(int), 0);
+	send(conexion_memoria, &direccion.entrada_tabla_segundo_nivel, sizeof(double), 0);
 
 	//Recibo el valor leído de memoria
 	unsigned int valor_leido;
@@ -145,12 +147,14 @@ void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
 
 void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir, int tabla_paginas){
 	//Calculo la dirección física a través de la MMU
-	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
+	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
 	//Envío el mensaje a memoria para la lectura
 	mensaje_memoria mensaje_escritura = ESCRIBIR;
 	send(conexion_memoria, &mensaje_escritura, sizeof(int), 0);
-	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.tabla_segundo_nivel, sizeof(int), 0);
+	send(conexion_memoria, &direccion.entrada_tabla_segundo_nivel, sizeof(double), 0);
 	send(conexion_memoria, &valor_a_escribir, sizeof(unsigned int), 0);
 
 	//Espero el mensaje de memoria indicando que terminó la escritura OK
@@ -160,12 +164,14 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 }
 
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
-	double direccion_fisica = mmu(direccion_logica, tabla_paginas);
+	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
 	//Envío el mensaje a memoria para la lectura
 	mensaje_memoria mensaje_lectura = LEER;
 	send(conexion_memoria, &mensaje_lectura, sizeof(int), 0);
-	send(conexion_memoria, &direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.direccion_fisica, sizeof(double), 0);
+	send(conexion_memoria, &direccion.tabla_segundo_nivel, sizeof(int), 0);
+	send(conexion_memoria, &direccion.entrada_tabla_segundo_nivel, sizeof(double), 0);
 
 	//Recibo el valor leído de memoria
 	unsigned int valor_leido;
@@ -178,7 +184,7 @@ unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
 // --------------------------- MMU ------------------------------
 //---------------------------------------------------------------
 
-double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
+datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	//Calculamos numero de pagina y numero de entrada de la tabla de primer nivel
 	double num_pagina = floor(dir_logica/tamanio_pagina);
 	double entrada_primer_nivel = floor(num_pagina/entradas_por_tabla);
@@ -204,7 +210,12 @@ double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	double desplazamiento = dir_logica - num_pagina * tamanio_pagina;
 	double dir_fisica = (numero_marco * tamanio_pagina) + desplazamiento;
 
-	return dir_fisica;
+	datos_direccion resultado;
+	resultado.tabla_segundo_nivel = numero_tabla_segundo_nivel;
+	resultado.entrada_tabla_segundo_nivel = entrada_segundo_nivel;
+	resultado.direccion_fisica = dir_fisica;
+
+	return resultado;
 }
 
 

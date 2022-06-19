@@ -41,8 +41,9 @@ void enviar_instruccion(Instruccion instruccion, int conexion) {
 
 }
 
-void terminar_programa(int conexion, t_log * logger, t_config * config) {
-  log_destroy(logger);
+void terminar_programa(int conexion, t_log * logger1, t_log* logger2, t_config * config) {
+  log_destroy(logger1);
+  log_destroy(logger2);
   config_destroy(config);
   close(conexion);
 }

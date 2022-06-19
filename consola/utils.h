@@ -42,7 +42,7 @@ typedef struct Instruccion {
 void enviar_instruccion(Instruccion instruccion, int conexion);
 int conexion_a_kernel(char * ip, char * puerto);
 void liberar_conexion(int socket_cliente);
-void terminar_programa(int conexion, t_log * logger, t_config * config);
+void terminar_programa(int conexion, t_log * logger1, t_log * logger2, t_config * config);
 
 
 #endif /* UTILS_H_ */

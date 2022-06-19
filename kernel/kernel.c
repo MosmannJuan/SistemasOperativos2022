@@ -86,6 +86,7 @@ int main(int argc, char ** argv) {
 void inicializar_semaforos(){
 	sem_init(&semaforo_pid, 0, 1);
 	sem_init(&semaforo_pid_comparacion, 0, 1);
+	sem_init(&semaforo_pid_comparacion_exit, 0, 1);
 	sem_init(&semaforo_lista_new_add, 0, 1);
 	sem_init(&semaforo_lista_new_remove, 0, 1);
 	sem_init(&semaforo_lista_ready_add, 0, 1);

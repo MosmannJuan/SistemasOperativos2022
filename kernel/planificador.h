@@ -10,7 +10,10 @@
 // ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
 //---------------------------------------------------------------
 
-
+typedef struct{
+	int conexion_consola;
+	unsigned int pid;
+} relacion_consola_proceso;
 
 typedef enum{
 	PASAR_A_BLOQUEADO,
@@ -76,8 +79,11 @@ t_list * bloqueado_suspendido;
 t_list * ready_suspendido;
 t_list * exit_estado;
 
+t_list * lista_relacion_consola_proceso;
+
 sem_t semaforo_pid;
 sem_t semaforo_pid_comparacion;
+sem_t semaforo_pid_comparacion_exit;
 sem_t semaforo_lista_new_add;
 sem_t semaforo_lista_new_remove;
 sem_t semaforo_lista_ready_add;
@@ -89,6 +95,7 @@ sem_t semaforo_grado_multiprogramacion;
 sem_t sem_sincro_running;
 
 unsigned int pid_comparacion;
+unsigned int pid_comparacion_exit;
 unsigned int estimacion_inicial;
 unsigned int limite_grado_multiprogramacion;
 int dispatch;
@@ -110,11 +117,13 @@ pcb * recibir_pcb(int socket_cliente);
 pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso);
 pcb * pcb_create();
 bool es_pid_a_desbloquear(void * pcb_desbloqueo);
+bool es_pid_en_exit(void* rel_consola_proceso);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
 void evaluar_desalojo(double tiempo_ejecucion_actual);
 void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 void inicializar_listas_procesos();
 void pcb_destroy(pcb * pcb_destruir);
+void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp);
 void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta* argumentos);
 void exit_largo_plazo();
 void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);

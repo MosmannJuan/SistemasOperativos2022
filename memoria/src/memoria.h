@@ -62,6 +62,11 @@ typedef struct
 	bool modificado;
 } entrada_segundo_nivel;
 
+typedef struct{
+	int tabla_segundo_nivel;
+	double entrada_tabla_segundo_nivel;
+	double direccion_fisica;
+} datos_direccion;
 
 typedef enum {
 	INICIALIZAR_ESTRUCTURAS
@@ -95,5 +100,5 @@ void borrar(int pagina, int marco);
 void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid);
 void* conexion_kernel_handler(void* args);
 void* conexion_cpu_handler(void* args);
-unsigned int ejecutar_lectura(double dir_fisica);
-int ejecutar_escritura(double dir_fisica, unsigned int valor_escritura);
+int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura);
+unsigned int ejecutar_lectura(datos_direccion direccion);

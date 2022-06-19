@@ -33,11 +33,11 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       printf("Lei correctamente el codigo completo. \n");
       break;
     case -1:
-      printf("Se ha cerrado la conexión. \n\n");
-      iniciar_thread_largo_plazo(instrucciones, (unsigned int) 8); //TODO usar el tam_proceso enviado desde consola
+      printf("Iniciado thread largo plazo. \n\n");
+      iniciar_thread_largo_plazo(instrucciones, (unsigned int) 8, cliente_fd); //TODO usar el tam_proceso enviado desde consola
       return NULL;
     default:
-      printf("No recibi un codigo de operacion valido. \n");
+      printf("No recibí un codigo de operación válido. \n");
       break;
     }
     list_add(instrucciones, instruccionAux);
@@ -47,26 +47,34 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 }
 
 
-void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso){
+void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso, int socket_cliente){
 	pthread_t largo_plazo_thread;
 	argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
 	args_largo_plazo->instrucciones = instrucciones;
 	args_largo_plazo->tam_proceso = tam_proceso;
 
 	pthread_create(&largo_plazo_thread, NULL, hilo_pcb_new, args_largo_plazo);
-	pthread_join(largo_plazo_thread, NULL);
+	void* retorno_hilo;
+	pthread_join(largo_plazo_thread, &retorno_hilo);
+
+	relacion_consola_proceso* rel_consola_proceso = malloc(sizeof(relacion_consola_proceso));
+
+	rel_consola_proceso->pid = *((unsigned int*) retorno_hilo);
+	free(retorno_hilo);
+	rel_consola_proceso->conexion_consola = socket_cliente;
+
+	printf("El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
+
+	list_add(lista_relacion_consola_proceso, rel_consola_proceso);
+
 	printf("Terminó el largo plazo! \n");
 }
 
 
 int recibir_int(int socket_cliente) {
   int leido;
-  if (recv(socket_cliente, & leido, sizeof(int), MSG_WAITALL) > 0)
-    return leido;
-  else {
-    close(socket_cliente);
-    return -1;
-  }
+  recv(socket_cliente, & leido, sizeof(int), MSG_WAITALL);
+  return leido;
 }
 
 

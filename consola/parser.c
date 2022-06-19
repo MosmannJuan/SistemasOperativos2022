@@ -13,7 +13,7 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_l
 
   if (!file) {
     //Debería usar el logger para los errores
-    log_info(logger, "No se pudo abrir el archivo de instrucciones solicitado");
+    log_error(logger, "No se pudo abrir el archivo de instrucciones solicitado");
   }
   //Cicla el archivo leyendo las instrucciones hasta llegar al EOF
   while (control != EOF) {
@@ -63,6 +63,8 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_l
     control = fgetc(file);
 
   }
+  int fin_envio_instrucciones = -1;
+  send(conexion, &fin_envio_instrucciones, sizeof(int), 0);
 
 }
 

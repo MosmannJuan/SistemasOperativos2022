@@ -14,6 +14,7 @@ void inicializar_listas_procesos() {
   bloqueado_suspendido = list_create();
   ready_suspendido = list_create();
   exit_estado = list_create();
+  lista_relacion_consola_proceso = list_create();
 }
 
 //-------------------------------------------------------------
@@ -65,6 +66,11 @@ void pcb_destroy(pcb * pcb_destruir) {
   free(pcb_destruir);
 }
 
+void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
+	close(relacion_cp->conexion_consola);
+	free(relacion_cp);
+}
+
 void * hilo_pcb_new(void * args_p) {
   //Acceder a args
   argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
@@ -83,7 +89,9 @@ void * hilo_pcb_new(void * args_p) {
   printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
   sleep(5);
 
-  return NULL;
+  unsigned int* puntero_pid = malloc(sizeof(unsigned int));
+  *puntero_pid = pcb_nuevo->id;
+  return puntero_pid;
 
 }
 
@@ -137,7 +145,7 @@ void exit_largo_plazo(){
 		printf("\n exit largo plazo \n");
 		printf("Lista running: %d \n", list_size(running));
 		sem_wait(&semaforo_lista_running_remove);
-		pcb* pcb_exit = list_remove(running, 0);
+		pcb* pcb_exit = (pcb*) list_remove(running, 0);
 		printf("pcb exit: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_exit->id, pcb_exit->tam_proceso, pcb_exit->pc, pcb_exit->rafaga, list_size(pcb_exit->instrucciones));
 		sem_post(&semaforo_lista_running_remove);
 		printf("Agrego pcb a exit");
@@ -145,8 +153,17 @@ void exit_largo_plazo(){
 
 		//Eviar mensaje a memoria para hacer free
 		//Memoria devuelve que fue ok
-		printf("Remuevo pcb de exit y libero la memoria");
+		printf("Remuevo pcb de exit, envío el mensaje a consola y libero la memoria");
 		list_remove(exit_estado,0);
+
+		sem_wait(&semaforo_pid_comparacion_exit);
+		pid_comparacion_exit = pcb_exit->id;
+		relacion_consola_proceso* relacion_cp = list_remove_by_condition(lista_relacion_consola_proceso, es_pid_en_exit);
+		sem_post(&semaforo_pid_comparacion_exit);
+		//TODO: Ver si esto puede fallar para devolver false
+		bool finalizacion_exitosa = true;
+		send(relacion_cp->conexion_consola, &finalizacion_exitosa, sizeof(bool), 0);
+		relacion_consola_proceso_destroy(relacion_cp);
 		pcb_destroy(pcb_exit);
 
 		printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
@@ -352,6 +369,11 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 bool es_pid_a_desbloquear(void * pcb_recibido) {
   pcb * pcb_comparacion = (pcb * ) pcb_recibido;
   return pcb_comparacion -> id == pid_comparacion;
+}
+
+bool es_pid_en_exit(void* rel_consola_proceso){
+	relacion_consola_proceso* relacion = (relacion_consola_proceso *) rel_consola_proceso;
+	return relacion->pid == pid_comparacion_exit;
 }
 
 bool ordenar_por_estimacion_rafaga(void * unPcb, void * otroPcb) {

@@ -14,6 +14,15 @@
 #include <pthread.h>
 #include "utils.h"
 
+//---------------------------------------------------------------
+// ------------------------- ESTRUCTURAS ------------------------
+//---------------------------------------------------------------
+
+typedef struct{
+	int tabla_segundo_nivel;
+	double entrada_tabla_segundo_nivel;
+	double direccion_fisica;
+} datos_direccion;
 
 //---------------------------------------------------------------
 // ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
@@ -25,7 +34,6 @@ typedef enum {
 	LEER,
 	ESCRIBIR
 } mensaje_memoria;
-
 
 char*	reemplazoTlb;
 char*	ipMemoria;
@@ -66,7 +74,7 @@ void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo);
 void ejecutar_exit();
 void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler);
 void atender_interrupcion(pcb* pcb_interrumpido);
-double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);
+datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);
 void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir, int tabla_paginas);
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas);
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas);

@@ -28,21 +28,25 @@ int main(void) {
 				switch(accion_recibida){
 					case ESCRIBIR: ;
 						//Recibo la dirección física calculada por mmu y el valor a escribir
-						double dir_fisica_escritura;
-						recv(conexion_cpu, &dir_fisica_escritura, sizeof(double), 0);
+						datos_direccion direccion_escritura;
+						recv(conexion_cpu, &direccion_escritura.direccion_fisica, sizeof(double), 0);
+						recv(conexion_cpu, &direccion_escritura.tabla_segundo_nivel, sizeof(int), 0);
+						recv(conexion_cpu, &direccion_escritura.entrada_tabla_segundo_nivel, sizeof(double), 0);
 						unsigned int valor_a_escribir;
 						recv(conexion_cpu, &valor_a_escribir, sizeof(unsigned int), 0);
 						//Accedo a la dirección física y escribo el valor recibido
-						int respuesta_escritura = ejecutar_escritura(dir_fisica_escritura, valor_a_escribir);
+						int respuesta_escritura = ejecutar_escritura(direccion_escritura, valor_a_escribir);
 						//Envío el int indicando si la escritura fue correcta
 						send(conexion_cpu, &respuesta_escritura, sizeof(int), 0);
 						break;
 					case LEER: ;
 					//Recibo la dirección física calculada por mmu
-					double dir_fisica_lectura;
-					recv(conexion_cpu, &dir_fisica_lectura, sizeof(double), 0);
+					datos_direccion direccion_lectura;
+					recv(conexion_cpu, &direccion_lectura.direccion_fisica, sizeof(double), 0);
+					recv(conexion_cpu, &direccion_lectura.tabla_segundo_nivel, sizeof(int), 0);
+					recv(conexion_cpu, &direccion_lectura.entrada_tabla_segundo_nivel, sizeof(double), 0);
 					//Accedo a la dirección física y leo el valor almacenado
-					unsigned int valor_leido = ejecutar_lectura(dir_fisica_lectura);
+					unsigned int valor_leido = ejecutar_lectura(direccion_lectura);
 					//Envío el valor leído
 					send(conexion_cpu, &valor_leido, sizeof(unsigned int), 0);
 					break;
@@ -258,16 +262,33 @@ void enviar_globales(){
 // -------------------- LECTURA Y ESCRITURA ---------------------
 //---------------------------------------------------------------
 
-unsigned int ejecutar_lectura(double dir_fisica){
+unsigned int ejecutar_lectura(datos_direccion direccion){
 	unsigned int valor_leido;
 
-	memcpy(&valor_leido, base_memoria + (int) dir_fisica, sizeof(unsigned int));
+	//Copio el valor leido en memoria física en la variable declarada
+	memcpy(&valor_leido, base_memoria + (int) direccion.direccion_fisica, sizeof(unsigned int));
+
+	//Actualizo el bit de uso de la página accedida
+	t_list* tabla_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, direccion.tabla_segundo_nivel);
+	entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel, direccion.entrada_tabla_segundo_nivel);
+	log_info(logger_memoria, "El valor del bit de uso antes de modificar en la lectura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
+	pagina->uso = true;
+	log_info(logger_memoria, "El valor del bit de uso luego de modificar en la lectura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
 
 	return valor_leido;
 }
 
-int ejecutar_escritura(double dir_fisica, unsigned int valor_escritura){
-	memcpy(base_memoria + (int) dir_fisica, &valor_escritura, sizeof(unsigned int));
+int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
+	//Copio el valor recibido en la posición correspondiente de memoria física
+	memcpy(base_memoria + (int) direccion.direccion_fisica, &valor_escritura, sizeof(unsigned int));
+
+	//Actualizo los bits de uso y modificado de la página accedida
+	t_list* tabla_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, direccion.tabla_segundo_nivel);
+	entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel, direccion.entrada_tabla_segundo_nivel);
+	log_info(logger_memoria, "El valor del bit de uso antes de modificar en la escritura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
+	pagina->uso = true;
+	pagina->modificado = true;
+	log_info(logger_memoria, "El valor del bit de uso luego de modificar en la escritura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
 
 	return 1;
 
