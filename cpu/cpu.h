@@ -48,6 +48,7 @@ sem_t *sem_dispatch;
 t_config* cpu_config;
 t_log * cpu_logger;
 t_log* cpu_info_logger;
+t_list* tlb;
 
 
 

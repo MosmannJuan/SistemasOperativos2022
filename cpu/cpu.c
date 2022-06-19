@@ -24,6 +24,7 @@ int main(void) {
 	conexion_dispatch = conexion_servidor(ipKernel, puertoEscuchaDispatch);
 	conexion_interrupt = conexion_servidor(ipKernel, puertoEscuchaInterrupt);
 
+	inicializar_tlb();
 	inicializar_hilo_conexion_interrupt(&hilo_interrupcion_handler);
 
 	entradasTlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
@@ -255,3 +256,12 @@ void atender_interrupcion(pcb* pcb_interrumpido){
 	detener_ejecucion = true;
 	enviar_pcb_interrupcion(pcb_interrumpido, conexion_dispatch);
 }
+
+//---------------------------------------------------------------
+// ----------------------------- TLB  ---------------------------
+//---------------------------------------------------------------
+
+void inicializar_tlb() {
+	tlb = list_create();
+}
+
