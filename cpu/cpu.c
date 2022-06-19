@@ -300,6 +300,7 @@ void agregar_pagina_a_tlb(double pagina, double marco) {
 	 */
 	if(list_size(tlb) == entradasTlb) list_remove(tlb, 0);
 	list_add(tlb, nueva_entrada);
+	log_info(cpu_info_logger, "Cantidad de entradas en TLB: %d", list_size(tlb));
 
 }
 
