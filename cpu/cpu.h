@@ -27,6 +27,13 @@ typedef enum {
 } mensaje_memoria;
 
 
+typedef struct
+{
+	double pagina;
+	double marco;
+} entrada_tlb;
+
+
 char*	reemplazoTlb;
 char*	ipMemoria;
 char*	puertoMemoria;
@@ -72,5 +79,9 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas);
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas);
 void recibir_valores_globales_memoria();
+void inicializar_tlb();
+void limpiar_tlb();
+void agregar_pagina_a_tlb(double pagina, double marco);
+entrada_tlb* buscar_pagina_en_tlb(double pagina);
 
 #endif /* CPU_H_ */

@@ -42,6 +42,7 @@ int main(void) {
 				break;
 			case EJECUTAR:
 				contador_rafaga = 0;
+				limpiar_tlb();
 				hay_interrupciones = false;
 				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
 				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
@@ -184,6 +185,23 @@ double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	double num_pagina = floor(dir_logica/tamanio_pagina);
 	double entrada_primer_nivel = floor(num_pagina/entradas_por_tabla);
 
+
+	//Revisar si la pagina esta en tlb, si esta, retornamos el frame.
+	entrada_tlb* entrada_requerida  = buscar_pagina_en_tlb(num_pagina);
+	if(entrada_requerida){
+		//actualizamos entrada ya que fue referencaida.
+		if(strcmp(reemplazoTlb, "LRU") == 0) {
+			bool es_entrada_a_actualizar(entrada_tlb* unaEntrada) {
+				return unaEntrada->pagina == entrada_requerida->pagina;
+			}
+			entrada_requerida = list_remove_by_condition(tlb, es_entrada_a_actualizar);
+			list_add(tlb, entrada_requerida);
+		}
+		double desplazamiento = dir_logica - num_pagina * tamanio_pagina;
+		double dir_fisica = (entrada_requerida->marco * tamanio_pagina) + desplazamiento;
+		return dir_fisica;
+	}
+
 	//Se busca el numero de tabla de segundo nivel en memoria 1er paso
 	mensaje_memoria mensaje_primera_entrada = OBTENER_TABLA_SEGUNDO_NIVEL;
 	send(conexion_memoria, &mensaje_primera_entrada, sizeof(int), 0);
@@ -205,6 +223,7 @@ double mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	double desplazamiento = dir_logica - num_pagina * tamanio_pagina;
 	double dir_fisica = (numero_marco * tamanio_pagina) + desplazamiento;
 
+	agregar_pagina_a_tlb(num_pagina, numero_marco);
 	return dir_fisica;
 }
 
@@ -264,4 +283,31 @@ void atender_interrupcion(pcb* pcb_interrumpido){
 void inicializar_tlb() {
 	tlb = list_create();
 }
+
+void limpiar_tlb() {
+	list_clean(tlb);
+}
+
+void agregar_pagina_a_tlb(double pagina, double marco) {
+	entrada_tlb* nueva_entrada = malloc(sizeof(entrada_tlb));
+	nueva_entrada->pagina = pagina;
+	nueva_entrada->marco = marco;
+	/*
+	 * Los algoritmos de reemplazo pueden ser fifo o LRU:
+	 * Fifo: va a remover la entrada que esté en la primera posición, sin importar cual sea.
+	 * LRU: en mmu se agregó la lógica para que, cuando una página es referenciada, se remueva de la lista y se vuelva a agregar al final,
+	 * de esta forma nos aseguramos de que en la primera posición esté la que no fue referenciada hace más tiempo.
+	 */
+	if(list_size(tlb) == entradasTlb) list_remove(tlb, 0);
+	list_add(tlb, nueva_entrada);
+
+}
+
+entrada_tlb* buscar_pagina_en_tlb(double pagina) {
+	bool esta_en_tlb(entrada_tlb* entrada) {
+		return entrada->pagina == pagina;
+	}
+	return list_find(tlb, esta_en_tlb);
+}
+
 
