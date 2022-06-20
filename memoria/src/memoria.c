@@ -186,7 +186,16 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 
 void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid){
 	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
+	//Creo el directorio en caso de que no exista
+	if(mkdir(path_swap, 0777) == 0){
+		log_info(logger_memoria, "Directorio %s creado correctamente", path_swap);
+	} else if(errno == EEXIST){
+		log_info(logger_memoria, "El directorio %s ya existe", path_swap);
+	} else {
+		log_error(logger_memoria, "Ha ocurrido un error al querer crear/validar existencia del directorio %s", path_swap);
+	}
 
+	//Creo el archivo de swap en el directorio
 	FILE* archivo_swap = fopen(path_archivo_swap, "w+");
 	fseek(archivo_swap, 0, SEEK_END);
 	int size = ftell(archivo_swap);

@@ -190,9 +190,6 @@ void exit_largo_plazo(){
 
 
 void * hilo_mediano_plazo_ready(void * argumentos) {
-
-    printf("El grado de multiprogramación es: %d \n", grado_multiprogramacion);
-
   while (1) {
     if (list_size(ready_suspendido) > 0 && grado_multiprogramacion < limite_grado_multiprogramacion) {
       sem_wait( & semaforo_lista_ready_suspendido_remove);
