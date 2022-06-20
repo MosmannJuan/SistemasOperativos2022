@@ -95,8 +95,8 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 		ejecutar_WRITE(instruccion_decode->params[0], instruccion_decode->params[1], pcb_a_ejecutar->tabla_paginas);
 	break;
 	case COPY: ;
-		unsigned int operando = fetch_operands(instruccion_decode->params[0], pcb_a_ejecutar->tabla_paginas);
-		ejecutar_WRITE(instruccion_decode->params[1], operando, pcb_a_ejecutar->tabla_paginas);
+		unsigned int operando = fetch_operands(instruccion_decode->params[1], pcb_a_ejecutar->tabla_paginas);
+		ejecutar_WRITE(instruccion_decode->params[0], operando, pcb_a_ejecutar->tabla_paginas);
 	break;
 	case EXIT:
 		ejecutar_exit(pcb_a_ejecutar);
