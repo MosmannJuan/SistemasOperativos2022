@@ -16,10 +16,6 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_l
     log_error(logger, "No se pudo abrir el archivo de instrucciones solicitado");
   }
 
-  //Envía primero el tamaño del proceso.
-  unsigned int tam_proceso = 8;
-  send(conexion, &tam_proceso, sizeof(unsigned int), 0);
-
   //Cicla el archivo leyendo las instrucciones hasta llegar al EOF
   while (control != EOF) {
     c = fgetc(file);
