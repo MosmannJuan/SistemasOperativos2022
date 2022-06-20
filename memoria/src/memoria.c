@@ -254,15 +254,21 @@ void* conexion_kernel_handler(void* args){
 				int nro_tabla_pag;
 				recv(conexion_kernel, &pid_suspendido, sizeof(unsigned int), 0);
 				recv(conexion_kernel, &nro_tabla_pag, sizeof(int), 0);
-				//TODO semáforo de e/s
 				sem_wait(&semaforo_entrada_salida);
 				enviar_proceso_swap(pid_suspendido, nro_tabla_pag);
 				sem_post(&semaforo_entrada_salida);
 				bool swap_ok = true;
 				send(conexion_kernel, &swap_ok, sizeof(bool), 0);
 				break;
-
-			//TODO HACER LOS OTROS CASOS POR EJ., ELIMINAR, ETC
+			case DESTRUIR_ESTRUCTURAS: ;
+				unsigned int pid_destruir;
+				int nro_tabla_pag_destruir;
+				recv(conexion_kernel, &pid_destruir, sizeof(unsigned int), 0);
+				recv(conexion_kernel, &nro_tabla_pag_destruir, sizeof(int), 0);
+				destruir_estructuras(pid_destruir, nro_tabla_pag_destruir);
+				bool estructuras_eliminadas = true;
+				send(conexion_kernel, &estructuras_eliminadas, sizeof(bool), 0);
+				break;
 			default:
 				//Loggear error de "Memoria no pudo interpretar el mensaje recibido"
 				break;
@@ -393,3 +399,54 @@ void* leer_marco_completo(uint32_t numero_marco){
 
 	return marco_leido;
 }
+
+//---------------------------------------------------------------
+// ----------------- DESTRUCCION ESTRUCTURAS --------------------
+//---------------------------------------------------------------
+
+
+void destruir_estructuras(unsigned int pid, int nro_tabla_paginas){
+	log_info(logger_memoria, "Destruyendo estructuras de proceso: %d", pid);
+	//Obtengo la tabla de primer nivel
+	t_list* tabla_primer_nivel = list_remove(tablas_primer_nivel, nro_tabla_paginas);
+
+	//Destruyo la tabla con sus entradas
+	list_destroy_and_destroy_elements(tabla_primer_nivel, liberar_entrada_primer_nivel);
+
+	//Borro el archivo de swap del proceso
+	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
+	if(remove(path_archivo_swap) == 0) log_info(logger_memoria, "Se eliminó correctamente el archivo %s", path_archivo_swap);
+	else log_error(logger_memoria, "No se ha podido eliminar el archivo %s", path_archivo_swap);
+}
+
+void liberar_entrada_primer_nivel(void* entrada){
+	//Casteo el void* en un entrada_primer_nivel*
+	entrada_primer_nivel* entrada_a_eliminar = (entrada_primer_nivel*) entrada;
+
+	//Busco su tabla de segundo nivel asociada
+	t_list* tabla_segundo_nivel = list_remove(tablas_segundo_nivel, entrada_a_eliminar->id_segundo_nivel);
+
+	//Destruyo la tabla de segundo nivel con sus entradas
+	list_destroy_and_destroy_elements(tabla_segundo_nivel, liberar_entrada_segundo_nivel);
+
+	free(entrada_a_eliminar);
+}
+
+void liberar_entrada_segundo_nivel(void* entrada){
+	//Casteo el void* en un entrada_segundo_nivel*
+	entrada_segundo_nivel* entrada_a_eliminar = (entrada_segundo_nivel*) entrada;
+
+	//Si tiene presencia, libero el frame
+	if(entrada_a_eliminar->presencia){
+		uint32_t* marco_a_liberar = malloc(sizeof(uint32_t));
+		*marco_a_liberar = entrada_a_eliminar->marco;
+		log_info(logger_memoria, "Se agrega a la lista de marcos disponibles el marco: %d", *marco_a_liberar);
+		log_info(logger_memoria, "La lista de marcos disponibles antes de agregar tiene %d registros", list_size(marcos_disponibles));
+		list_add(marcos_disponibles, marco_a_liberar);
+		log_info(logger_memoria, "La lista de marcos disponibles después de agregar tiene %d registros", list_size(marcos_disponibles));
+	}
+
+	//Libero la memoria asignada a la página
+	free(entrada_a_eliminar);
+}
+

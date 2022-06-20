@@ -67,7 +67,8 @@ typedef struct {
 
 typedef enum {
 	INICIALIZAR_ESTRUCTURAS,
-	SUSPENDER
+	SUSPENDER,
+	DESTRUIR_ESTRUCTURAS
 }accion_memoria;
 
 // ---- LISTA DE ESTADOS ----//

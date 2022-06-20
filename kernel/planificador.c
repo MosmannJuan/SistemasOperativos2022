@@ -151,9 +151,16 @@ void exit_largo_plazo(){
 		printf("Agrego pcb a exit");
 		list_add(exit_estado, pcb_exit);
 
-		//Eviar mensaje a memoria para hacer free
+		//Enviamos mensaje a memoria para hacer free
+		accion_memoria mensaje_destruir_estructuras = DESTRUIR_ESTRUCTURAS;
+		send(conexion_memoria, &mensaje_destruir_estructuras, sizeof(int), 0);
+		send(conexion_memoria, &pcb_exit->id, sizeof(unsigned int), 0);
+		send(conexion_memoria, &pcb_exit->tabla_paginas, sizeof(int), 0);
 		//Memoria devuelve que fue ok
-		printf("Remuevo pcb de exit, envío el mensaje a consola y libero la memoria");
+		bool mensaje_ok;
+		recv(conexion_memoria, &mensaje_ok, sizeof(bool), 0);
+		printf("Se destruyeron correctamente estructuras de memoria \n");
+		printf("Remuevo pcb de exit, envío el mensaje a consola y libero la memoria\n");
 		list_remove(exit_estado,0);
 
 		sem_wait(&semaforo_pid_comparacion_exit);

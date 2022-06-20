@@ -67,7 +67,8 @@ typedef struct{
 
 typedef enum {
 	INICIALIZAR_ESTRUCTURAS,
-	SUSPENDER
+	SUSPENDER,
+	DESTRUIR_ESTRUCTURAS
 }accion_memoria_con_kernel;
 
 
@@ -103,3 +104,6 @@ unsigned int ejecutar_lectura(datos_direccion direccion);
 void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas);
 char* obtener_nombre_archivo_swap(unsigned int pid);
 void* leer_marco_completo(uint32_t numero_marco);
+void liberar_entrada_primer_nivel(void* entrada);
+void liberar_entrada_segundo_nivel(void* entrada);
+void destruir_estructuras(unsigned int pid, int nro_tabla_paginas);
