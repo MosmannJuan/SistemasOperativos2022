@@ -24,6 +24,12 @@ typedef struct{
 	double direccion_fisica;
 } datos_direccion;
 
+typedef struct
+{
+	int pagina;
+	int marco;
+} entrada_tlb;
+
 //---------------------------------------------------------------
 // ----------------- ENUMS Y VARIABLES GLOBALES  ----------------
 //---------------------------------------------------------------
@@ -35,7 +41,7 @@ typedef enum {
 	ESCRIBIR
 } mensaje_memoria;
 
-char*	reemplazoTlb;
+char*	reemplazo_tlb;
 char*	ipMemoria;
 char*	puertoMemoria;
 char* 	ipKernel;
@@ -46,16 +52,17 @@ int tamanio_pagina;
 int conexion_memoria;
 int conexion_dispatch;
 int conexion_interrupt;
-int	entradasTlb ;
-int	retardoNoop;
+int	entradas_tlb ;
+int	retardo_NOOP;
+int pagina_comparacion_tlb;
 bool detener_ejecucion;
 bool contador_rafaga_inicializado;
 bool hay_interrupciones;
-sem_t *sem_interrupcion;
-sem_t *sem_dispatch;
+sem_t sem_tlb_pagina_comparacion;
 t_config* cpu_config;
 t_log * cpu_logger;
 t_log* cpu_info_logger;
+t_list* tabla_tlb;
 
 
 
@@ -79,5 +86,9 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas);
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas);
 void recibir_valores_globales_memoria();
+void entrada_tlb_destroy(void* entrada_a_destruir);
+void agregar_entrada_tlb(double numero_pagina, int numero_marco);
+entrada_tlb* tlb(double numero_pagina);
+bool pagina_encontrada(void* entrada);
 
 #endif /* CPU_H_ */

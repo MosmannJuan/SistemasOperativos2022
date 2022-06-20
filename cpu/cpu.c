@@ -26,9 +26,14 @@ int main(void) {
 
 	inicializar_hilo_conexion_interrupt(&hilo_interrupcion_handler);
 
-	entradasTlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
-	reemplazoTlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
-	retardoNoop = config_get_int_value(cpu_config,"RETARDO_NOOP");
+	//Inicializamos lista tlb
+	tabla_tlb = list_create();
+	//Inicializo semaforo para comparacion
+	sem_init(&sem_tlb_pagina_comparacion, 0, 1);
+
+	entradas_tlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
+	reemplazo_tlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
+	retardo_NOOP = config_get_int_value(cpu_config,"RETARDO_NOOP");
 
 	while(1){
 		mensaje_cpu mensaje_recibido;
@@ -41,6 +46,8 @@ int main(void) {
 				break;
 			case EJECUTAR:
 				contador_rafaga = 0;
+				//Limpiamos tlb
+				list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 				hay_interrupciones = false;
 				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
 				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
@@ -109,7 +116,7 @@ void ejecutar_NO_OP(unsigned int parametro){
 	int contador = 0;
 
 	while(contador != parametro){
-		sleep(retardoNoop/1000);
+		sleep(retardo_NOOP/1000);
 		contador++;
 	}
 }
@@ -188,6 +195,9 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	//Calculamos numero de pagina y numero de entrada de la tabla de primer nivel
 	double num_pagina = floor(dir_logica/tamanio_pagina);
 	double entrada_primer_nivel = floor(num_pagina/entradas_por_tabla);
+	double desplazamiento = dir_logica - num_pagina * tamanio_pagina;
+	double entrada_segundo_nivel = (int)num_pagina % entradas_por_tabla;
+	double dir_fisica;
 
 	//Se busca el numero de tabla de segundo nivel en memoria 1er paso
 	mensaje_memoria mensaje_primera_entrada = OBTENER_TABLA_SEGUNDO_NIVEL;
@@ -197,25 +207,36 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 	unsigned int numero_tabla_segundo_nivel;
 	recv(conexion_memoria, &numero_tabla_segundo_nivel, sizeof(unsigned int), 0);
 
-	double entrada_segundo_nivel = (int)num_pagina % entradas_por_tabla;
+	//Consultamos si la página correspondiente al proceso se encuentra en caché
+	entrada_tlb* entrada_encontrada = tlb(num_pagina);
+	if(entrada_encontrada != NULL){
+		log_info(cpu_info_logger, "Encontré en tlb la página: %d con el marco: %d", entrada_encontrada->pagina, entrada_encontrada->marco);
+		dir_fisica = (entrada_encontrada->marco * tamanio_pagina) + desplazamiento;
+		if(strcmp(reemplazo_tlb, "LRU") == 0) list_add(tabla_tlb, entrada_encontrada);
+	}else{
+		log_info(cpu_info_logger, "No encontré en tlb la página: %f", num_pagina);
+		//Acceso para conocer el marco 2do paso
+		mensaje_memoria mensaje_segunda_entrada = OBTENER_NUMERO_MARCO;
+		send(conexion_memoria, &mensaje_segunda_entrada, sizeof(int), 0);
+		send(conexion_memoria, &numero_tabla_segundo_nivel, sizeof(unsigned int), 0);
+		send(conexion_memoria, &entrada_segundo_nivel, sizeof(double), 0);
+		int numero_marco;
+		recv(conexion_memoria, &numero_marco, sizeof(int), 0);
 
-	//Acceso para conocer el marco 2do paso
-	mensaje_memoria mensaje_segunda_entrada = OBTENER_NUMERO_MARCO;
-	send(conexion_memoria, &mensaje_segunda_entrada, sizeof(int), 0);
-	send(conexion_memoria, &numero_tabla_segundo_nivel, sizeof(unsigned int), 0);
-	send(conexion_memoria, &entrada_segundo_nivel, sizeof(double), 0);
-	int numero_marco;
-	recv(conexion_memoria, &numero_marco, sizeof(int), 0);
-
-	double desplazamiento = dir_logica - num_pagina * tamanio_pagina;
-	double dir_fisica = (numero_marco * tamanio_pagina) + desplazamiento;
+		dir_fisica = (numero_marco * tamanio_pagina) + desplazamiento;
+		//Si no encontré la página en tlb agrego la entrada
+		agregar_entrada_tlb(num_pagina, numero_marco);
+	}
 
 	datos_direccion resultado;
 	resultado.tabla_segundo_nivel = numero_tabla_segundo_nivel;
 	resultado.entrada_tabla_segundo_nivel = entrada_segundo_nivel;
 	resultado.direccion_fisica = dir_fisica;
 
+
 	return resultado;
+
+
 }
 
 
@@ -246,9 +267,8 @@ void* contador(void* args){
 
 
 //---------------------------------------------------------------
-// ------------------------- INTERRUPCIONES  ---------------------
+// ------------------------ INTERRUPCIONES ----------------------
 //---------------------------------------------------------------
-
 
 void* interrupcion_handler(void* args){
 	while(1){
@@ -265,4 +285,47 @@ void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler){
 void atender_interrupcion(pcb* pcb_interrumpido){
 	detener_ejecucion = true;
 	enviar_pcb_interrupcion(pcb_interrumpido, conexion_dispatch);
+}
+
+//---------------------------------------------------------------
+// ----------------------------- TLB ----------------------------
+//---------------------------------------------------------------
+
+void entrada_tlb_destroy(void* entrada_a_destruir){
+	free(entrada_a_destruir);
+}
+
+entrada_tlb* tlb(double numero_pagina){
+	entrada_tlb* entrada_buscada;
+	sem_wait(&sem_tlb_pagina_comparacion);
+	pagina_comparacion_tlb = (int) numero_pagina;
+	if(strcmp(reemplazo_tlb, "LRU") == 0)
+		entrada_buscada = (entrada_tlb*) list_remove_by_condition(tabla_tlb, pagina_encontrada);
+	else
+		entrada_buscada = (entrada_tlb*) list_find(tabla_tlb, pagina_encontrada);
+	sem_post(&sem_tlb_pagina_comparacion);
+
+	return entrada_buscada;
+}
+
+bool pagina_encontrada(void* entrada){
+	return ((entrada_tlb*)entrada)->pagina == pagina_comparacion_tlb;
+}
+
+void agregar_entrada_tlb(double numero_pagina, int numero_marco){
+	log_info(cpu_info_logger, "Agrego página:  %d y marco %d a tlb", (int) numero_pagina, numero_marco);
+	entrada_tlb* entrada_a_agregar = malloc(sizeof(entrada_tlb));
+	entrada_a_agregar->marco = numero_marco;
+	entrada_a_agregar->pagina = (int)numero_pagina;
+
+	if(list_size(tabla_tlb) == entradas_tlb){
+		log_info(cpu_info_logger, "La tlb está llena con %d registros", list_size(tabla_tlb));
+		entrada_tlb* entrada_removida = list_remove(tabla_tlb, 0);
+		log_info(cpu_info_logger, "Removí la entrada con pagina %d y marco %d", entrada_removida->pagina, entrada_removida->marco);
+		free(entrada_removida);
+	}
+	if(list_size(tabla_tlb) > entradas_tlb) log_error(cpu_logger, "Overflow en tabla tlb");
+	log_info(cpu_info_logger, "La tlb antes de asignar tiene %d registros", list_size(tabla_tlb));
+	list_add(tabla_tlb, entrada_a_agregar);
+	log_info(cpu_info_logger, "La tlb después de asignar tiene %d registros", list_size(tabla_tlb));
 }
