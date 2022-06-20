@@ -9,6 +9,12 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 
 	free(pointer_args);
 
+	//Recibe primero el tamaño del proceso.
+	printf("\n Recibiendo el tam del proceso... \n");
+	unsigned int tam_proceso;
+	recv(cliente_fd, &tam_proceso, sizeof(unsigned int), MSG_WAITALL);
+	printf("Tam recibido: %u", tam_proceso, "%s \n");
+
 	//sleep para testing de multiples conexiones.
     sleep(5);
     printf("\n %s %d %s %d %s %lu %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "HILO:", pthread_self(), "\n");
@@ -34,7 +40,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       break;
     case -1:
       printf("Iniciado thread largo plazo. \n\n");
-      iniciar_thread_largo_plazo(instrucciones, (unsigned int) 8, cliente_fd); //TODO usar el tam_proceso enviado desde consola
+      iniciar_thread_largo_plazo(instrucciones, tam_proceso, cliente_fd);
       return NULL;
     default:
       printf("No recibí un codigo de operación válido. \n");
