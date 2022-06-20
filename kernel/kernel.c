@@ -9,6 +9,7 @@ int main(int argc, char ** argv) {
   pthread_t hilo_dispatch_handler;
   pthread_t hilo_new_ready;
   pthread_t hilo_exit;
+  pthread_t hilo_mediano_plazo;
   inicializar_listas_procesos();
 
 
@@ -42,6 +43,7 @@ int main(int argc, char ** argv) {
 
   inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
   inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
+  inicializar_planificador_mediano_plazo(&hilo_mediano_plazo);
   inicializar_cpu_dispatch_handler(&hilo_dispatch_handler);
 
   //Inicializamos el semáforo para el process id del planificador de largo plazo
@@ -116,5 +118,9 @@ void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hi
 
 void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler){
 	pthread_create(hilo_dispatch_handler, NULL, cpu_dispatch_handler, NULL);
+}
+
+void inicializar_planificador_mediano_plazo(pthread_t* hilo_mediano_plazo){
+	pthread_create(hilo_mediano_plazo, NULL, hilo_mediano_plazo_ready, NULL);
 }
 

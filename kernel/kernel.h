@@ -45,5 +45,7 @@ void inicializar_semaforos();
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running);
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit);
 void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler);
+void inicializar_planificador_mediano_plazo(pthread_t* hilo_mediano_plazo);
+
 
 #endif /* KERNEL_H_ */

@@ -4,6 +4,11 @@ int main(void) {
 
 	abrirArchivoConfiguracion();
 	conexion = iniciar_servidor(ip_memoria, puerto_escucha);
+
+	logger_memoria = log_create("memoria.log", "memoria.c", 1, LOG_LEVEL_DEBUG);
+
+	//Inicializo semáforo de e/s
+	sem_init(&semaforo_entrada_salida, 0, 1);
 	//Carga de memoria principal
 	base_memoria = malloc(tam_memoria);
 	//Incializacion de listas de tablas
@@ -87,7 +92,6 @@ int main(void) {
 //---------------------------------------------------------------
 
 void abrirArchivoConfiguracion(){
-		logger_memoria = log_create("memoria.log", "memoria.c", 1, LOG_LEVEL_DEBUG);
 		memoria_config = config_create("memoria.config");
 		ip_memoria = strdup(config_get_string_value(memoria_config,"IP_MEMORIA"));
 		puerto_escucha = strdup(config_get_string_value(memoria_config,"PUERTO_ESCUCHA"));
@@ -181,23 +185,27 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 // ------------------ INICIALIZACION DE SWAP ------------------
 
 void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid){
-	char* nombre_archivo_swap = string_itoa(pid);
-	string_append(&nombre_archivo_swap, ".swap");
-	char * path_archivo_swap = string_new();
-	string_append(&path_archivo_swap, path_swap);
-	string_append(&path_archivo_swap, "/");
-	string_append(&path_archivo_swap, nombre_archivo_swap);
+	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
 
-	FILE* archivo_swap = fopen(path_archivo_swap, "rw+");
+	FILE* archivo_swap = fopen(path_archivo_swap, "w+");
+	fseek(archivo_swap, 0, SEEK_END);
+	int size = ftell(archivo_swap);
+	log_info(logger_memoria, "El tamaño es: %d", size);
+	fseek(archivo_swap, tamanio_proceso, SEEK_SET);
+	fputc('\0', archivo_swap);
+	fseek(archivo_swap, 0, SEEK_SET);
+	fseek(archivo_swap, 0, SEEK_END);
+	int size_v2 = ftell(archivo_swap);
+	log_info(logger_memoria, "El tamaño es: %d", size_v2);
+	fclose(archivo_swap);
 
-	//fclose(archivo_swap);
+	log_info(logger_memoria, "Cerré el archivo");
 
-	int rta_truncate = truncate(path_archivo_swap, tamanio_proceso);
-
-	if(!rta_truncate)
-		printf("Error");
-	else
-		printf("Se creo el archivo swap con el tamanio: %d \n", sizeof(archivo_swap));
+//	int rta_truncate = truncate(path_archivo_swap, tamanio_proceso);
+//	if(!rta_truncate)
+//		printf("Error");
+//	else
+//		printf("Se creo el archivo swap con el tamanio: %d \n", sizeof(archivo_swap));
 }
 
 //---------------------------------------------------------------
@@ -240,7 +248,21 @@ void* conexion_kernel_handler(void* args){
 				log_info(logger_memoria, "El identificador de tabla de paginas recibido es: %d", tabla_de_paginas_asignada);
 				enviar_tabla_de_paginas(tabla_de_paginas_asignada);
 				break;
-				//TODO HACER LOS OTROS CASOS POR EJ. SUSPENDER, ELIMINAR, ETC
+
+			case SUSPENDER: ;
+				unsigned int pid_suspendido;
+				int nro_tabla_pag;
+				recv(conexion_kernel, &pid_suspendido, sizeof(unsigned int), 0);
+				recv(conexion_kernel, &nro_tabla_pag, sizeof(int), 0);
+				//TODO semáforo de e/s
+				sem_wait(&semaforo_entrada_salida);
+				enviar_proceso_swap(pid_suspendido, nro_tabla_pag);
+				sem_post(&semaforo_entrada_salida);
+				bool swap_ok = true;
+				send(conexion_kernel, &swap_ok, sizeof(bool), 0);
+				break;
+
+			//TODO HACER LOS OTROS CASOS POR EJ., ELIMINAR, ETC
 			default:
 				//Loggear error de "Memoria no pudo interpretar el mensaje recibido"
 				break;
@@ -292,4 +314,82 @@ int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
 
 	return 1;
 
+}
+
+//---------------------------------------------------------------
+// --------------------------- SWAP -----------------------------
+//---------------------------------------------------------------
+
+void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
+	log_info(logger_memoria, "Se suspende el proceso: %d cuya tabla de primer nivel es: %d", pid, nro_tabla_paginas);
+
+	//Aplicamos el retardo de swap solicitado
+	sleep(retardo_swap/1000);
+
+	//Obtengo la tabla de primer nivel correspondiente al proceso
+	t_list* tabla_primer_nivel_proceso = (t_list*) list_get(tablas_primer_nivel, nro_tabla_paginas);
+
+	//Obtengo la cantidad de entradas que posee la tabla (Podría no usar todo el límite asignado por archivo de config)
+	int cantidad_entradas_primer_nivel = list_size(tabla_primer_nivel_proceso);
+
+	//Recorro la tabla de primer nivel
+	for(int i = 0; i < cantidad_entradas_primer_nivel; i++){
+		//Obtengo el número de tabla de segundo nivel asociado a la entrada particular
+		unsigned int nro_tabla_segundo_nivel = ((entrada_primer_nivel*) list_get(tabla_primer_nivel_proceso, i))->id_segundo_nivel;
+
+		//Obtengo la tabla de segundo nivel asociada a la entrada
+		t_list* tabla_segundo_nivel_entrada = (t_list*) list_get(tablas_segundo_nivel, nro_tabla_segundo_nivel);
+
+		//Obtengo la cantidad de entradas que posee la tabla
+		int cantidad_entradas_segundo_nivel = list_size(tabla_segundo_nivel_entrada);
+
+		for(int j = 0; j < cantidad_entradas_segundo_nivel; j++){
+			//Obtengo la entrada de tabla de segundo nivel
+			entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel_entrada, j);
+
+			//Evaluo si la pagina está modificada
+			if(pagina->modificado && pagina->presencia){
+				//Obtengo el nombre del archivo swap
+				char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
+				//Leo de memoria el marco completo
+				void* contenido_de_marco_leido = leer_marco_completo(pagina->marco);
+
+				//Abro el archivo y escribo los datos
+				FILE * archivo = fopen(path_archivo_swap, "a");
+				//Escribo la tabla y entrada de segundo nivel correspondiente
+				fwrite(&nro_tabla_segundo_nivel, sizeof(unsigned int), 1, archivo);
+				fwrite(&j, sizeof(int), 1, archivo);
+				//Escribo el contenido del marco
+				fwrite(contenido_de_marco_leido, tam_pagina, 1, archivo);
+				fclose(archivo);
+
+				//Paso presencia a 0 y libero el marco
+				pagina->presencia = false;
+				uint32_t* marco_disponible = malloc(sizeof(uint32_t));
+				*marco_disponible = pagina->marco;
+				list_add(marcos_disponibles, marco_disponible);
+			}
+		}
+
+	}
+}
+
+char* obtener_nombre_archivo_swap(unsigned int pid){
+	char* nombre_archivo_swap = string_itoa(pid);
+	string_append(&nombre_archivo_swap, ".swap");
+	char * path_archivo_swap = string_new();
+	string_append(&path_archivo_swap, path_swap);
+	string_append(&path_archivo_swap, "/");
+	string_append(&path_archivo_swap, nombre_archivo_swap);
+
+	return path_archivo_swap;
+}
+
+void* leer_marco_completo(uint32_t numero_marco){
+
+	void * marco_leido = malloc(tam_pagina);
+
+	memcpy(marco_leido, base_memoria + (int) (numero_marco * tam_pagina), tam_pagina);
+
+	return marco_leido;
 }

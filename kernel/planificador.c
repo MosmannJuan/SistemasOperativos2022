@@ -42,12 +42,12 @@ pcb * pcb_create() {
 pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
   pcb * pcb_creado = pcb_create();
   //Enviamos la señal de wait al semáforo para bloquear el recurso
-  sem_wait( & semaforo_pid);
+  sem_wait(&semaforo_pid);
   //Accedemos al recurso compartido y ejecutamos las instrucciones de la zona crítica
   pid_contador++;
   pcb_creado -> id = pid_contador;
   //Enviamos la señal de post para liberar el recurso
-  sem_post( & semaforo_pid);
+  sem_post(&semaforo_pid);
   pcb_creado -> tam_proceso = tam_proceso;
   pcb_creado -> instrucciones = instrucciones;
   pcb_creado -> pc = 0;
@@ -82,9 +82,9 @@ void * hilo_pcb_new(void * args_p) {
   //Asignar pcb a new
   printf("El tamaño de la lista de new antes de asignar es: %d \n", list_size(new));
 
-  sem_wait( & semaforo_lista_new_add);
+  sem_wait(&semaforo_lista_new_add);
   list_add(new, pcb_nuevo);
-  sem_post( & semaforo_lista_new_add);
+  sem_post(&semaforo_lista_new_add);
 
   printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
   sleep(5);
@@ -120,7 +120,7 @@ void * hilo_new_ready(void * argumentos){
 			  printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
 
 			  sem_wait( & semaforo_lista_ready_add);
-			  if (strcmp(algoritmo_planificacion, "SRT") == 0) {
+			  if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0) {
 				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
 				mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
 				send(dispatch, &evaluar_desalojo, sizeof(int), 0);
@@ -203,12 +203,12 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
         list_add(ready, pcb_ready);
       }
       sem_post( & semaforo_lista_ready_add);
-      //Envío mensaje a cpu para que el planificador evalúe el desalojo
-	  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
-	  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
-
+      //Envío mensaje a cpu para que el planificador evalúe el desalojo en caso de SRT
+      if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0){
+      	  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+      	  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
+      }
       printf("El tamaño de la lista de ready despues de asignar es: %d \n", list_size(ready));
-
       sem_wait( & semaforo_grado_multiprogramacion);
       grado_multiprogramacion++;
       sem_post( & semaforo_grado_multiprogramacion);
@@ -220,7 +220,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
   }
 }
 
-void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo) {
+void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo) {
   // Removemos de bloqueado y simulamos la espera del I/O
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
@@ -230,13 +230,25 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   list_add(bloqueado_suspendido, pcb_actualizado);
 
   //Se envia a memoria para que pase a disco
+  int mensaje_suspender = SUSPENDER;
+  send(conexion_memoria, &mensaje_suspender, sizeof(int), 0);
+  send(conexion_memoria, &pcb_actualizado->id, sizeof(unsigned int), 0);
+  send(conexion_memoria, &pcb_actualizado->tabla_paginas, sizeof(int), 0);
+
+  printf("Esperando confirmación de suspensión de memoria \n");
+
+  //Esperamos confirmación de memoria
+  bool swap_ok;
+  recv(conexion_memoria, &swap_ok, sizeof(bool), 0);
+
+  printf("Confirmación recibida \n");
 
   sem_wait( & semaforo_grado_multiprogramacion);
   grado_multiprogramacion--;
   sem_post( & semaforo_grado_multiprogramacion);
 
   sleep(tiempo_bloqueo / 1000);
-
+  printf("Finalizo el bloqueo");
   //Saca el PCB actual de la lista de suspendido bloqueado.
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
@@ -252,7 +264,6 @@ void * mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int ti
   int mensaje_interrupt = 1;
   send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 
-  return NULL;
 }
 
 

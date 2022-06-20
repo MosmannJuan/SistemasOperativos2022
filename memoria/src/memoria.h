@@ -11,6 +11,7 @@
 #include <commons/string.h>
 #include <stdint.h>
 #include <commons/collections/list.h>
+#include <semaphore.h>
 #include <commons/config.h>
 #include <unistd.h>
 #include "../utils.h"
@@ -43,11 +44,7 @@ t_list* tablas_segundo_nivel;
 t_list*  marcos_disponibles;
 t_log* logger_memoria;
 pthread_t *hilo_kernel_handler;
-
-
-
-
-
+sem_t semaforo_entrada_salida;
 
 typedef struct
 {
@@ -69,7 +66,8 @@ typedef struct{
 } datos_direccion;
 
 typedef enum {
-	INICIALIZAR_ESTRUCTURAS
+	INICIALIZAR_ESTRUCTURAS,
+	SUSPENDER
 }accion_memoria_con_kernel;
 
 
@@ -102,3 +100,6 @@ void* conexion_kernel_handler(void* args);
 void* conexion_cpu_handler(void* args);
 int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura);
 unsigned int ejecutar_lectura(datos_direccion direccion);
+void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas);
+char* obtener_nombre_archivo_swap(unsigned int pid);
+void* leer_marco_completo(uint32_t numero_marco);
