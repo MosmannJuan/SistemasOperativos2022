@@ -1,0 +1,24 @@
+[INFO] 01:27:27:350 cpu_info_logger/(3299:3299): Recibí de memoria el tamaño de pagina: 64 y la cantidad de entradas por tabla: 4 
+[INFO] 01:27:38:732 cpu_info_logger/(3299:3299): Recibí de kernel el mensaje: 4
+[INFO] 01:27:43:742 cpu_info_logger/(3299:3299): No encontré en tlb la página: 0.000000
+[INFO] 01:27:43:781 cpu_info_logger/(3299:3299): Agrego página:  0 y marco 0 a tlb
+[INFO] 01:27:43:781 cpu_info_logger/(3299:3299): La tlb antes de asignar tiene 0 registros
+[INFO] 01:27:43:781 cpu_info_logger/(3299:3299): La tlb después de asignar tiene 1 registros
+[INFO] 01:27:43:861 cpu_info_logger/(3299:3299): No encontré en tlb la página: 1.000000
+[INFO] 01:27:43:901 cpu_info_logger/(3299:3299): Agrego página:  1 y marco 1 a tlb
+[INFO] 01:27:43:901 cpu_info_logger/(3299:3299): La tlb antes de asignar tiene 1 registros
+[INFO] 01:27:43:901 cpu_info_logger/(3299:3299): La tlb después de asignar tiene 2 registros
+[INFO] 01:27:43:981 cpu_info_logger/(3299:3299): Encontré en tlb la página: 0 con el marco: 0
+[INFO] 01:27:44:021 cpu_info_logger/(3299:3299): El valor leído es: 22
+[INFO] 01:27:44:061 cpu_info_logger/(3299:3299): Encontré en tlb la página: 1 con el marco: 1
+[INFO] 01:27:44:102 cpu_info_logger/(3299:3299): El valor leído es: 4921
+[INFO] 01:27:44:141 cpu_info_logger/(3299:3299): Encontré en tlb la página: 0 con el marco: 0
+[INFO] 01:27:44:181 cpu_info_logger/(3299:3299): El valor leído es: 22
+[INFO] 01:27:44:221 cpu_info_logger/(3299:3299): Encontré en tlb la página: 1 con el marco: 1
+[INFO] 01:27:44:302 cpu_info_logger/(3299:3299): No encontré en tlb la página: 2.000000
+[INFO] 01:27:44:341 cpu_info_logger/(3299:3299): Agrego página:  2 y marco 2 a tlb
+[INFO] 01:27:44:341 cpu_info_logger/(3299:3299): La tlb antes de asignar tiene 2 registros
+[INFO] 01:27:44:341 cpu_info_logger/(3299:3299): La tlb después de asignar tiene 3 registros
+[INFO] 01:27:44:421 cpu_info_logger/(3299:3299): Encontré en tlb la página: 2 con el marco: 2
+[INFO] 01:27:44:461 cpu_info_logger/(3299:3299): El valor leído es: 4921
+[INFO] 01:27:47:473 cpu_info_logger/(3299:3299): Recibí de kernel el mensaje: 4

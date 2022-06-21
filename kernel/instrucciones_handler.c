@@ -10,10 +10,9 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	free(pointer_args);
 
 	//Recibe primero el tamaño del proceso.
-	printf("\n Recibiendo el tam del proceso... \n");
+
 	unsigned int tam_proceso;
 	recv(cliente_fd, &tam_proceso, sizeof(unsigned int), MSG_WAITALL);
-	printf("Tam recibido: %u", tam_proceso, "%s \n");
 
 	//sleep para testing de multiples conexiones.
     sleep(5);

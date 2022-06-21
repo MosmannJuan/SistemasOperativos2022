@@ -72,14 +72,7 @@ int main(int argc, char ** argv) {
     		// Si el pthread_create falla, handlea el error en el logger del kernel y free para evitar memory leak.
     	    free(argumentos);
     		log_info(logger_kernel, "No se pudo atender al cliente por error de Kernel.");
-    	} else {
-    		//pthread_join(handler, NULL);
-    		printf("Holis");
-    		//pcb* pcb = inicializar_pcb(instrucciones, (unsigned int) 8, estimacionInicial);
-    		//printf("EN KERNEL PAPU \n");
-    		//printf("ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n",pcb->id, pcb->tam_proceso, list_size(pcb->instrucciones), pcb->pc, pcb->rafaga);
     	}
-
     }
   }
   terminar_programa(conexion_consola, conexion_dispatch, conexion_interrupt, logger_kernel, kernel_config);
