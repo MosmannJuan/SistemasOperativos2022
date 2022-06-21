@@ -39,6 +39,7 @@ typedef struct Instruccion {
 // ----------------- DECLARACION DE FUNCIONES  ------------------
 //---------------------------------------------------------------
 
+void enviar_tam_proceso(unsigned int tam, int conexion);
 void enviar_instruccion(Instruccion instruccion, int conexion);
 int conexion_a_kernel(char * ip, char * puerto);
 void liberar_conexion(int socket_cliente);

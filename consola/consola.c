@@ -15,6 +15,9 @@ int main(int argc, char ** argv) {
   //inicializar conexion con kernel.
   int conexion = conexion_a_kernel(ip, puerto_kernel);
 
+  //Enviar tamaño de proceso.
+  enviar_tam_proceso(8, conexion);
+
   //Parser de instrucciones
   path_archivo_instrucciones = argv[1];
 

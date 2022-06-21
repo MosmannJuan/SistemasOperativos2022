@@ -20,7 +20,10 @@ int conexion_a_kernel(char * ip, char * puerto) {
   return cliente;
 }
 
-
+void enviar_tam_proceso(unsigned int tam, int conexion) {
+  unsigned int tam_proceso = tam;
+  send(conexion, &tam_proceso, sizeof(unsigned int), 0);
+}
 
 void enviar_instruccion(Instruccion instruccion, int conexion) {
   send(conexion, & instruccion.tipo, sizeof(int), 0);
