@@ -174,3 +174,27 @@
 [INFO] 01:22:28:742 cpu_info_logger/(8075:8075): Encontré en tlb la página: 2 con el marco: 2
 [INFO] 01:22:28:787 cpu_info_logger/(8075:8075): El valor leído es: 4921
 [INFO] 01:22:31:799 cpu_info_logger/(8075:8075): Recibí de kernel el mensaje: 4
+[INFO] 20:27:06:182 cpu_info_logger/(4090:4090): Recibí de memoria el tamaño de pagina: 64 y la cantidad de entradas por tabla: 4 
+[INFO] 20:27:23:034 cpu_info_logger/(4090:4090): Recibí de kernel el mensaje: 4
+[INFO] 20:27:28:045 cpu_info_logger/(4090:4090): No encontré en tlb la página: 0.000000
+[INFO] 20:27:30:083 cpu_info_logger/(4090:4090): Agrego página:  0 y marco 0 a tlb
+[INFO] 20:27:30:083 cpu_info_logger/(4090:4090): La tlb antes de asignar tiene 0 registros
+[INFO] 20:27:30:083 cpu_info_logger/(4090:4090): La tlb después de asignar tiene 1 registros
+[INFO] 20:27:30:126 cpu_info_logger/(4090:4090): No encontré en tlb la página: 1.000000
+[INFO] 20:27:32:167 cpu_info_logger/(4090:4090): Agrego página:  1 y marco 1 a tlb
+[INFO] 20:27:32:167 cpu_info_logger/(4090:4090): La tlb antes de asignar tiene 1 registros
+[INFO] 20:27:32:167 cpu_info_logger/(4090:4090): La tlb después de asignar tiene 2 registros
+[INFO] 20:27:32:205 cpu_info_logger/(4090:4090): Encontré en tlb la página: 0 con el marco: 0
+[INFO] 20:27:32:245 cpu_info_logger/(4090:4090): El valor leído es: 22
+[INFO] 20:27:32:286 cpu_info_logger/(4090:4090): Encontré en tlb la página: 1 con el marco: 1
+[INFO] 20:27:32:326 cpu_info_logger/(4090:4090): El valor leído es: 4921
+[INFO] 20:27:32:366 cpu_info_logger/(4090:4090): Encontré en tlb la página: 0 con el marco: 0
+[INFO] 20:27:32:406 cpu_info_logger/(4090:4090): El valor leído es: 22
+[INFO] 20:27:32:446 cpu_info_logger/(4090:4090): Encontré en tlb la página: 1 con el marco: 1
+[INFO] 20:27:32:526 cpu_info_logger/(4090:4090): No encontré en tlb la página: 2.000000
+[INFO] 20:27:34:567 cpu_info_logger/(4090:4090): Agrego página:  2 y marco 2 a tlb
+[INFO] 20:27:34:568 cpu_info_logger/(4090:4090): La tlb antes de asignar tiene 2 registros
+[INFO] 20:27:34:568 cpu_info_logger/(4090:4090): La tlb después de asignar tiene 3 registros
+[INFO] 20:27:34:606 cpu_info_logger/(4090:4090): Encontré en tlb la página: 2 con el marco: 2
+[INFO] 20:27:34:646 cpu_info_logger/(4090:4090): El valor leído es: 4921
+[INFO] 20:27:37:655 cpu_info_logger/(4090:4090): Recibí de kernel el mensaje: 4

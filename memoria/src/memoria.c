@@ -559,7 +559,7 @@ void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int 
 	if(strcmp(algoritmo_reemplazo, "CLOCK")){
 		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
 	} else {
-		//TODO: reemplazar_pagina_clock_modificado(pagina_a_reemplazar, pid);
+		reemplazar_pagina_clock_modificado(pagina_a_reemplazar, pid);
 	}
 
 }
@@ -579,32 +579,91 @@ void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigne
 		entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
 	}
 
-	//Leo de swap y de memoria los contenidos de las paginas
-	void* pagina_swap = buscar_pagina_en_swap(pagina_a_reemplazar->numero_pagina, pid);
-	void* pagina_reemplazada = leer_marco_completo(entrada->marco);
-
-	//Asigno el marco a la pagina a reemplazar y cambio bits de presencia
-	pagina_a_reemplazar->marco = entrada->marco;
-	pagina_a_reemplazar->presencia = true;
-	entrada->presencia = false;
-
-	//Agrego la pagina reemplazada a la lista de marcos en presencia y remuevo la entrada anterior
-	list_remove(listado_memoria_actual_por_proceso, cursor);
-	list_add_sorted(listado_memoria_actual_por_proceso, pagina_a_reemplazar, ordenar_por_numero_marco);
-
-	//Escribo en memoria la pagina traída de swap
-	escribir_marco_en_memoria(pagina_a_reemplazar->marco, pagina_swap);
-
-	//Escribo en swap el contenido de la pagina reemplazada
-	escribir_pagina_en_swap(entrada->numero_pagina, pagina_reemplazada, pid);
-
-	//Vuelvo a mover el cursor
-	mover_cursor();
+	reemplazar_paginas(entrada, pagina_a_reemplazar, pid);
 }
+
+void reemplazar_pagina_clock_modificado(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+	//Busco la pagina a la que apunta el cursor
+	entrada_segundo_nivel* entrada = clock_modificado_primer_paso();
+	//Si no encontré la página ejecuto el segundo paso (Busco alguna con uso en 0 y modificado en 1)
+	if(entrada == NULL) entrada = clock_modificado_segundo_paso();
+
+	reemplazar_paginas(entrada, pagina_a_reemplazar, pid);
+}
+
+entrada_segundo_nivel* clock_modificado_primer_paso(){
+	entrada_segundo_nivel* entrada;
+	//Busco si algun elemento de la lista tiene bit de uso y modificado en 0
+		for(int i = 0; i < list_size(listado_memoria_actual_por_proceso); i++){
+			entrada  = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
+			if(!entrada->uso && !entrada->modificado){
+				//Si la encuentro retorno la página encontrada
+				return entrada;
+			}
+			//Desplazo el cursor
+			mover_cursor();
+		}
+		//Si no la encontré en toda la vuelta retorno Null
+		return NULL;
+}
+
+entrada_segundo_nivel* clock_modificado_segundo_paso(){
+	//Busco la página que tenga bit de uso en 0 y modificado en 1
+	entrada_segundo_nivel* entrada = buscar_pagina_modif_sin_uso();
+	//Si no encontré, verifico si alguna quedó con uso y modificado en 0
+	if(entrada == NULL) entrada = clock_modificado_primer_paso();
+	//Si sigo sin encontrarla vuelvo a buscar alguna con uso en 1 y modificado en 1
+	if(entrada == NULL) entrada = buscar_pagina_modif_sin_uso();
+
+	return entrada;
+}
+
+entrada_segundo_nivel* buscar_pagina_modif_sin_uso(){
+	entrada_segundo_nivel* entrada;
+	//Busco una página que tenga bit de uso en 0 y modificado en 1
+	for(int i = 0; i < list_size(listado_memoria_actual_por_proceso); i++){
+		entrada  = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
+		if(!entrada->uso && entrada->modificado){
+			//Si la encuentro retorno la página encontrada
+			return entrada;
+		}
+		//Si no la encuentro cambio el bit de uso y desplazo el cursor
+		entrada->uso = false;
+		mover_cursor();
+	}
+	//Si no la encontré en toda la vuelta retorno Null
+	return NULL;
+}
+
 
 void mover_cursor(){
 	//Muevo el cursor
 	cursor++;
 	//Si me pase del tamaño maximo de la lista, vuelvo el cursor al inicio
 	if(cursor == marcos_por_proceso) cursor = 0;
+}
+
+void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_nivel* pagina_a_memoria, unsigned int pid){
+	//Leo de swap y de memoria los contenidos de las paginas
+	void* pagina_swap = buscar_pagina_en_swap(pagina_a_memoria->numero_pagina, pid);
+	void* pagina_reemplazada = leer_marco_completo(pagina_a_swap->marco);
+
+	//Asigno el marco a la pagina a reemplazar y cambio bits de presencia
+	pagina_a_memoria->marco = pagina_a_swap->marco;
+	pagina_a_memoria->presencia = true;
+	pagina_a_swap->presencia = false;
+
+	//Agrego la pagina reemplazada a la lista de marcos en presencia y remuevo la entrada anterior
+	list_remove(listado_memoria_actual_por_proceso, cursor);
+	list_add_sorted(listado_memoria_actual_por_proceso, pagina_a_memoria, ordenar_por_numero_marco);
+
+	//Escribo en memoria la pagina traída de swap
+	escribir_marco_en_memoria(pagina_a_memoria->marco, pagina_swap);
+
+	//Escribo en swap el contenido de la pagina reemplazada si está modificada
+	if(pagina_a_swap->modificado)
+	escribir_pagina_en_swap(pagina_a_swap->numero_pagina, pagina_reemplazada, pid);
+
+	//Vuelvo a mover el cursor
+	mover_cursor();
 }
