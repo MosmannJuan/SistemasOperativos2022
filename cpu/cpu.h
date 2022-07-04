@@ -55,6 +55,7 @@ int conexion_interrupt;
 int	entradas_tlb ;
 int	retardo_NOOP;
 int pagina_comparacion_tlb;
+unsigned int pid_en_ejecucion;
 bool detener_ejecucion;
 bool contador_rafaga_inicializado;
 bool hay_interrupciones;

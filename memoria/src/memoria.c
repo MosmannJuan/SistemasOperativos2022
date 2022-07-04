@@ -75,7 +75,30 @@ int main(void) {
 						recv(conexion_cpu, &entrada_2do_nivel, sizeof(double), 0);
 						log_info(logger_memoria, "Recibí el entrada_2do_nivel: %f", entrada_2do_nivel);
 						t_list * tabla_2do_nivel = (t_list *)list_get(tablas_segundo_nivel, nro_tabla_segundo_nivel);
-						uint32_t numero_marco = ((entrada_segundo_nivel*)list_get(tabla_2do_nivel, (int)entrada_2do_nivel))->marco;
+
+						entrada_segundo_nivel* entrada_seg_nivel = (entrada_segundo_nivel*)list_get(tabla_2do_nivel, (int)entrada_2do_nivel);
+
+						if(!entrada_seg_nivel->presencia){
+							unsigned int pid;
+							//TODO: Enviar mensaje a cpu avisando el page fault para pedirle el pid del proceso en running (Lo necesitamos para encontrar el archivo de swap)
+							int page_fault = -1;
+							send(conexion_cpu, &page_fault, sizeof(int), 0);
+							recv(conexion_cpu, &pid, sizeof(unsigned int), 0);
+							if(list_size(listado_memoria_actual_por_proceso) < marcos_por_proceso){
+								log_info(logger_memoria, "Voy a cargar una pagina nueva!");
+								uint32_t marco_libre = *(uint32_t*) list_remove(marcos_disponibles, 0);
+								entrada_seg_nivel->marco = marco_libre;
+								entrada_seg_nivel->presencia = true;
+								entrada_seg_nivel->uso = true;
+								log_info(logger_memoria, "Y en el marco %d", entrada_seg_nivel->marco);
+								void* pagina_swap = buscar_pagina_en_swap(entrada_seg_nivel->numero_pagina, pid);
+								escribir_marco_en_memoria(marco_libre, pagina_swap);
+								list_add_sorted(listado_memoria_actual_por_proceso, entrada_seg_nivel, ordenar_por_numero_marco);
+							} else {
+								reemplazar_pagina(entrada_seg_nivel, pid);
+							}
+						}
+						uint32_t numero_marco = entrada_seg_nivel->marco;
 						send(conexion_cpu, &numero_marco, sizeof(uint32_t), 0);
 						break;
 					default:
@@ -108,6 +131,7 @@ void abrirArchivoConfiguracion(){
 void inicializar_listas_procesos(){
 	tablas_primer_nivel = list_create();
 	tablas_segundo_nivel = list_create();
+	listado_memoria_actual_por_proceso = list_create();
 }
 
 void inicializar_marcos_disponibles(){
@@ -139,32 +163,20 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 	int cantidad_tablas_segundo_nivel = calcular_cantidad_tablas_necesarias(tamanio_proceso);
 	log_info(logger_memoria, "Se necesitan %d tablas de segundo nivel", cantidad_tablas_segundo_nivel);
 
-	int marcos_asignados = 0;
-
+	int pagina = 0;
 	for (int i = 1; i <= cantidad_tablas_segundo_nivel; i++){
 		//Creo tabla de segundo nivel
 		t_list* tabla_segundo_nivel =  list_create();
 		for(int j = 0; j < entradas_por_tabla; j++){
 			//inicializo tabla de segundo nivel
-			entrada_segundo_nivel* argumentos_tabla_segundo_nivel = malloc(sizeof(entrada_segundo_nivel)) ;
-			//Si tengo marcos disponibles y no supere el limite de marcos por proceso
-			if(marcos_asignados < marcos_por_proceso && list_size(marcos_disponibles) > 0) {
-				//Asigno marcos posibles.
-				uint32_t* marco_a_asignar = list_remove(marcos_disponibles, 0);
-				argumentos_tabla_segundo_nivel->marco = *marco_a_asignar;
-				free(marco_a_asignar);
-				marcos_asignados++;
-				//inicializo bits de tabla con marco asignado
-				argumentos_tabla_segundo_nivel->presencia = true;
-				argumentos_tabla_segundo_nivel->uso = true;
-				argumentos_tabla_segundo_nivel->modificado=false;
-			} else {
-				//inicializo bits de tabla sin marco asignado
-				argumentos_tabla_segundo_nivel->presencia = false;
-				argumentos_tabla_segundo_nivel->uso = false;
-				argumentos_tabla_segundo_nivel->modificado=false;
-			}
+			entrada_segundo_nivel* argumentos_tabla_segundo_nivel = malloc(sizeof(entrada_segundo_nivel));
+			//inicializo bits de tabla sin marco asignado
+			argumentos_tabla_segundo_nivel->presencia = false;
+			argumentos_tabla_segundo_nivel->uso = false;
+			argumentos_tabla_segundo_nivel->modificado = false;
+			argumentos_tabla_segundo_nivel->numero_pagina = pagina;
 			list_add(tabla_segundo_nivel, argumentos_tabla_segundo_nivel);
+			pagina++;
 		}
 
 		//La agrego a la lista de tablas de segundo nivel
@@ -318,7 +330,7 @@ unsigned int ejecutar_lectura(datos_direccion direccion){
 int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
 	//Copio el valor recibido en la posición correspondiente de memoria física
 	memcpy(base_memoria + (int) direccion.direccion_fisica, &valor_escritura, sizeof(unsigned int));
-
+	log_info(logger_memoria, "Escribo en la direccion %d, el valor %d", (int) direccion.direccion_fisica, valor_escritura);
 	//Actualizo los bits de uso y modificado de la página accedida
 	t_list* tabla_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, direccion.tabla_segundo_nivel);
 	entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel, direccion.entrada_tabla_segundo_nivel);
@@ -370,10 +382,11 @@ void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
 				void* contenido_de_marco_leido = leer_marco_completo(pagina->marco);
 
 				//Abro el archivo y escribo los datos
-				FILE * archivo = fopen(path_archivo_swap, "a");
-				//Escribo la tabla y entrada de segundo nivel correspondiente
-				fwrite(&nro_tabla_segundo_nivel, sizeof(unsigned int), 1, archivo);
-				fwrite(&j, sizeof(int), 1, archivo);
+				FILE * archivo = fopen(path_archivo_swap, "r+");
+
+				//Reubico el puntero del file en la posicion correspondiente a la página
+				fseek(archivo, pagina->numero_pagina * tam_pagina, SEEK_SET);
+
 				//Escribo el contenido del marco
 				fwrite(contenido_de_marco_leido, tam_pagina, 1, archivo);
 				fclose(archivo);
@@ -407,6 +420,46 @@ void* leer_marco_completo(uint32_t numero_marco){
 	memcpy(marco_leido, base_memoria + (int) (numero_marco * tam_pagina), tam_pagina);
 
 	return marco_leido;
+}
+
+void* buscar_pagina_en_swap(int numero_pagina, unsigned int pid){
+	//Aplicamos el retardo de swap solicitado
+	sleep(retardo_swap/1000);
+
+	char* nombre_archivo_swap = obtener_nombre_archivo_swap(pid);
+	log_info(logger_memoria, "Estoy abriendo el archivo %s", nombre_archivo_swap);
+	FILE* archivo_swap = fopen(nombre_archivo_swap, "r+");
+	fseek(archivo_swap, numero_pagina * tam_pagina, SEEK_SET);
+
+	void* pagina_leida = malloc(tam_pagina);
+
+	fread(pagina_leida, tam_pagina, 1, archivo_swap);
+
+	fclose(archivo_swap);
+	log_info(logger_memoria, "Leí bien el archivo");
+	return pagina_leida;
+}
+
+void escribir_marco_en_memoria(uint32_t numero_marco, void* pagina_a_escribir){
+	log_info(logger_memoria, "Antes de copiar el marco");
+	memcpy(base_memoria + (int) (numero_marco * tam_pagina), pagina_a_escribir, tam_pagina);
+	log_info(logger_memoria, "Después de copiar el marco");
+	free(pagina_a_escribir);
+	log_info(logger_memoria, "Después de Free");
+}
+
+void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_reemplazada, unsigned int pid){
+	//Aplicamos el retardo de swap solicitado
+	sleep(retardo_swap/1000);
+
+	char* nombre_archivo_swap = obtener_nombre_archivo_swap(pid);
+
+	FILE* archivo_swap = fopen(nombre_archivo_swap, "r+");
+	fseek(archivo_swap, numero_pagina * tam_pagina, SEEK_SET);
+
+	fwrite(contenido_pagina_reemplazada, tam_pagina, 1, archivo_swap);
+
+	fclose(archivo_swap);
 }
 
 //---------------------------------------------------------------
@@ -459,3 +512,99 @@ void liberar_entrada_segundo_nivel(void* entrada){
 	free(entrada_a_eliminar);
 }
 
+
+//---------------------------------------------------------------
+// ----------------- ALGORITMOS DE REEMPLAZO --------------------
+//---------------------------------------------------------------
+void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel){
+	//Cargo tabla de primer nivel
+	t_list* tabla_de_primer_nivel = (t_list*)list_get(tablas_primer_nivel, tabla_primer_nivel);
+
+	//Iteramos la tabla de primer nivel para buscar paginas en uso en las tablas de segundo nivel
+	list_iterate(tabla_de_primer_nivel, buscar_paginas_en_tabla_segundo_nivel);
+
+	//TODO: Ver que hacer en caso de que un proceso ya haya estado en memoria y su cursor no deba estar en 0
+	//Seteo el cursor en 0
+	cursor = 0;
+}
+
+void buscar_paginas_en_tabla_segundo_nivel(void* entrada_1er_nivel){
+	//Casteo el void* a una entrada de primer nivel
+	entrada_primer_nivel* entrada = (entrada_primer_nivel*) entrada_1er_nivel;
+
+	//Busco la tabla de segundo nivel asociada
+	t_list* tabla_de_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, entrada->id_segundo_nivel);
+
+	//Itero la tabla de segundo nivel para cargar en la estructura las páginas con el bit de presencia en 1
+	list_iterate(tabla_de_segundo_nivel, cargar_paginas_presentes);
+}
+
+void cargar_paginas_presentes(void* entrada_2do_nivel){
+	//Casteo el void* a una entrada de segundo nivel
+	entrada_segundo_nivel* entrada = (entrada_segundo_nivel*) entrada_2do_nivel;
+
+	//Si la entrada está en presencia la cargo
+	if(entrada->presencia)
+		list_add_sorted(listado_memoria_actual_por_proceso, entrada, ordenar_por_numero_marco);
+}
+
+bool ordenar_por_numero_marco(void * unaEntrada, void * otraEntrada){
+  entrada_segundo_nivel* entradaUno = (entrada_segundo_nivel*) unaEntrada;
+  entrada_segundo_nivel* entradaDos = (entrada_segundo_nivel*) otraEntrada;
+
+  return entradaUno -> marco < entradaDos -> marco;
+}
+
+void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+	if(strcmp(algoritmo_reemplazo, "CLOCK")){
+		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
+	} else {
+		//TODO: reemplazar_pagina_clock_modificado(pagina_a_reemplazar, pid);
+	}
+
+}
+
+void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+	//Busco la pagina a la que apunta el cursor
+	entrada_segundo_nivel* entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
+
+	//Ciclo buscando la pagina que tenga uso en 0
+	while(entrada->uso){
+		//Modifico el bit de uso a 0
+		entrada->uso = false;
+
+		mover_cursor();
+
+		//Busco la siguiente pagina
+		entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
+	}
+
+	//Leo de swap y de memoria los contenidos de las paginas
+	void* pagina_swap = buscar_pagina_en_swap(pagina_a_reemplazar->numero_pagina, pid);
+	void* pagina_reemplazada = leer_marco_completo(entrada->marco);
+
+	//Asigno el marco a la pagina a reemplazar y cambio bits de presencia
+	pagina_a_reemplazar->marco = entrada->marco;
+	pagina_a_reemplazar->presencia = true;
+	entrada->presencia = false;
+
+	//Agrego la pagina reemplazada a la lista de marcos en presencia y remuevo la entrada anterior
+	list_remove(listado_memoria_actual_por_proceso, cursor);
+	list_add_sorted(listado_memoria_actual_por_proceso, pagina_a_reemplazar, ordenar_por_numero_marco);
+
+	//Escribo en memoria la pagina traída de swap
+	escribir_marco_en_memoria(pagina_a_reemplazar->marco, pagina_swap);
+
+	//Escribo en swap el contenido de la pagina reemplazada
+	escribir_pagina_en_swap(entrada->numero_pagina, pagina_reemplazada, pid);
+
+	//Vuelvo a mover el cursor
+	mover_cursor();
+}
+
+void mover_cursor(){
+	//Muevo el cursor
+	cursor++;
+	//Si me pase del tamaño maximo de la lista, vuelvo el cursor al inicio
+	if(cursor == marcos_por_proceso) cursor = 0;
+}
