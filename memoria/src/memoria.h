@@ -28,6 +28,7 @@ t_config* memoria_config;
 //---------------------------------------------------------------
 
 unsigned int cursor;
+unsigned int pid_comparacion;
 int conexion_kernel;
 int conexion_cpu;
 int conexion;
@@ -44,16 +45,23 @@ char* puerto_escucha;
 void* base_memoria;
 t_list* tablas_primer_nivel;
 t_list* tablas_segundo_nivel;
-t_list*  marcos_disponibles;
+t_list* marcos_disponibles;
 t_list* listado_memoria_actual_por_proceso;
+t_list* relaciones_proceso_cursor;
 t_log* logger_memoria;
 pthread_t *hilo_kernel_handler;
 sem_t semaforo_entrada_salida;
+sem_t semaforo_pid_comparacion;
 
 typedef struct
 {
 	unsigned int id_segundo_nivel;
 } entrada_primer_nivel;
+
+typedef struct {
+	unsigned int posicion_cursor;
+	unsigned int pid_asociado;
+} cursor_por_proceso;
 
 typedef struct
 {
@@ -115,15 +123,21 @@ void destruir_estructuras(unsigned int pid, int nro_tabla_paginas);
 void* buscar_pagina_en_swap(int numero_pagina, unsigned int pid);
 void escribir_marco_en_memoria(uint32_t numero_marco, void* pagina_a_escribir);
 void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_reemplazada, unsigned int pid);
-void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel);
+void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel, unsigned int pid);
 void buscar_paginas_en_tabla_segundo_nivel(void* entrada_1er_nivel);
 void cargar_paginas_presentes(void* entrada_2do_nivel);
 bool ordenar_por_numero_marco(void * unaEntrada, void * otraEntrada);
-void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid);
+void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid, int nro_tabla_primer_nivel);
 void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid);
 entrada_segundo_nivel* clock_modificado_primer_paso();
 entrada_segundo_nivel* clock_modificado_segundo_paso();
 entrada_segundo_nivel* buscar_pagina_modif_sin_uso();
 void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_nivel* pagina_a_memoria, unsigned int pid);
 void reemplazar_pagina_clock_modificado(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid);
+void crear_cursor_por_proceso(unsigned int pid);
 void mover_cursor();
+void setear_cursor_del_proceso(unsigned int pid);
+void guardar_cursor_del_proceso(unsigned int pid);
+void eliminar_cursor_del_proceso(unsigned int pid);
+bool es_cursor_del_proceso_actual(void* rel_proceso_cursor);
+void cursor_por_proceso_destroy(void* rel_proceso_cursor);

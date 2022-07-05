@@ -56,6 +56,7 @@ int	entradas_tlb ;
 int	retardo_NOOP;
 int pagina_comparacion_tlb;
 unsigned int pid_en_ejecucion;
+int nro_tabla_primer_nivel;
 bool detener_ejecucion;
 bool contador_rafaga_inicializado;
 bool hay_interrupciones;

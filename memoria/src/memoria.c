@@ -9,6 +9,8 @@ int main(void) {
 
 	//Inicializo semáforo de e/s
 	sem_init(&semaforo_entrada_salida, 0, 1);
+	//Inicializo semaforo de comparacion pid para el cursor
+	sem_init(&semaforo_pid_comparacion, 0, 1);
 	//Carga de memoria principal
 	base_memoria = malloc(tam_memoria);
 	//Incializacion de listas de tablas
@@ -80,10 +82,12 @@ int main(void) {
 
 						if(!entrada_seg_nivel->presencia){
 							unsigned int pid;
+							int nro_tabla_1er_nivel;
 							//TODO: Enviar mensaje a cpu avisando el page fault para pedirle el pid del proceso en running (Lo necesitamos para encontrar el archivo de swap)
 							int page_fault = -1;
 							send(conexion_cpu, &page_fault, sizeof(int), 0);
 							recv(conexion_cpu, &pid, sizeof(unsigned int), 0);
+							recv(conexion_cpu, &nro_tabla_1er_nivel, sizeof(int), 0);
 							if(list_size(listado_memoria_actual_por_proceso) < marcos_por_proceso){
 								log_info(logger_memoria, "Voy a cargar una pagina nueva!");
 								uint32_t marco_libre = *(uint32_t*) list_remove(marcos_disponibles, 0);
@@ -95,7 +99,7 @@ int main(void) {
 								escribir_marco_en_memoria(marco_libre, pagina_swap);
 								list_add_sorted(listado_memoria_actual_por_proceso, entrada_seg_nivel, ordenar_por_numero_marco);
 							} else {
-								reemplazar_pagina(entrada_seg_nivel, pid);
+								reemplazar_pagina(entrada_seg_nivel, pid, nro_tabla_1er_nivel);
 							}
 						}
 						uint32_t numero_marco = entrada_seg_nivel->marco;
@@ -132,6 +136,7 @@ void inicializar_listas_procesos(){
 	tablas_primer_nivel = list_create();
 	tablas_segundo_nivel = list_create();
 	listado_memoria_actual_por_proceso = list_create();
+	relaciones_proceso_cursor = list_create();
 }
 
 void inicializar_marcos_disponibles(){
@@ -189,9 +194,18 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 		list_add(tabla_primer_nivel, entrada);
 	}
 
+	crear_cursor_por_proceso(pid);
 	crear_archivo_swap(tamanio_proceso, pid);
 
 	return tabla_paginas_asignada;
+}
+
+void crear_cursor_por_proceso(unsigned int pid){
+	cursor_por_proceso* rel_proceso_cursor = malloc(sizeof(cursor_por_proceso));
+	rel_proceso_cursor->posicion_cursor = 0;
+	rel_proceso_cursor->pid_asociado = pid;
+
+	list_add(relaciones_proceso_cursor, rel_proceso_cursor);
 }
 
 // ------------------ INICIALIZACION DE SWAP ------------------
@@ -475,6 +489,9 @@ void destruir_estructuras(unsigned int pid, int nro_tabla_paginas){
 	//Destruyo la tabla con sus entradas
 	list_destroy_and_destroy_elements(tabla_primer_nivel, liberar_entrada_primer_nivel);
 
+	//Destruyo la relación de cursor y proceso
+	eliminar_cursor_del_proceso(pid);
+
 	//Borro el archivo de swap del proceso
 	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
 	if(remove(path_archivo_swap) == 0) log_info(logger_memoria, "Se eliminó correctamente el archivo %s", path_archivo_swap);
@@ -516,16 +533,15 @@ void liberar_entrada_segundo_nivel(void* entrada){
 //---------------------------------------------------------------
 // ----------------- ALGORITMOS DE REEMPLAZO --------------------
 //---------------------------------------------------------------
-void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel){
+void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel, unsigned int pid){
 	//Cargo tabla de primer nivel
 	t_list* tabla_de_primer_nivel = (t_list*)list_get(tablas_primer_nivel, tabla_primer_nivel);
 
 	//Iteramos la tabla de primer nivel para buscar paginas en uso en las tablas de segundo nivel
 	list_iterate(tabla_de_primer_nivel, buscar_paginas_en_tabla_segundo_nivel);
 
-	//TODO: Ver que hacer en caso de que un proceso ya haya estado en memoria y su cursor no deba estar en 0
-	//Seteo el cursor en 0
-	cursor = 0;
+	//Seteo el cursor en el valor que corresponda
+	setear_cursor_del_proceso(pid);
 }
 
 void buscar_paginas_en_tabla_segundo_nivel(void* entrada_1er_nivel){
@@ -555,7 +571,10 @@ bool ordenar_por_numero_marco(void * unaEntrada, void * otraEntrada){
   return entradaUno -> marco < entradaDos -> marco;
 }
 
-void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid, int nro_tabla_primer_nivel){
+	//Cargo las páginas que ya se encuentran en memoria
+	inicializar_listado_memoria_actual_proceso(nro_tabla_primer_nivel, pid);
+	//Ejecuto el algoritmo correspondiente
 	if(strcmp(algoritmo_reemplazo, "CLOCK")){
 		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
 	} else {
@@ -635,14 +654,6 @@ entrada_segundo_nivel* buscar_pagina_modif_sin_uso(){
 	return NULL;
 }
 
-
-void mover_cursor(){
-	//Muevo el cursor
-	cursor++;
-	//Si me pase del tamaño maximo de la lista, vuelvo el cursor al inicio
-	if(cursor == marcos_por_proceso) cursor = 0;
-}
-
 void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_nivel* pagina_a_memoria, unsigned int pid){
 	//Leo de swap y de memoria los contenidos de las paginas
 	void* pagina_swap = buscar_pagina_en_swap(pagina_a_memoria->numero_pagina, pid);
@@ -666,4 +677,50 @@ void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_ni
 
 	//Vuelvo a mover el cursor
 	mover_cursor();
+}
+
+//---------------------------------------------------------------
+//-------------------------- CURSOR -----------------------------
+//---------------------------------------------------------------
+
+void mover_cursor(){
+	//Muevo el cursor
+	cursor++;
+	//Si me pase del tamaño maximo de la lista, vuelvo el cursor al inicio
+	if(cursor == marcos_por_proceso) cursor = 0;
+}
+
+void setear_cursor_del_proceso(unsigned int pid){
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pid;
+	cursor_por_proceso* relacion = list_find(relaciones_proceso_cursor, es_cursor_del_proceso_actual);
+	sem_post(&semaforo_pid_comparacion);
+
+	cursor = relacion->posicion_cursor;
+}
+
+void guardar_cursor_del_proceso(unsigned int pid){
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pid;
+	cursor_por_proceso* relacion = list_find(relaciones_proceso_cursor, es_cursor_del_proceso_actual);
+	sem_post(&semaforo_pid_comparacion);
+
+	relacion->posicion_cursor = cursor;
+}
+
+void eliminar_cursor_del_proceso(unsigned int pid){
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pid;
+	list_remove_and_destroy_by_condition(relaciones_proceso_cursor, es_cursor_del_proceso_actual, cursor_por_proceso_destroy);
+	sem_post(&semaforo_pid_comparacion);
+}
+
+bool es_cursor_del_proceso_actual(void* rel_proceso_cursor){
+	cursor_por_proceso* relacion = (cursor_por_proceso*) rel_proceso_cursor;
+
+	return relacion->pid_asociado == pid_comparacion;
+}
+
+void cursor_por_proceso_destroy(void* rel_proceso_cursor){
+	free(rel_proceso_cursor);
 }

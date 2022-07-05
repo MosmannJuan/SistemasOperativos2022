@@ -52,6 +52,7 @@ int main(void) {
 				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
 				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
 				pid_en_ejecucion = pcb_a_ejecutar->id;
+				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
 				ciclo(pcb_a_ejecutar);
 				break;
 		}
@@ -225,9 +226,10 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 
 		int numero_marco;
 		recv(conexion_memoria, &numero_marco, sizeof(int), 0);
-		//Si lo que recibimos es -1 indica un PF, entonces enviamos el pid para buscar el archivo de swap
+		//Si lo que recibimos es -1 indica un PF, entonces enviamos el pid para buscar el archivo de swap y el numero de tabla de primer nivel para cargar las paginas con presencia
 		if(numero_marco == -1){
 			send(conexion_memoria, &pid_en_ejecucion, sizeof(unsigned int), 0);
+			send(conexion_memoria, &nro_tabla_primer_nivel, sizeof(int), 0);
 			recv(conexion_memoria, &numero_marco, sizeof(int), 0);
 		}
 		dir_fisica = (numero_marco * tamanio_pagina) + desplazamiento;
