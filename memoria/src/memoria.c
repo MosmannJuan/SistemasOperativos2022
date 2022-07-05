@@ -677,6 +677,9 @@ void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_ni
 
 	//Vuelvo a mover el cursor
 	mover_cursor();
+
+	//Guardo la última posición del cursor en la lista de las relaciones
+	guardar_cursor_del_proceso(pid);
 }
 
 //---------------------------------------------------------------
