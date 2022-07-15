@@ -59,6 +59,8 @@ void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proces
 	void* retorno_hilo;
 	pthread_join(largo_plazo_thread, &retorno_hilo);
 
+//	void * retorno_hilo = hilo_pcb_new(args_largo_plazo);
+
 	relacion_consola_proceso* rel_consola_proceso = malloc(sizeof(relacion_consola_proceso));
 
 	rel_consola_proceso->pid = *((unsigned int*) retorno_hilo);
@@ -68,8 +70,7 @@ void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proces
 	printf("El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
 
 	list_add(lista_relacion_consola_proceso, rel_consola_proceso);
-
-	printf("Terminó el largo plazo! \n");
+	sem_post(&sem_sincro_new_ready);
 }
 
 

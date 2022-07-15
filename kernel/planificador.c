@@ -62,8 +62,11 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
 // PROCESO DE FINALIZACION DE PROCESO
 
 void pcb_destroy(pcb * pcb_destruir) {
+	printf("Destruyendo pcb \n");
   list_destroy(pcb_destruir -> instrucciones);
+  printf("Lista destruida \n");
   free(pcb_destruir);
+  printf("pcb liberado \n");
 }
 
 void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
@@ -87,7 +90,6 @@ void * hilo_pcb_new(void * args_p) {
   sem_post(&semaforo_lista_new_add);
 
   printf("El tamaño de la lista de new después de asignar es: %d \n", list_size(new));
-  sleep(5);
 
   unsigned int* puntero_pid = malloc(sizeof(unsigned int));
   *puntero_pid = pcb_nuevo->id;
@@ -97,17 +99,16 @@ void * hilo_pcb_new(void * args_p) {
 
 void * hilo_new_ready(void * argumentos){
 	while (1){
+		sem_wait(&sem_sincro_new_ready);
 		  if(grado_multiprogramacion < limite_grado_multiprogramacion && list_size(ready_suspendido) == 0 && list_size(new)>0){
 
 			  sem_wait(&semaforo_lista_new_remove);
 			  pcb* pcb_new = (pcb*) list_get(new, 0);
 			  sem_post(&semaforo_lista_new_remove);
-			  //TODO Enviar mensaje a memoria
 			  accion_memoria accion_a_ejecutar = INICIALIZAR_ESTRUCTURAS;
 			  send(conexion_memoria, &accion_a_ejecutar, sizeof(int), 0);
 			  send(conexion_memoria, &pcb_new->id, sizeof(unsigned int), 0);
 			  send(conexion_memoria, &pcb_new->tam_proceso, sizeof(unsigned int), 0);
-			  //TODO Asignar tabla de páginas a pcb
 			  recv(conexion_memoria, &pcb_new->tabla_paginas, sizeof(int), 0);
 			  printf("Recibí la tabla de páginas: %d \n", pcb_new->tabla_paginas);
 			  //Eliminar pcb de new y mover a ready
@@ -120,10 +121,14 @@ void * hilo_new_ready(void * argumentos){
 			  printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
 
 			  sem_wait( & semaforo_lista_ready_add);
-			  if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0) {
+			  if (strcmp(algoritmo_planificacion, "SRT") == 0) {
+				  printf("Agrego pcb de new a ready SJF");
 				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
-				mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
-				send(dispatch, &evaluar_desalojo, sizeof(int), 0);
+				if(list_size(running)!= 0){
+					printf("Enviamos mensaje para evaluar desalojo por llegada de nuevo proceso a ready (Desde new)");
+					mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+					send(dispatch, &evaluar_desalojo, sizeof(int), 0);
+				}
 			  } else list_add(ready, pcb_ready);
 			  sem_post( & semaforo_lista_ready_add);
 
@@ -198,10 +203,11 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
 
       printf("El tamaño de la lista de new despues de eliminar es: %d \n", list_size(ready_suspendido));
       printf("El tamaño de la lista de ready antes de asignar es: %d \n", list_size(ready));
-      //TODO Enviar mensaje a Memoria para volver a asignar lugar
+
 
       sem_wait( & semaforo_lista_ready_add);
       if (strcmp(algoritmo_planificacion, "SRT") == 0) {
+    	  printf("Agregamos nuevo proceso a ready luego de suspender");
         list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
       } else {
         list_add(ready, pcb_ready);
@@ -209,6 +215,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       sem_post( & semaforo_lista_ready_add);
       //Envío mensaje a cpu para que el planificador evalúe el desalojo en caso de SRT
       if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0){
+    	  printf("Luego de agregar a ready saliendo de ready suspendido evaluo desalojo");
       	  mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
       	  send(dispatch, &evaluar_desalojo, sizeof(int), 0);
       }
@@ -305,7 +312,7 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		//Casteo los datos según lo necesario en el caso particular
     		printf("Pasar a bloqueado \n");
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
-			//TODO: Ver de hacer free a este pcb.
+
 			sem_wait(&sem_sincro_running);
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
 			printf("\npcb a destruir: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_destruir->id, pcb_destruir->tam_proceso, pcb_destruir->pc, pcb_destruir->rafaga, list_size(pcb_destruir->instrucciones));
@@ -327,9 +334,9 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
 }
 
 void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
-
   while (1) {
     if (list_size(ready) > 0 && list_size(running) == 0) {
+	printf("Pasando proceso a running SJF");
       //Sacamos de lista de ready
       printf("El tamaño de la lista de ready antes de eliminar es: %d \n", list_size(ready));
       pcb * pcb_running = list_remove(ready, 0);
@@ -340,6 +347,7 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
       //Enviamos a running
       printf("El tamaño de la lista de running antes de asignar es: %d \n", list_size(running));
       list_add(running, pcb_running);
+      sem_post(&sem_sincro_running);
       printf("El tamaño de la lista de running despues de asignar es: %d \n", list_size(running));
     }
   }
@@ -347,13 +355,22 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
 
 void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
   //unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
+	printf("Planificador corto plazo SJF \n");
     switch (mensaje_cpu->mensaje) {
 		case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
-			//TODO: Deberíamos hacer el free a este pcb?? Evaluar posible memory leak
-			pcb_destroy((pcb*)list_remove(running, 0));
+			printf("Rafaga real recibida: %f \n Rafaga estimada anterior: %f \n", datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
 			datos_bloqueo->pcb_a_bloquear->rafaga = calcular_estimacion_rafaga(datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
+			printf("Rafaga estimada asignada: %f \n", datos_bloqueo->pcb_a_bloquear->rafaga);
+			sem_wait(&sem_sincro_running);
+			printf("Sacamos pcb actual de running \n");
+			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
+			printf("\npcb a destruir: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_destruir->id, pcb_destruir->tam_proceso, pcb_destruir->pc, pcb_destruir->rafaga, list_size(pcb_destruir->instrucciones));
+			pcb_destroy(pcb_destruir);
+			printf("Tamaño lista bloqueado %d", list_size(bloqueado));
+			printf("Liberada la memoria del pcb en running");
+			printf("\npcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
 			list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
 			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
 			args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
@@ -368,7 +385,6 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			pcb_destroy((pcb*)list_remove(running, 0));
 			pcb* pcb_interrupcion = datos_interrupcion->pcb_a_interrumpir;
 			sem_wait( & semaforo_lista_ready_add);
-			//TODO: Acá deberíamos modificar la ráfaga por lo que le queda restante? O llega de cpu?
 			pcb_interrupcion->rafaga -= datos_interrupcion->rafaga_real_anterior;
 			list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);
 			sem_post( & semaforo_lista_ready_add);
@@ -396,8 +412,11 @@ bool ordenar_por_estimacion_rafaga(void * unPcb, void * otroPcb) {
   return pcbUno -> rafaga < pcbDos -> rafaga;
 }
 
-unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsigned int estimacion_anterior) {
-	return alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
+double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion_anterior) {
+	printf("Ráfagas para cálculo: real anterior: %f, estimada anterior: %f \n", rafaga_real_anterior, estimacion_anterior);
+	double rafaga_calculada = alfa * rafaga_real_anterior + (1 - alfa) * estimacion_anterior;
+	printf("Ráfaga estimada obtenida: %f", rafaga_calculada);
+	return rafaga_calculada;
 }
 
 void * hilo_bloqueo_proceso(void * argumentos) {
@@ -428,7 +447,10 @@ void * hilo_bloqueo_proceso(void * argumentos) {
     if(strcmp(algoritmo_planificacion, "SRT") == 0){
     	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
     	sem_post( & semaforo_lista_ready_add);
-    	if(list_size(running) != 0) evaluar_desalojo(args->tiempo_bloqueo);
+    	if(list_size(running) != 0){
+    		mensaje_cpu evaluar_desalojo = EVALUAR_DESALOJO;
+			send(dispatch, &evaluar_desalojo, sizeof(int), 0);
+    	}
     }
     else{
     	list_add(ready, pcb_actualizado);
@@ -446,7 +468,7 @@ void evaluar_desalojo(double rafaga_cpu_ejecutada){
 	sem_wait(&semaforo_lista_running_remove);
 	pcb* pcb_running = list_get(running, 0);
 	sem_post(&semaforo_lista_running_remove);
-	pcb_running->rafaga -= rafaga_cpu_ejecutada;
+	double tiempo_restante_proceso_running = pcb_running->rafaga - rafaga_cpu_ejecutada;
 
 	//Saco el pcb de mayor prioridad de la lista de ready
 	sem_wait(&semaforo_lista_ready_remove);
@@ -454,9 +476,8 @@ void evaluar_desalojo(double rafaga_cpu_ejecutada){
 	sem_post(&semaforo_lista_ready_remove);
 
 	//Comparo sus ráfagas
-	if(pcb_mayor_prioridad_ready->rafaga < pcb_running->rafaga){
+	if(pcb_mayor_prioridad_ready->rafaga < tiempo_restante_proceso_running){
 		//Se envía mensaje de interrumpir por socket interrupt
-		//TODO: Modificar en función de lo necesario para cpu
 		int mensaje_interrupt = 1;
 		send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 	}

@@ -29,7 +29,7 @@ int main(int argc, char ** argv) {
 
   estimacion_inicial = (unsigned int) config_get_int_value(kernel_config,"ESTIMACION_INICIAL");
   algoritmo_planificacion = strdup(config_get_string_value(kernel_config,"ALGORITMO_PLANIFICACION"));
-  alfa = config_get_int_value(kernel_config,"ALFA");
+  alfa = config_get_double_value(kernel_config,"ALFA");
   limite_grado_multiprogramacion = (unsigned int) config_get_int_value(kernel_config,"GRADO_MULTIPROGRAMACION");
   tiempo_maximo_bloqueado = config_get_int_value(kernel_config,"TIEMPO_MAXIMO_BLOQUEADO");
 
@@ -90,7 +90,8 @@ void inicializar_semaforos(){
     sem_init(&semaforo_lista_ready_suspendido_add, 0,1);
     sem_init(&semaforo_lista_running_remove, 0,1);
     sem_init(&semaforo_grado_multiprogramacion,0,1);
-    sem_init(&sem_sincro_running,0,0);
+    sem_init(&sem_sincro_new_ready, 0, 0);
+    sem_init(&sem_sincro_running, 0, 0);
 }
 
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
