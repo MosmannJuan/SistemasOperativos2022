@@ -10,12 +10,9 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	free(pointer_args);
 
 	//Recibe primero el tamaño del proceso.
-
 	unsigned int tam_proceso;
 	recv(cliente_fd, &tam_proceso, sizeof(unsigned int), MSG_WAITALL);
 
-	//sleep para testing de multiples conexiones.
-    sleep(5);
     printf("\n %s %d %s %d %s %lu %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "HILO:", pthread_self(), "\n");
   while (1) {
 	Instruccion* instruccionAux = malloc(sizeof(Instruccion));

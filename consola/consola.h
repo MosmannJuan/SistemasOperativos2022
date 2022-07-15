@@ -2,13 +2,10 @@
 #define CONSOLA_H_
 
 #include "parser.h"
+#include <commons/string.h>
 
 char * ip;
 char * puerto_kernel;
-char * path_archivo_instrucciones;
 t_config * consola_config;
-t_log* error_logger;
-t_log* info_logger;
-
 
 #endif /* CONSOLA_H_ */

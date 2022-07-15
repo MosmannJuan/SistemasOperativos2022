@@ -35,11 +35,12 @@ int iniciar_servidor(char * IP, char * PUERTO) {
 }
 
 int esperar_cliente(int socket_servidor) {
-  // Aceptamos un nuevo cliente
-  int socket_cliente = accept(socket_servidor, NULL, NULL);
-  log_info(logger, "Se conecto un cliente a memoria!");
+	log_info(logger, "Listo para recibir cliente");
+	// Aceptamos un nuevo cliente
+	int socket_cliente = accept(socket_servidor, NULL, NULL);
+	log_info(logger, "Se conecto un cliente a memoria!");
 
-  return socket_cliente;
+	return socket_cliente;
 }
 
 void terminar_programa(int conexion, t_log * logger, t_config * config) {

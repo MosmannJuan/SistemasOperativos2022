@@ -15,13 +15,18 @@ int main(int argc, char ** argv) {
   //inicializar conexion con kernel.
   int conexion = conexion_a_kernel(ip, puerto_kernel);
 
+  int tam_proceso = atoi(argv[2]);
+
+  log_info(info_logger, "Tamaño del proceso recibido: %d", tam_proceso);
+
   //Enviar tamaño de proceso.
-  enviar_tam_proceso(8, conexion);
+  enviar_tam_proceso(tam_proceso, conexion);
 
   //Parser de instrucciones
-  path_archivo_instrucciones = argv[1];
+  char* path_archivo_instrucciones = strdup(argv[1]);
+  log_info(info_logger, "Recibí el path %s", path_archivo_instrucciones);
 
-  leer_y_enviar_archivo_de_instrucciones("InstruccionTest3.txt", error_logger, conexion);
+  leer_y_enviar_archivo_de_instrucciones(path_archivo_instrucciones, conexion);
 
   bool finalizo_exitosamente;
   recv(conexion, &finalizo_exitosamente, sizeof(bool), 0);

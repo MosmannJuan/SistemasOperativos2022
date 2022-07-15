@@ -484,7 +484,7 @@ void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_
 void destruir_estructuras(unsigned int pid, int nro_tabla_paginas){
 	log_info(logger_memoria, "Destruyendo estructuras de proceso: %d", pid);
 	//Obtengo la tabla de primer nivel
-	t_list* tabla_primer_nivel = list_remove(tablas_primer_nivel, nro_tabla_paginas);
+	t_list* tabla_primer_nivel = list_get(tablas_primer_nivel, nro_tabla_paginas);
 
 	//Destruyo la tabla con sus entradas
 	list_destroy_and_destroy_elements(tabla_primer_nivel, liberar_entrada_primer_nivel);
@@ -494,6 +494,7 @@ void destruir_estructuras(unsigned int pid, int nro_tabla_paginas){
 
 	//Borro el archivo de swap del proceso
 	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
+	log_info(logger_memoria, "Destruyendo el archivo: %s", path_archivo_swap);
 	if(remove(path_archivo_swap) == 0) log_info(logger_memoria, "Se eliminó correctamente el archivo %s", path_archivo_swap);
 	else log_error(logger_memoria, "No se ha podido eliminar el archivo %s", path_archivo_swap);
 }
@@ -503,7 +504,7 @@ void liberar_entrada_primer_nivel(void* entrada){
 	entrada_primer_nivel* entrada_a_eliminar = (entrada_primer_nivel*) entrada;
 
 	//Busco su tabla de segundo nivel asociada
-	t_list* tabla_segundo_nivel = list_remove(tablas_segundo_nivel, entrada_a_eliminar->id_segundo_nivel);
+	t_list* tabla_segundo_nivel = list_get(tablas_segundo_nivel, entrada_a_eliminar->id_segundo_nivel);
 
 	//Destruyo la tabla de segundo nivel con sus entradas
 	list_destroy_and_destroy_elements(tabla_segundo_nivel, liberar_entrada_segundo_nivel);

@@ -41,6 +41,7 @@ typedef struct {
 typedef struct {
 	unsigned int tiempo_bloqueo;
 	pcb * pcb_actualizado;
+	double rafaga_anterior;
 } argumentos_hilo_bloqueo;
 
 typedef struct {
@@ -140,7 +141,7 @@ void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
 unsigned int calcular_estimacion_rafaga();
-void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo);
+void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo, double rafaga_anterior);
 void* hilo_mediano_plazo_ready(void * argumentos);
 
 #endif /* PLANIFICADOR_H_ */

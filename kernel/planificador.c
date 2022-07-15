@@ -224,7 +224,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
   }
 }
 
-void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo) {
+void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo, double rafaga_anterior) {
   // Removemos de bloqueado y simulamos la espera del I/O
   sem_wait( & semaforo_pid_comparacion);
   pid_comparacion = pcb_actualizado -> id;
@@ -263,11 +263,8 @@ void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiem
 	  list_add_sorted(ready_suspendido, pcb_actualizado, ordenar_por_estimacion_rafaga);
   else
 	  list_add(ready_suspendido, pcb_actualizado);
-  sem_post(&semaforo_lista_ready_suspendido_add);
-  //Al terminar una entrada salida se envía un mensaje de interrupción
-  int mensaje_interrupt = 1;
-  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
 
+  sem_post(&semaforo_lista_ready_suspendido_add);
 }
 
 
@@ -361,6 +358,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
 			args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
 			args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;
+			args_bloqueo -> rafaga_anterior = datos_bloqueo->rafaga_real_anterior;
 			pthread_t hilo_bloqueo;
 			pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
 			break;
@@ -404,7 +402,7 @@ unsigned int calcular_estimacion_rafaga(unsigned int rafaga_real_anterior, unsig
 
 void * hilo_bloqueo_proceso(void * argumentos) {
 	printf("Hilo bloqueo \n");
-  argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo * ) argumentos;
+  argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo *) argumentos;
   unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
   pcb * pcb_actualizado = args -> pcb_actualizado;
   free(args);
@@ -414,7 +412,7 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
   if (tiempo_bloqueo > tiempo_maximo_bloqueado){
 	sleep(tiempo_maximo_bloqueado / 1000);
-    mediano_plazo_bloqueado_suspendido(pcb_actualizado, tiempo_extra);
+    mediano_plazo_bloqueado_suspendido(pcb_actualizado, tiempo_extra, args->rafaga_anterior);
   }
   else {
 	sleep(tiempo_bloqueo / 1000);
@@ -427,17 +425,17 @@ void * hilo_bloqueo_proceso(void * argumentos) {
 
     sem_wait( & semaforo_lista_ready_add);
 
-    if(strcmp(algoritmo_planificacion, "SRT") == 0)
+    if(strcmp(algoritmo_planificacion, "SRT") == 0){
     	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
-    else
+    	sem_post( & semaforo_lista_ready_add);
+    	if(list_size(running) != 0) evaluar_desalojo(args->tiempo_bloqueo);
+    }
+    else{
     	list_add(ready, pcb_actualizado);
+		sem_post( & semaforo_lista_ready_add);
+    }
 
-    sem_post( & semaforo_lista_ready_add);
   }
-
-  int mensaje_interrupt = 1;
-  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
-
 
   return NULL;
 }

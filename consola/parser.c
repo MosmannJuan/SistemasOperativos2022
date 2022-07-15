@@ -1,21 +1,21 @@
 #include "parser.h"
 
-void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_log * logger, int conexion) {
+void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int conexion) {
+  log_info(info_logger, "Leyendo el archivo %s", pathArchivoInstrucciones);
   char palabraLeida[10] = "\0";
   char c;
   char control = '0';
   Instruccion instruccionAux;
   instruccionAux.params[0] = 0;
   instruccionAux.params[1] = 0;
-
+  printf("asdasdasdasd");
   //Abrir archivo
   FILE * file = fopen(pathArchivoInstrucciones, "r+");
 
   if (!file) {
     //Debería usar el logger para los errores
-    log_error(logger, "No se pudo abrir el archivo de instrucciones solicitado");
+    log_error(error_logger, "No se pudo abrir el archivo de instrucciones solicitado");
   }
-
   //Cicla el archivo leyendo las instrucciones hasta llegar al EOF
   while (control != EOF) {
     c = fgetc(file);
@@ -27,6 +27,8 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, t_l
       contadorCaracter++;
       if (strcmp(palabraLeida, "EXIT") == 0) break;
     }
+
+    log_info(info_logger, "Leí correctamente la palabra: %s", palabraLeida);
 
     //Arma la instrucción en función del identificador leído
 
