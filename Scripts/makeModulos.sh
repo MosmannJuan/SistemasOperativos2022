@@ -1,0 +1,20 @@
+#!/bin/bash
+cd ..
+cd consola/
+cd Debug/
+make all
+cd ..
+cd ..
+cd kernel/
+cd Debug/
+make all
+cd ..
+cd ..
+cd memoria/
+cd Debug/
+make all
+cd ..
+cd ..
+cd cpu/
+cd Debug/
+make all
