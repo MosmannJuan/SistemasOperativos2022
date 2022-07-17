@@ -29,7 +29,6 @@ void enviar_instruccion(Instruccion instruccion, int conexion) {
   send(conexion, & instruccion.tipo, sizeof(int), 0);
   switch (instruccion.tipo) {
   case I_O:
-  case NO_OP:
   case READ:
     send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
     break;
@@ -38,6 +37,7 @@ void enviar_instruccion(Instruccion instruccion, int conexion) {
     send(conexion, & instruccion.params[0], sizeof(unsigned int), 0);
       send(conexion, & instruccion.params[1], sizeof(unsigned int), 0);
     break;
+  case NO_OP:
   case EXIT:
 	  break;
   }

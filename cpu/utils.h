@@ -41,7 +41,7 @@ typedef struct {
 	unsigned int pc;
 	int tabla_paginas;
 	double rafaga;
-
+	double estimacion_anterior;
 }pcb;
 
 typedef struct Instruccion {

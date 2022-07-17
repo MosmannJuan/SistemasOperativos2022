@@ -18,7 +18,7 @@ pcb * pcb_create() {
 }
 
 void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
-	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	int bytes = pcb_bytes + sizeof(double) + 2*sizeof(int);
 
 	void* a_enviar = serializar_mensaje_interrupcion(pcb_a_enviar, bytes);
@@ -44,7 +44,7 @@ void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
 }
 
 void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
-	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + sizeof(int);
 
 	void* a_enviar = serializar_mensaje_bloqueo(pcb_a_enviar, tiempo_bloqueo, bytes);
@@ -86,6 +86,8 @@ void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamien
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->pc), sizeof(unsigned int));
 	desplazamiento  += sizeof(unsigned int);
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
+	desplazamiento  += sizeof(double);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->estimacion_anterior), sizeof(double));
 	desplazamiento  += sizeof(double);
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tabla_paginas), sizeof(int));
 	desplazamiento  += sizeof(int);
@@ -143,9 +145,12 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	//Recibo el program counter
 	recv(socket_cliente, &(pcb_leido->pc), sizeof(unsigned int), MSG_WAITALL);
 	printf("Program counter recibido: %d \n", pcb_leido->pc);
-	//Recibo la estimacion de rafaga
+	//Recibo la estimacion de rafaga restante
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
 	printf("Rafaga recibida: %f \n", pcb_leido->rafaga);
+	//Recibo la estimacion anterior
+	recv(socket_cliente, &(pcb_leido->estimacion_anterior), sizeof(double), MSG_WAITALL);
+	printf("Estimacion anterior recibida: %f \n", pcb_leido->estimacion_anterior);
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
 	printf("Tabla de paginas recibida: %d \n", pcb_leido->tabla_paginas);

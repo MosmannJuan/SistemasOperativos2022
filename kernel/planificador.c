@@ -53,8 +53,9 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
   pcb_creado -> pc = 0;
   pcb_creado -> tabla_paginas = 0;
   pcb_creado -> rafaga = estimacion_inicial;
+  pcb_creado -> estimacion_anterior = estimacion_inicial;
 
-  log_info(planificador_logger, "ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n ESTIMACION RAFAGA: %f \n", pcb_creado -> id, pcb_creado -> tam_proceso, list_size(pcb_creado -> instrucciones), pcb_creado -> pc, pcb_creado -> rafaga);
+  log_info(planificador_logger, "ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n RAFAGA RESTANTE: %f ESTIMACION ANTERIOR: %f \n", pcb_creado -> id, pcb_creado -> tam_proceso, list_size(pcb_creado -> instrucciones), pcb_creado -> pc, pcb_creado -> rafaga, pcb_creado->estimacion_anterior);
 
   return pcb_creado;
 }
@@ -307,7 +308,7 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		pcb_destroy(pcb_destruir);
     		log_info(planificador_logger, "Llegó hasta acá \n");
     		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
-    		datos_bloqueo->pcb_a_bloquear->rafaga-= datos_bloqueo->rafaga_real_anterior;
+    		//datos_bloqueo->pcb_a_bloquear->rafaga-= datos_bloqueo->rafaga_real_anterior;
 			log_info(planificador_logger, "pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
     		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
@@ -345,7 +346,9 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			//Casteo los datos según lo necesario en el caso particular
 			bloqueo_pcb * datos_bloqueo = (bloqueo_pcb*) mensaje_cpu->datos;
 			log_info(planificador_logger, "Rafaga real recibida: %f \n Rafaga estimada anterior: %f \n", datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
-			datos_bloqueo->pcb_a_bloquear->rafaga = calcular_estimacion_rafaga(datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->rafaga);
+			double estimacion_calculada = calcular_estimacion_rafaga(datos_bloqueo->rafaga_real_anterior, datos_bloqueo->pcb_a_bloquear->estimacion_anterior);
+			datos_bloqueo->pcb_a_bloquear->rafaga = estimacion_calculada;
+			datos_bloqueo->pcb_a_bloquear->estimacion_anterior = estimacion_calculada;
 			log_info(planificador_logger, "Rafaga estimada asignada: %f \n", datos_bloqueo->pcb_a_bloquear->rafaga);
 			log_info(planificador_logger, "Tamaño lista bloqueado %d", list_size(bloqueado));
 			log_info(planificador_logger, "Liberada la memoria del pcb en running");
@@ -368,7 +371,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 		    interrupcion_pcb* datos_interrupcion = (interrupcion_pcb*) mensaje_cpu->datos;
 			pcb* pcb_interrupcion = datos_interrupcion->pcb_a_interrumpir;
 			log_info(planificador_logger, "Recibí pcb N° %d para pasar a ready\n", pcb_interrupcion->id);
-			pcb_interrupcion->rafaga -= datos_interrupcion->rafaga_real_anterior;
+			pcb_interrupcion->rafaga = pcb_interrupcion->estimacion_anterior - datos_interrupcion->rafaga_real_anterior;
 			log_info(planificador_logger, "La ráfaga actualizada del proceso N° %d es: %f", pcb_interrupcion->id, pcb_interrupcion->rafaga);
 			sem_wait( & semaforo_lista_ready_add);
 			int indice_lista = list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);
@@ -557,6 +560,8 @@ void* serializar_pcb(pcb* pcb_a_enviar, int bytes){
 	desplazamiento  += sizeof(unsigned int);
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->rafaga), sizeof(double));
 	desplazamiento  += sizeof(double);
+	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->estimacion_anterior), sizeof(double));
+	desplazamiento  += sizeof(double);
 	memcpy(memoria_asignada + desplazamiento, &(pcb_a_enviar->tabla_paginas), sizeof(int));
 	desplazamiento  += sizeof(int);
 
@@ -583,7 +588,7 @@ void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list
 
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente)
 {
-	int bytes = 2*sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int bytes = 2*sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
@@ -611,8 +616,10 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 	recv(socket_cliente, &(pcb_leido->tam_proceso), sizeof(unsigned int), MSG_WAITALL);
 	//Recibo el program counter
 	recv(socket_cliente, &(pcb_leido->pc), sizeof(unsigned int), MSG_WAITALL);
-	//Recibo la estimacion de rafaga
+	//Recibo la rafaga restante
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
+	//Recibo la estimacion anterior
+	recv(socket_cliente, &(pcb_leido->estimacion_anterior), sizeof(double), MSG_WAITALL);
 	//Recibo la tabla de poaginas
 	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
 	//Recibo la cantidad de instrucciones que posee el proceso

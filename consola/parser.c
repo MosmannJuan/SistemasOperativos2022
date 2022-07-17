@@ -6,9 +6,6 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int
   char c;
   char control = '0';
   Instruccion instruccionAux;
-  instruccionAux.params[0] = 0;
-  instruccionAux.params[1] = 0;
-  printf("asdasdasdasd");
   //Abrir archivo
   FILE * file = fopen(pathArchivoInstrucciones, "r+");
 
@@ -27,6 +24,8 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int
       contadorCaracter++;
       if (strcmp(palabraLeida, "EXIT") == 0) break;
     }
+    instruccionAux.params[0] = 0;
+    instruccionAux.params[1] = 0;
 
     log_info(info_logger, "Leí correctamente la palabra: %s", palabraLeida);
 
@@ -56,7 +55,7 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int
       instruccionAux.tipo = EXIT;
     }
 
-    lectura_y_asignacion_parametros( & instruccionAux, file);
+    lectura_y_asignacion_parametros( & instruccionAux, file, conexion);
 
     memset(palabraLeida, '\0', 10);
 
@@ -71,11 +70,16 @@ void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int
 
 }
 
-void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file) {
+void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file, int conexion) {
   int i = 0;
   switch (instruccionAux -> tipo) {
-  case I_O:
   case NO_OP:
+	  fscanf(file, "%d", &i);
+	  for(int cant_enviados = 1; cant_enviados < i; cant_enviados ++){
+		  enviar_instruccion(*instruccionAux, conexion);
+	  }
+	  break;
+  case I_O:
   case READ:
     lectura_y_asignacion_un_parametro(instruccionAux, file, i);
     break;

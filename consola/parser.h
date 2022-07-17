@@ -12,7 +12,7 @@ t_log* info_logger;
 //---------------------------------------------------------------
 
 void leer_y_enviar_archivo_de_instrucciones(char * pathArchivoInstrucciones, int conexion);
-void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file);
+void lectura_y_asignacion_parametros(Instruccion * instruccionAux, FILE * file, int conexion);
 void lectura_y_asignacion_un_parametro(Instruccion * instruccionAux, FILE * file, int i);
 void lectura_y_asignacion_dos_parametro(Instruccion * instruccionAux, FILE * file, int i);
 

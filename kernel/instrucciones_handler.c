@@ -14,11 +14,12 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	recv(cliente_fd, &tam_proceso, sizeof(unsigned int), MSG_WAITALL);
   while (1) {
 	Instruccion* instruccionAux = malloc(sizeof(Instruccion));
+	instruccionAux->params[0] = 0;
+	instruccionAux->params[1] = 0;
     int cod_op = recibir_int(cliente_fd);
     instruccionAux->tipo = cod_op;
     switch (cod_op) {
     case I_O:
-    case NO_OP:
     case READ:
       instruccionAux->params[0] = recibir_int(cliente_fd);
       break;
@@ -27,6 +28,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
       instruccionAux->params[0] = recibir_int(cliente_fd);
       instruccionAux->params[1] = recibir_int(cliente_fd);
       break;
+    case NO_OP:
     case EXIT:
       break;
     case -1:

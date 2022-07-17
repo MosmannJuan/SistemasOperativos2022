@@ -5,6 +5,7 @@ int main(void) {
 	pthread_t hilo_contador_rafaga;
 	pthread_t hilo_interrupcion_handler;
 	contador_rafaga_inicializado = false;
+	atendiendo_interrupcion = false;
 
 	cpu_logger = log_create("cpuErrors.log", "cpuError_logger", 1, LOG_LEVEL_ERROR);
 	cpu_info_logger = log_create("cpu_info.log", "cpu_info_logger", 1, LOG_LEVEL_INFO);
@@ -30,6 +31,8 @@ int main(void) {
 	tabla_tlb = list_create();
 	//Inicializo semaforo para comparacion
 	sem_init(&sem_tlb_pagina_comparacion, 0, 1);
+	//Inicializo semaforo para sincronización de contador en caso de interrupt
+	sem_init(&sem_sincro_contador, 0, 0);
 
 	entradas_tlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
 	reemplazo_tlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
@@ -45,12 +48,21 @@ int main(void) {
 				send(conexion_dispatch, &contador_rafaga, sizeof(double), 0);
 				break;
 			case EJECUTAR:
-				contador_rafaga = 0;
-				//Limpiamos tlb
-				list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 				hay_interrupciones = false;
 				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
 				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
+				if(atendiendo_interrupcion && pcb_a_ejecutar->id == pid_en_ejecucion){
+					atendiendo_interrupcion = false;
+					sem_post(&sem_sincro_contador);
+				} else {
+					contador_rafaga = 0;
+					if(atendiendo_interrupcion){
+						atendiendo_interrupcion = false;
+						sem_post(&sem_sincro_contador);
+					}
+					//Limpiamos tlb
+					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
+				}
 				pid_en_ejecucion = pcb_a_ejecutar->id;
 				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
 				ciclo(pcb_a_ejecutar);
@@ -83,7 +95,7 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 
 	switch(instruccion_decode->tipo){
 	case NO_OP:
-		ejecutar_NO_OP(instruccion_decode->params[0]);
+		ejecutar_NO_OP();
 	break;
 	case I_O:
 		ejecutar_I_O(pcb_a_ejecutar, instruccion_decode->params[0]);
@@ -113,14 +125,10 @@ return(NULL);
 // --------------- EJECUCION DE INSTRUCCIONES -------------------
 //---------------------------------------------------------------
 
-void ejecutar_NO_OP(unsigned int parametro){
+void ejecutar_NO_OP(){
 	log_info(cpu_logger,"Ejecuto el NO_OP");
-	int contador = 0;
+	sleep(retardo_NOOP/1000);
 
-	while(contador != parametro){
-		sleep(retardo_NOOP/1000);
-		contador++;
-	}
 }
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
@@ -267,6 +275,10 @@ void recibir_valores_globales_memoria(){
 void* contador(void* args){
 	contador_rafaga_inicializado = true;
 	while(1){
+		if(atendiendo_interrupcion){
+			//Esto simula la pausa del contador
+			sem_wait(&sem_sincro_contador);
+		}
 		sleep(1/1000000);
 		contador_rafaga++;
 	}
@@ -294,6 +306,7 @@ void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler){
 
 void atender_interrupcion(pcb* pcb_interrumpido){
 	detener_ejecucion = true;
+	atendiendo_interrupcion = true;
 	enviar_pcb_interrupcion(pcb_interrumpido, conexion_dispatch);
 }
 
