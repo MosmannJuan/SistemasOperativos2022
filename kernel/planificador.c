@@ -63,11 +63,8 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
 // PROCESO DE FINALIZACION DE PROCESO
 
 void pcb_destroy(pcb * pcb_destruir) {
-	log_info(planificador_logger, "Destruyendo pcb \n");
   list_destroy(pcb_destruir -> instrucciones);
-  log_info(planificador_logger, "Lista destruida \n");
   free(pcb_destruir);
-  log_info(planificador_logger, "pcb liberado \n");
 }
 
 void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
@@ -174,8 +171,6 @@ void exit_largo_plazo(){
 		relacion_consola_proceso_destroy(relacion_cp);
 		pcb_destroy(pcb_exit);
 
-		log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
-
 		sem_wait( & semaforo_grado_multiprogramacion);
 		grado_multiprogramacion--;
 		sem_post( & semaforo_grado_multiprogramacion);
@@ -193,7 +188,8 @@ void exit_largo_plazo(){
 void * hilo_mediano_plazo_ready(void * argumentos) {
   while (1) {
     if (list_size(ready_suspendido) > 0 && grado_multiprogramacion < limite_grado_multiprogramacion) {
-      sem_wait( & semaforo_lista_ready_suspendido_remove);
+      log_info(planificador_logger, "Agregando a ready desde suspendido");
+    	sem_wait( & semaforo_lista_ready_suspendido_remove);
       pcb * pcb_ready = list_remove(ready_suspendido, 0);
       sem_post( & semaforo_lista_ready_suspendido_remove);
 
@@ -218,52 +214,41 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
 
       log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
 
-      return NULL;
     }
   }
+  return NULL;
 }
 
-void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo, double rafaga_anterior) {
-  // Removemos de bloqueado y simulamos la espera del I/O
-  sem_wait( & semaforo_pid_comparacion);
-  pid_comparacion = pcb_actualizado -> id;
-  list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
-  sem_post( & semaforo_pid_comparacion);
+void mediano_plazo_bloqueado_suspendido(unsigned int pid){
+	// Removemos de bloqueado y pasamos a bloqueado suspendido
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pid;
+	pcb* pcb_a_suspender = list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
+	sem_post(&semaforo_pid_comparacion);
+	if(pcb_a_suspender != NULL){
+	  //Se envia a memoria para que pase a disco
+	  int mensaje_suspender = SUSPENDER;
+	  send(conexion_memoria, &mensaje_suspender, sizeof(int), 0);
+	  send(conexion_memoria, &pcb_a_suspender->id, sizeof(unsigned int), 0);
+	  send(conexion_memoria, &pcb_a_suspender->tabla_paginas, sizeof(int), 0);
 
-  list_add(bloqueado_suspendido, pcb_actualizado);
+	  log_info(planificador_logger, "Esperando confirmación de suspensión de memoria para el proceso %d\n", pcb_a_suspender->id);
 
-  //Se envia a memoria para que pase a disco
-  int mensaje_suspender = SUSPENDER;
-  send(conexion_memoria, &mensaje_suspender, sizeof(int), 0);
-  send(conexion_memoria, &pcb_actualizado->id, sizeof(unsigned int), 0);
-  send(conexion_memoria, &pcb_actualizado->tabla_paginas, sizeof(int), 0);
+	  //Esperamos confirmación de memoria
+	  bool swap_ok;
+	  recv(conexion_memoria, &swap_ok, sizeof(bool), 0);
+	  log_info(planificador_logger, "Confirmación recibida \n");
 
-  log_info(planificador_logger, "Esperando confirmación de suspensión de memoria \n");
+	  sem_wait(&semaforo_bloqueado_suspendido);
+	  list_add(bloqueado_suspendido, pcb_a_suspender);
+	  sem_post(&semaforo_bloqueado_suspendido);
 
-  //Esperamos confirmación de memoria
-  bool swap_ok;
-  recv(conexion_memoria, &swap_ok, sizeof(bool), 0);
-
-  log_info(planificador_logger, "Confirmación recibida \n");
-
-  sem_wait( & semaforo_grado_multiprogramacion);
-  grado_multiprogramacion--;
-  sem_post( & semaforo_grado_multiprogramacion);
-
-  sleep(tiempo_bloqueo / 1000);
-  log_info(planificador_logger, "Finalizo el bloqueo");
-  //Saca el PCB actual de la lista de suspendido bloqueado.
-  sem_wait( & semaforo_pid_comparacion);
-  pid_comparacion = pcb_actualizado -> id;
-  list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
-  sem_post( & semaforo_pid_comparacion);
-  sem_wait(&semaforo_lista_ready_suspendido_add);
-  if(strcmp(algoritmo_planificacion, "SRT") == 0)
-	  list_add_sorted(ready_suspendido, pcb_actualizado, ordenar_por_estimacion_rafaga);
-  else
-	  list_add(ready_suspendido, pcb_actualizado);
-
-  sem_post(&semaforo_lista_ready_suspendido_add);
+	  sem_wait( & semaforo_grado_multiprogramacion);
+	  grado_multiprogramacion--;
+	  sem_post( & semaforo_grado_multiprogramacion);
+	  sem_post(&sem_sincro_new_ready);
+	  log_info(planificador_logger, "Al suspender el proceso %d el grado de multiprogramación baja a: %d", pcb_a_suspender->id, grado_multiprogramacion);
+	}
 }
 
 
@@ -293,9 +278,6 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
 }
 
 void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
-    //mensaje_dispatch dummy_mensaje;
-    //dummy_mensaje.mensaje = 5;
-	log_info(planificador_logger, "Mensaje recibido: %d \n", mensaje_cpu->mensaje);
     switch (mensaje_cpu->mensaje) {
     	case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
     		//Casteo los datos según lo necesario en el caso particular
@@ -304,11 +286,14 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
 
 			sem_wait(&sem_sincro_running);
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
-			log_info(planificador_logger, "\npcb a destruir: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_destruir->id, pcb_destruir->tam_proceso, pcb_destruir->pc, pcb_destruir->rafaga, list_size(pcb_destruir->instrucciones));
     		pcb_destroy(pcb_destruir);
-    		log_info(planificador_logger, "Llegó hasta acá \n");
     		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
-    		//datos_bloqueo->pcb_a_bloquear->rafaga-= datos_bloqueo->rafaga_real_anterior;
+    		//Comienzo hilo de evaluacion de suspendido
+			unsigned int* pid_bloqueo = malloc(sizeof(unsigned int));
+			*pid_bloqueo = datos_bloqueo->pcb_a_bloquear->id;
+			pthread_t hilo_suspension;
+			pthread_create(&hilo_suspension, NULL, hilo_contador_suspension_por_bloqueo, pid_bloqueo);
+
 			log_info(planificador_logger, "pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
     		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
@@ -339,8 +324,6 @@ void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
 }
 
 void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
-  //unsigned int real_anterior = 3; //ESTO VIENE CALCULADO DE CPU
-	log_info(planificador_logger, "Planificador corto plazo SJF \n");
     switch (mensaje_cpu->mensaje) {
 		case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
@@ -350,14 +333,17 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			datos_bloqueo->pcb_a_bloquear->rafaga = estimacion_calculada;
 			datos_bloqueo->pcb_a_bloquear->estimacion_anterior = estimacion_calculada;
 			log_info(planificador_logger, "Rafaga estimada asignada: %f \n", datos_bloqueo->pcb_a_bloquear->rafaga);
-			log_info(planificador_logger, "Tamaño lista bloqueado %d", list_size(bloqueado));
-			log_info(planificador_logger, "Liberada la memoria del pcb en running");
 			log_info(planificador_logger, "\npcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
 			list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
 			sem_wait(&sem_sincro_running);
+			//Comienzo hilo de evaluacion de suspendido
+			unsigned int* pid_bloqueo = malloc(sizeof(unsigned int));
+			*pid_bloqueo = datos_bloqueo->pcb_a_bloquear->id;
+			pthread_t hilo_suspension;
+			pthread_create(&hilo_suspension, NULL, hilo_contador_suspension_por_bloqueo, pid_bloqueo);
+
 			log_info(planificador_logger, "Sacamos pcb actual de running \n");
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
-			log_info(planificador_logger, "\npcb a destruir: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_destruir->id, pcb_destruir->tam_proceso, pcb_destruir->pc, pcb_destruir->rafaga, list_size(pcb_destruir->instrucciones));
 			pcb_destroy(pcb_destruir);
 			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
 			args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
@@ -412,50 +398,67 @@ double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion
 	return rafaga_calculada;
 }
 
-void * hilo_bloqueo_proceso(void * argumentos) {
+void* hilo_bloqueo_proceso(void * argumentos) {
+	//Hacemos wait al semaforo que controla que haya un unico dispositivo de I/O
 	sem_wait(&sem_entrada_salida);
 	log_info(planificador_logger, "Hilo bloqueo \n");
-  argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo *) argumentos;
-  unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
-  pcb * pcb_actualizado = args -> pcb_actualizado;
-  free(args);
-
-  //Esperamos el tiempo que corresponde según la instrucción
-  unsigned int tiempo_extra = tiempo_bloqueo - tiempo_maximo_bloqueado;
-
-  if (tiempo_bloqueo > tiempo_maximo_bloqueado){
-	sleep(tiempo_maximo_bloqueado / 1000);
-    mediano_plazo_bloqueado_suspendido(pcb_actualizado, tiempo_extra, args->rafaga_anterior);
-  }
-  else {
+	argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo *) argumentos;
+	unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
+	pcb * pcb_actualizado = args -> pcb_actualizado;
+	free(args);
+	//Simulo la duración de la entrada salida
+	log_info(planificador_logger, "Comienza I/O proceso %d", pcb_actualizado->id);
 	sleep(tiempo_bloqueo / 1000);
-	if(strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running) > 0){
-		//Se envía mensaje de interrumpir por socket interrupt
-		int mensaje_interrupt = 1;
-		send(interrupt, &mensaje_interrupt, sizeof(int), 0);
+	//Busco si el proceso se encuentra en la lista de bloqueados
+	sem_wait( & semaforo_pid_comparacion);
+	pid_comparacion = pcb_actualizado -> id;
+	pcb* pcb_bloqueado = (pcb*)list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
+	sem_post( & semaforo_pid_comparacion);
+	if(pcb_bloqueado != NULL){
+		log_info(planificador_logger, "Agregamos a ready el proceso %d después de bloqueo", pcb_bloqueado->id);
+		//Agrego a ready el pcb bloqueado
+		if(strcmp(algoritmo_planificacion, "SRT") == 0){
+			sem_wait(&semaforo_lista_ready_add);
+			list_add_sorted(ready, pcb_bloqueado, ordenar_por_estimacion_rafaga);
+			sem_post(&semaforo_lista_ready_add);
+			//Si tengo algo en running evaluo el desalojo
+			if(list_size(running) > 0){
+				log_info(planificador_logger, "Enviamos mensaje para evaluar desalojo por llegada de nuevo proceso a ready (De bloqueado)");
+				int mensaje_interrupt = 1;
+				send(interrupt, &mensaje_interrupt, sizeof(int), 0);
+			}
+		}else{
+			//Agrego el proceso a ready según FIFO
+			sem_wait(&semaforo_lista_ready_add);
+			list_add(ready, pcb_bloqueado);
+			sem_post(&semaforo_lista_ready_add);
+		}
+	}else{
+		//Busco el proceso en la lista de bloqueados suspendidos
+		sem_wait( & semaforo_pid_comparacion);
+		pid_comparacion = pcb_actualizado -> id;
+		pcb* pcb_suspendido = (pcb*)list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);
+		sem_post( & semaforo_pid_comparacion);
+		if(pcb_suspendido != NULL){
+			//Agrego el pcb encontrado a la lista de ready suspendido
+			sem_wait(&semaforo_lista_ready_suspendido_add);
+			list_add(ready_suspendido, pcb_suspendido);
+			sem_post(&semaforo_lista_ready_suspendido_add);
+			log_info(planificador_logger, "Agregado proceso N° %d a la lista de ready suspendido", pcb_suspendido->id);
+		}else{
+			log_error(planificador_logger, "No encontré el proceso %d en la lista de suspendidos ni de bloqueados", pcb_actualizado->id);
+		}
 	}
-    //Enviamos de bloqueado a ready
-    sem_wait( & semaforo_pid_comparacion);
-    pid_comparacion = pcb_actualizado -> id;
-    list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
-    sem_post( & semaforo_pid_comparacion);
-
-    sem_wait( & semaforo_lista_ready_add);
-
-    //Agregamos el proceso luego del bloqueo a ready según algoritmo de planificación
-    if(strcmp(algoritmo_planificacion, "SRT") == 0){
-    	list_add_sorted(ready, pcb_actualizado, ordenar_por_estimacion_rafaga);
-    	sem_post( & semaforo_lista_ready_add);
-    }
-    else{
-    	list_add(ready, pcb_actualizado);
-		sem_post( & semaforo_lista_ready_add);
-    }
-	log_info(planificador_logger, "Agrego a ready el proceso %d luego del bloqueo \n", pcb_actualizado->id);
-
-  }
   sem_post(&sem_entrada_salida);
   return NULL;
+}
+
+void* hilo_contador_suspension_por_bloqueo(void* args){
+	unsigned int pid = *((unsigned int*) args);
+	free(args);
+	sleep(tiempo_maximo_bloqueado/1000);
+	mediano_plazo_bloqueado_suspendido(pid);
+	return NULL;
 }
 
 void evaluar_desalojo(double rafaga_cpu_ejecutada){

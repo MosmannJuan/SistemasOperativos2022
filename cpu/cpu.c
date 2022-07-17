@@ -33,6 +33,8 @@ int main(void) {
 	sem_init(&sem_tlb_pagina_comparacion, 0, 1);
 	//Inicializo semaforo para sincronización de contador en caso de interrupt
 	sem_init(&sem_sincro_contador, 0, 0);
+	//Inicializo semaforo mutex de contador
+	sem_init(&sem_contador, 0, 1);
 
 	entradas_tlb = config_get_int_value(cpu_config,"ENTRADAS_TLB");
 	reemplazo_tlb = strdup(config_get_string_value(cpu_config,"REEMPLAZO_TLB"));
@@ -55,7 +57,9 @@ int main(void) {
 					atendiendo_interrupcion = false;
 					sem_post(&sem_sincro_contador);
 				} else {
+					sem_wait(&sem_contador);
 					contador_rafaga = 0;
+					sem_post(&sem_contador);
 					if(atendiendo_interrupcion){
 						atendiendo_interrupcion = false;
 						sem_post(&sem_sincro_contador);
@@ -279,7 +283,7 @@ void* contador(void* args){
 			//Esto simula la pausa del contador
 			sem_wait(&sem_sincro_contador);
 		}
-		sleep(1/1000000);
+		usleep(1000);
 		contador_rafaga++;
 	}
 	return NULL;

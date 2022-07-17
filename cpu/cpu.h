@@ -63,6 +63,7 @@ bool hay_interrupciones;
 bool atendiendo_interrupcion;
 sem_t sem_tlb_pagina_comparacion;
 sem_t sem_sincro_contador;
+sem_t sem_contador;
 t_config* cpu_config;
 t_log * cpu_logger;
 t_log* cpu_info_logger;

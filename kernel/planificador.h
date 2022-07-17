@@ -96,6 +96,7 @@ sem_t semaforo_lista_ready_add;
 sem_t semaforo_lista_ready_remove;
 sem_t semaforo_lista_ready_suspendido_remove;
 sem_t semaforo_lista_ready_suspendido_add;
+sem_t semaforo_bloqueado_suspendido;
 sem_t semaforo_lista_running_remove;
 sem_t semaforo_grado_multiprogramacion;
 sem_t sem_sincro_running;
@@ -146,7 +147,8 @@ void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
 double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion_anterior);
-void mediano_plazo_bloqueado_suspendido(pcb * pcb_actualizado, unsigned int tiempo_bloqueo, double rafaga_anterior);
+void mediano_plazo_bloqueado_suspendido(unsigned int pid);
 void* hilo_mediano_plazo_ready(void * argumentos);
+void* hilo_contador_suspension_por_bloqueo(void* pid);
 
 #endif /* PLANIFICADOR_H_ */
