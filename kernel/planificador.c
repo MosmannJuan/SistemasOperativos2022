@@ -413,6 +413,7 @@ double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion
 }
 
 void * hilo_bloqueo_proceso(void * argumentos) {
+	sem_wait(&sem_entrada_salida);
 	log_info(planificador_logger, "Hilo bloqueo \n");
   argumentos_hilo_bloqueo * args = (argumentos_hilo_bloqueo *) argumentos;
   unsigned int tiempo_bloqueo = args -> tiempo_bloqueo;
@@ -495,7 +496,6 @@ void* cpu_dispatch_handler(void* args){
 		recv(dispatch, &accion_recibida, sizeof(int), MSG_WAITALL);
 		switch(accion_recibida){
 			case PASAR_A_BLOQUEADO: ;
-				sem_wait(&sem_entrada_salida);
 				log_info(planificador_logger, "Pasar a bloqueado \n");
 				mensaje_dispatch_posta* mensaje_bloqueo = malloc(sizeof(mensaje_dispatch_posta));
 				bloqueo_pcb* datos_bloqueo = malloc(sizeof(bloqueo_pcb));
