@@ -45,7 +45,7 @@ void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
 
 void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
 	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
-	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + 2*sizeof(int);
+	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + sizeof(int);
 
 	void* a_enviar = serializar_mensaje_bloqueo(pcb_a_enviar, tiempo_bloqueo, bytes);
 

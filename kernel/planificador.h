@@ -3,6 +3,7 @@
 
 #include "instrucciones_handler.h"
 #include <semaphore.h>
+#include <commons/log.h>
 #include <string.h>
 
 
@@ -74,6 +75,8 @@ typedef enum {
 
 // ---- LISTA DE ESTADOS ----//
 
+t_log * planificador_logger;
+
 t_list * new;
 t_list * bloqueado;
 t_list * ready;
@@ -81,7 +84,6 @@ t_list * running;
 t_list * bloqueado_suspendido;
 t_list * ready_suspendido;
 t_list * exit_estado;
-
 t_list * lista_relacion_consola_proceso;
 
 sem_t semaforo_pid;
@@ -97,6 +99,7 @@ sem_t semaforo_lista_running_remove;
 sem_t semaforo_grado_multiprogramacion;
 sem_t sem_sincro_running;
 sem_t sem_sincro_new_ready;
+sem_t sem_entrada_salida;
 
 unsigned int pid_comparacion;
 unsigned int pid_comparacion_exit;

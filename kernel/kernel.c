@@ -15,6 +15,7 @@ int main(int argc, char ** argv) {
 
 
   t_log * logger_kernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
+  planificador_logger = log_create("planificador_logger.log", "Planificador", 1, LOG_LEVEL_INFO);
 
   kernel_config = config_create("kernel.config");
   ip_kernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
@@ -92,6 +93,7 @@ void inicializar_semaforos(){
     sem_init(&semaforo_grado_multiprogramacion,0,1);
     sem_init(&sem_sincro_new_ready, 0, 0);
     sem_init(&sem_sincro_running, 0, 0);
+    sem_init(&sem_entrada_salida, 0, 1);
 }
 
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){

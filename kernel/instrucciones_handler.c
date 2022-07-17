@@ -12,8 +12,6 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 	//Recibe primero el tamaño del proceso.
 	unsigned int tam_proceso;
 	recv(cliente_fd, &tam_proceso, sizeof(unsigned int), MSG_WAITALL);
-
-    printf("\n %s %d %s %d %s %lu %s", "CLIENTE NRO:", cliente_fd, "PID CLIENTE:", getpid(), "HILO:", pthread_self(), "\n");
   while (1) {
 	Instruccion* instruccionAux = malloc(sizeof(Instruccion));
     int cod_op = recibir_int(cliente_fd);
@@ -23,23 +21,18 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
     case NO_OP:
     case READ:
       instruccionAux->params[0] = recibir_int(cliente_fd);
-      printf("Recibí la instruccion %d, con el param %d \n", cod_op, instruccionAux->params[0]);
       break;
     case WRITE:
     case COPY:
       instruccionAux->params[0] = recibir_int(cliente_fd);
       instruccionAux->params[1] = recibir_int(cliente_fd);
-      printf("Recibí la instruccion %d, con el params %d y %d \n", cod_op, instruccionAux->params[0], instruccionAux->params[1]);
       break;
     case EXIT:
-      printf("Lei correctamente el codigo completo. \n");
       break;
     case -1:
-      printf("Iniciado thread largo plazo. \n\n");
       iniciar_thread_largo_plazo(instrucciones, tam_proceso, cliente_fd);
       return NULL;
     default:
-      printf("No recibí un codigo de operación válido. \n");
       break;
     }
     list_add(instrucciones, instruccionAux);

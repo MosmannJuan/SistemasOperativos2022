@@ -283,6 +283,7 @@ void* interrupcion_handler(void* args){
 	while(1){
 		int mensaje_interrupcion;
 		recv(conexion_interrupt, &mensaje_interrupcion, sizeof(int), 0);
+		log_info(cpu_info_logger, "Interrupcion recibida");
 		if(mensaje_interrupcion == 1) hay_interrupciones = true;
 	}
 }
