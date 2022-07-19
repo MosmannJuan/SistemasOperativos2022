@@ -36,7 +36,7 @@ void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
 
 	memcpy(memoria_asignada + desplazamiento, &mensaje, sizeof(int));
 	desplazamiento += sizeof(int);
-	memcpy(memoria_asignada + desplazamiento, &contador_rafaga, sizeof(double));
+	memcpy(memoria_asignada + desplazamiento, &rafaga_actual, sizeof(double));
 	desplazamiento += sizeof(double);
 	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
 

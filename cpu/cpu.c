@@ -51,22 +51,37 @@ int main(void) {
 				break;
 			case EJECUTAR:
 				hay_interrupciones = false;
-				if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
+				//if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
+				clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
 				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
-				if(atendiendo_interrupcion && pcb_a_ejecutar->id == pid_en_ejecucion){
+				//Si el proceso a ejecutar llegó de atender una interrupción
+				if(atendiendo_interrupcion){
 					atendiendo_interrupcion = false;
-					sem_post(&sem_sincro_contador);
-				} else {
-					sem_wait(&sem_contador);
-					contador_rafaga = 0;
-					sem_post(&sem_contador);
-					if(atendiendo_interrupcion){
-						atendiendo_interrupcion = false;
-						sem_post(&sem_sincro_contador);
+					//Si hubo desalojo
+					if(!pcb_a_ejecutar->id == pid_en_ejecucion) {
+						contador_rafaga = 0;
+						//Limpiamos tlb
+						list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 					}
+				}else{
+					contador_rafaga = 0;
 					//Limpiamos tlb
 					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 				}
+//				if(atendiendo_interrupcion && pcb_a_ejecutar->id == pid_en_ejecucion){
+//					atendiendo_interrupcion = false;
+//					sem_post(&sem_sincro_contador);
+//				} else {
+//					sem_wait(&sem_contador);
+//					contador_rafaga = 0;
+//					sem_post(&sem_contador);
+//					if(atendiendo_interrupcion){
+//						atendiendo_interrupcion = false;
+//						sem_post(&sem_sincro_contador);
+//					}
+//					//Limpiamos tlb
+//					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
+//				}
 				pid_en_ejecucion = pcb_a_ejecutar->id;
 				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
 				ciclo(pcb_a_ejecutar);
@@ -137,6 +152,7 @@ void ejecutar_NO_OP(){
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 	log_info(cpu_logger,"Ejecuto la I_O");
+	setear_contador_rafaga();
 	pcb_a_bloquear->pc++;
 	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexion_dispatch);
 	detener_ejecucion = true;
@@ -289,6 +305,12 @@ void* contador(void* args){
 	return NULL;
 }
 
+void setear_contador_rafaga(){
+	clock_gettime(CLOCK_MONOTONIC, &tiempo_fin);
+	rafaga_actual = (tiempo_fin.tv_sec - tiempo_inicio.tv_sec) * 1000 + (tiempo_fin.tv_nsec - tiempo_inicio.tv_nsec) / 1000000;
+	contador_rafaga += rafaga_actual;
+}
+
 
 
 //---------------------------------------------------------------
@@ -311,6 +333,7 @@ void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler){
 void atender_interrupcion(pcb* pcb_interrumpido){
 	detener_ejecucion = true;
 	atendiendo_interrupcion = true;
+	setear_contador_rafaga();
 	enviar_pcb_interrupcion(pcb_interrumpido, conexion_dispatch);
 }
 

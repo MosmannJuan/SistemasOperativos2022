@@ -65,6 +65,7 @@ void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proces
 	printf("El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
 
 	list_add(lista_relacion_consola_proceso, rel_consola_proceso);
+	creando_nuevo_proceso = false;
 	sem_post(&sem_sincro_new_ready);
 }
 

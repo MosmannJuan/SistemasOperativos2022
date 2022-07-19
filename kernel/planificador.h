@@ -113,6 +113,7 @@ int conexion_memoria;
 double alfa;
 int tiempo_maximo_bloqueado;
 char * algoritmo_planificacion;
+bool creando_nuevo_proceso;
 
 
 

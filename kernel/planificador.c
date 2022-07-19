@@ -73,29 +73,31 @@ void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
 }
 
 void * hilo_pcb_new(void * args_p) {
-  //Acceder a args
-  argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
-  t_list * instrucciones = pointer_args -> instrucciones;
-  unsigned int tam_proceso = pointer_args -> tam_proceso;
-  free(args_p);
-  //Inicializar pcb
-  pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
-  //Asignar pcb a new
-  sem_wait(&semaforo_lista_new_add);
-  list_add(new, pcb_nuevo);
-  sem_post(&semaforo_lista_new_add);
 
-  log_info(planificador_logger, "Proceso %d agregado a new", pcb_nuevo->id);
+	creando_nuevo_proceso = true;
+	//Acceder a args
+	argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
+	t_list * instrucciones = pointer_args -> instrucciones;
+	unsigned int tam_proceso = pointer_args -> tam_proceso;
+	free(args_p);
+	//Inicializar pcb
+	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
+	//Asignar pcb a new
+	sem_wait(&semaforo_lista_new_add);
+	list_add(new, pcb_nuevo);
+	sem_post(&semaforo_lista_new_add);
 
-  unsigned int* puntero_pid = malloc(sizeof(unsigned int));
-  *puntero_pid = pcb_nuevo->id;
-  return puntero_pid;
+	log_info(planificador_logger, "Proceso %d agregado a new", pcb_nuevo->id);
+
+	unsigned int* puntero_pid = malloc(sizeof(unsigned int));
+	*puntero_pid = pcb_nuevo->id;
+	return puntero_pid;
 
 }
 
 void * hilo_new_ready(void * argumentos){
 	while (1){
-		sem_wait(&sem_sincro_new_ready);
+		if(creando_nuevo_proceso)sem_wait(&sem_sincro_new_ready);
 		  if(grado_multiprogramacion < limite_grado_multiprogramacion && list_size(ready_suspendido) == 0 && list_size(new)>0){
 
 			  sem_wait(&semaforo_lista_new_remove);
@@ -246,7 +248,6 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 	  sem_wait( & semaforo_grado_multiprogramacion);
 	  grado_multiprogramacion--;
 	  sem_post( & semaforo_grado_multiprogramacion);
-	  sem_post(&sem_sincro_new_ready);
 	  log_info(planificador_logger, "Al suspender el proceso %d el grado de multiprogramación baja a: %d", pcb_a_suspender->id, grado_multiprogramacion);
 	}
 }
@@ -357,7 +358,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 		    interrupcion_pcb* datos_interrupcion = (interrupcion_pcb*) mensaje_cpu->datos;
 			pcb* pcb_interrupcion = datos_interrupcion->pcb_a_interrumpir;
 			log_info(planificador_logger, "Recibí pcb N° %d para pasar a ready\n", pcb_interrupcion->id);
-			pcb_interrupcion->rafaga = pcb_interrupcion->estimacion_anterior - datos_interrupcion->rafaga_real_anterior;
+			pcb_interrupcion->rafaga -= datos_interrupcion->rafaga_real_anterior;
 			log_info(planificador_logger, "La ráfaga actualizada del proceso N° %d es: %f", pcb_interrupcion->id, pcb_interrupcion->rafaga);
 			sem_wait( & semaforo_lista_ready_add);
 			int indice_lista = list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);

@@ -68,7 +68,7 @@ typedef struct {
 
 t_log * logger;
 double contador_rafaga;
-
+double rafaga_actual;
 
 
 //---------------------------------------------------------------

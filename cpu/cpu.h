@@ -11,6 +11,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include <math.h>
+#include <time.h>
 #include <pthread.h>
 #include "utils.h"
 
@@ -55,8 +56,10 @@ int conexion_interrupt;
 int	entradas_tlb ;
 int	retardo_NOOP;
 int pagina_comparacion_tlb;
-unsigned int pid_en_ejecucion;
 int nro_tabla_primer_nivel;
+unsigned int pid_en_ejecucion;
+struct timespec tiempo_inicio;
+struct timespec tiempo_fin;
 bool detener_ejecucion;
 bool contador_rafaga_inicializado;
 bool hay_interrupciones;
@@ -95,5 +98,6 @@ void entrada_tlb_destroy(void* entrada_a_destruir);
 void agregar_entrada_tlb(double numero_pagina, int numero_marco);
 entrada_tlb* tlb(double numero_pagina);
 bool pagina_encontrada(void* entrada);
+void setear_contador_rafaga();
 
 #endif /* CPU_H_ */
