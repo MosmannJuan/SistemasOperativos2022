@@ -101,6 +101,7 @@ sem_t semaforo_lista_running_remove;
 sem_t semaforo_grado_multiprogramacion;
 sem_t sem_sincro_running;
 sem_t sem_sincro_new_ready;
+sem_t sem_sincro_suspension;
 sem_t sem_entrada_salida;
 
 unsigned int pid_comparacion;

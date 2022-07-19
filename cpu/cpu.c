@@ -58,7 +58,7 @@ int main(void) {
 				if(atendiendo_interrupcion){
 					atendiendo_interrupcion = false;
 					//Si hubo desalojo
-					if(!pcb_a_ejecutar->id == pid_en_ejecucion) {
+					if(!(pcb_a_ejecutar->id == pid_en_ejecucion)) {
 						contador_rafaga = 0;
 						//Limpiamos tlb
 						list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
@@ -84,6 +84,7 @@ int main(void) {
 //				}
 				pid_en_ejecucion = pcb_a_ejecutar->id;
 				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
+				log_info(cpu_info_logger, "Se recibió para ejecutar el proceso %d", pid_en_ejecucion);
 				ciclo(pcb_a_ejecutar);
 				break;
 		}
@@ -166,6 +167,7 @@ void ejecutar_exit(){
 }
 
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
+	log_info(cpu_info_logger, "Ejecuto instrucción READ en la dirección lógica %d", direccion_logica);
 	//Calculo la dirección física a través de la MMU
 	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
@@ -183,6 +185,7 @@ void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
 }
 
 void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir, int tabla_paginas){
+	log_info(cpu_info_logger, "Ejecuto instrucción WRITE en la dirección lógica %d, con el valor %d", direccion_logica, valor_a_escribir);
 	//Calculo la dirección física a través de la MMU
 	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
@@ -244,7 +247,7 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 		dir_fisica = (entrada_encontrada->marco * tamanio_pagina) + desplazamiento;
 		if(strcmp(reemplazo_tlb, "LRU") == 0) list_add(tabla_tlb, entrada_encontrada);
 	}else{
-		log_info(cpu_info_logger, "No encontré en tlb la página: %f", num_pagina);
+		log_info(cpu_info_logger, "No encontré en tlb la página: %d", (int)num_pagina);
 		//Acceso para conocer el marco 2do paso
 		mensaje_memoria mensaje_segunda_entrada = OBTENER_NUMERO_MARCO;
 		send(conexion_memoria, &mensaje_segunda_entrada, sizeof(int), 0);

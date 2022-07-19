@@ -34,6 +34,8 @@ int main(void) {
 				log_info(logger_memoria, "Recibí la accion: %d de cpu", accion_recibida);
 				switch(accion_recibida){
 					case ESCRIBIR: ;
+						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Escritura)");
+						sleep(retardo_memoria/1000);
 						//Recibo la dirección física calculada por mmu y el valor a escribir
 						datos_direccion direccion_escritura;
 						recv(conexion_cpu, &direccion_escritura.direccion_fisica, sizeof(double), 0);
@@ -47,17 +49,21 @@ int main(void) {
 						send(conexion_cpu, &respuesta_escritura, sizeof(int), 0);
 						break;
 					case LEER: ;
-					//Recibo la dirección física calculada por mmu
-					datos_direccion direccion_lectura;
-					recv(conexion_cpu, &direccion_lectura.direccion_fisica, sizeof(double), 0);
-					recv(conexion_cpu, &direccion_lectura.tabla_segundo_nivel, sizeof(int), 0);
-					recv(conexion_cpu, &direccion_lectura.entrada_tabla_segundo_nivel, sizeof(double), 0);
-					//Accedo a la dirección física y leo el valor almacenado
-					unsigned int valor_leido = ejecutar_lectura(direccion_lectura);
-					//Envío el valor leído
-					send(conexion_cpu, &valor_leido, sizeof(unsigned int), 0);
-					break;
+						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Lectura)");
+						sleep(retardo_memoria/1000);
+						//Recibo la dirección física calculada por mmu
+						datos_direccion direccion_lectura;
+						recv(conexion_cpu, &direccion_lectura.direccion_fisica, sizeof(double), 0);
+						recv(conexion_cpu, &direccion_lectura.tabla_segundo_nivel, sizeof(int), 0);
+						recv(conexion_cpu, &direccion_lectura.entrada_tabla_segundo_nivel, sizeof(double), 0);
+						//Accedo a la dirección física y leo el valor almacenado
+						unsigned int valor_leido = ejecutar_lectura(direccion_lectura);
+						//Envío el valor leído
+						send(conexion_cpu, &valor_leido, sizeof(unsigned int), 0);
+						break;
 					case OBTENER_TABLA_SEGUNDO_NIVEL: ;
+						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Buscar tabla segundo nivel)");
+						sleep(retardo_memoria/1000);
 						int numero_tabla_primer_nivel;
 						recv(conexion_cpu, &numero_tabla_primer_nivel, sizeof(int), 0);
 						log_info(logger_memoria, "Recibí el numero_tabla_primer_nivel: %d", numero_tabla_primer_nivel);
@@ -70,6 +76,8 @@ int main(void) {
 						log_info(logger_memoria, "Send enviado");
 						break;
 					case OBTENER_NUMERO_MARCO: ;
+						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Buscar número de marco)");
+						sleep(retardo_memoria/1000);
 						unsigned int nro_tabla_segundo_nivel;
 						recv(conexion_cpu, &nro_tabla_segundo_nivel, sizeof(unsigned int), 0);
 						log_info(logger_memoria, "Recibí el nro_tabla_segundo_nivel: %d", nro_tabla_segundo_nivel);
@@ -81,6 +89,7 @@ int main(void) {
 						entrada_segundo_nivel* entrada_seg_nivel = (entrada_segundo_nivel*)list_get(tabla_2do_nivel, (int)entrada_2do_nivel);
 
 						if(!entrada_seg_nivel->presencia){
+							log_info(logger_memoria, "Page fault!");
 							unsigned int pid;
 							int nro_tabla_1er_nivel;
 							//TODO: Enviar mensaje a cpu avisando el page fault para pedirle el pid del proceso en running (Lo necesitamos para encontrar el archivo de swap)
@@ -428,6 +437,8 @@ char* obtener_nombre_archivo_swap(unsigned int pid){
 }
 
 void* leer_marco_completo(uint32_t numero_marco){
+	log_info(logger_memoria, "Ejecutando retardo memoria por acceso a marco");
+	sleep(retardo_memoria/1000);
 
 	void * marco_leido = malloc(tam_pagina);
 
@@ -437,6 +448,7 @@ void* leer_marco_completo(uint32_t numero_marco){
 }
 
 void* buscar_pagina_en_swap(int numero_pagina, unsigned int pid){
+	log_info(logger_memoria, "Ejecutamos el retardo de swap por busqueda de página");
 	//Aplicamos el retardo de swap solicitado
 	sleep(retardo_swap/1000);
 
@@ -455,14 +467,15 @@ void* buscar_pagina_en_swap(int numero_pagina, unsigned int pid){
 }
 
 void escribir_marco_en_memoria(uint32_t numero_marco, void* pagina_a_escribir){
-	log_info(logger_memoria, "Antes de copiar el marco");
+	log_info(logger_memoria, "Ejecutamos el retardo de memoria por escritura de marco");
+	sleep(retardo_memoria/1000);
+
 	memcpy(base_memoria + (int) (numero_marco * tam_pagina), pagina_a_escribir, tam_pagina);
-	log_info(logger_memoria, "Después de copiar el marco");
 	free(pagina_a_escribir);
-	log_info(logger_memoria, "Después de Free");
 }
 
 void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_reemplazada, unsigned int pid){
+	log_info(logger_memoria, "Ejecutamos el retardo de swap por escritura de página");
 	//Aplicamos el retardo de swap solicitado
 	sleep(retardo_swap/1000);
 
@@ -576,7 +589,7 @@ void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int 
 	//Cargo las páginas que ya se encuentran en memoria
 	inicializar_listado_memoria_actual_proceso(nro_tabla_primer_nivel, pid);
 	//Ejecuto el algoritmo correspondiente
-	if(strcmp(algoritmo_reemplazo, "CLOCK")){
+	if(strcmp(algoritmo_reemplazo, "CLOCK") == 0){
 		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
 	} else {
 		reemplazar_pagina_clock_modificado(pagina_a_reemplazar, pid);
@@ -585,6 +598,7 @@ void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int 
 }
 
 void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+	log_info(logger_memoria, "Ejecutando algoritmo de clock para ubicar la página N°%d del proceso %d", pagina_a_reemplazar->numero_pagina, pid);
 	//Busco la pagina a la que apunta el cursor
 	entrada_segundo_nivel* entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
 
@@ -603,6 +617,7 @@ void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigne
 }
 
 void reemplazar_pagina_clock_modificado(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid){
+	log_info(logger_memoria, "Ejecutando algoritmo de clock modificado para ubicar la página N°%d del proceso %d", pagina_a_reemplazar->numero_pagina, pid);
 	//Busco la pagina a la que apunta el cursor
 	entrada_segundo_nivel* entrada = clock_modificado_primer_paso();
 	//Si no encontré la página ejecuto el segundo paso (Busco alguna con uso en 0 y modificado en 1)
@@ -656,6 +671,7 @@ entrada_segundo_nivel* buscar_pagina_modif_sin_uso(){
 }
 
 void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_nivel* pagina_a_memoria, unsigned int pid){
+	log_info(logger_memoria, "Reemplazamos la página N° %d del proceso %d", pagina_a_swap->numero_pagina, pid);
 	//Leo de swap y de memoria los contenidos de las paginas
 	void* pagina_swap = buscar_pagina_en_swap(pagina_a_memoria->numero_pagina, pid);
 	void* pagina_reemplazada = leer_marco_completo(pagina_a_swap->marco);

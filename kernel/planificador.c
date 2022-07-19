@@ -227,6 +227,7 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 	pid_comparacion = pid;
 	pcb* pcb_a_suspender = list_remove_by_condition(bloqueado, es_pid_a_desbloquear);
 	sem_post(&semaforo_pid_comparacion);
+
 	if(pcb_a_suspender != NULL){
 	  //Se envia a memoria para que pase a disco
 	  int mensaje_suspender = SUSPENDER;
@@ -249,6 +250,9 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 	  grado_multiprogramacion--;
 	  sem_post( & semaforo_grado_multiprogramacion);
 	  log_info(planificador_logger, "Al suspender el proceso %d el grado de multiprogramación baja a: %d", pcb_a_suspender->id, grado_multiprogramacion);
+
+	  //Envío post al hilo de bloqueo para que saque de bloqueado suspendido y pase a ready suspendido
+	  sem_post(&sem_sincro_suspension);
 	}
 }
 
@@ -436,6 +440,7 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 		}
 	}else{
 		//Busco el proceso en la lista de bloqueados suspendidos
+		sem_wait(&sem_sincro_suspension);
 		sem_wait( & semaforo_pid_comparacion);
 		pid_comparacion = pcb_actualizado -> id;
 		pcb* pcb_suspendido = (pcb*)list_remove_by_condition(bloqueado_suspendido, es_pid_a_desbloquear);

@@ -17,6 +17,11 @@ pcb * pcb_create() {
   return pcb_nuevo;
 }
 
+void pcb_destroy(pcb * pcb_destruir) {
+  list_destroy(pcb_destruir -> instrucciones);
+  free(pcb_destruir);
+}
+
 void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
 	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	int bytes = pcb_bytes + sizeof(double) + 2*sizeof(int);
@@ -57,9 +62,7 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 
 void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes){
 
-	printf("Antes de malloc 1 \n");
 	void* memoria_asignada = malloc(bytes);
-	printf("Después de malloc 1 \n");
 	int desplazamiento = 0;
 	mensaje_cpu mensaje = PASAR_A_BLOQUEADO;
 
@@ -93,6 +96,7 @@ void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamien
 	desplazamiento  += sizeof(int);
 
 	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
+	pcb_destroy(pcb_a_enviar);
 	return memoria_asignada;
 }
 
@@ -123,6 +127,7 @@ pcb * recibir_pcb(int socket_cliente){
 	pcb* pcb_leido;
 
 	pcb_leido = pcb_create();
+	printf("Recibiendo pcb");
 
 	leer_y_asignar_pcb(socket_cliente, pcb_leido);
 

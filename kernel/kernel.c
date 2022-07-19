@@ -92,9 +92,10 @@ void inicializar_semaforos(){
     sem_init(&semaforo_lista_running_remove, 0,1);
     sem_init(&semaforo_bloqueado_suspendido, 0, 1);
     sem_init(&semaforo_grado_multiprogramacion,0,1);
+    sem_init(&sem_entrada_salida, 0, 1);
     sem_init(&sem_sincro_new_ready, 0, 0);
     sem_init(&sem_sincro_running, 0, 0);
-    sem_init(&sem_entrada_salida, 0, 1);
+    sem_init(&sem_sincro_suspension, 0, 0);
 }
 
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
