@@ -2,6 +2,7 @@
 
 pcb * pcb_create() {
   pcb * pcb_nuevo;
+
   pcb_nuevo = malloc(sizeof(pcb));
 
   if (pcb_nuevo == NULL) {
@@ -35,7 +36,9 @@ void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
 }
 
 void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
+
 	void* memoria_asignada = malloc(bytes);
+
 	int desplazamiento = 0;
 	mensaje_cpu mensaje = PASAR_A_READY;
 
@@ -49,7 +52,7 @@ void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
 }
 
 void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int socket_cliente){
-	int pcb_bytes = sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
+	int pcb_bytes = 2*sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	int bytes = pcb_bytes + sizeof(unsigned int) + sizeof(double) + sizeof(int);
 
 	void* a_enviar = serializar_mensaje_bloqueo(pcb_a_enviar, tiempo_bloqueo, bytes);
@@ -63,6 +66,7 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes){
 
 	void* memoria_asignada = malloc(bytes);
+
 	int desplazamiento = 0;
 	mensaje_cpu mensaje = PASAR_A_BLOQUEADO;
 
@@ -110,7 +114,7 @@ void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list
 
 	while(contador_de_instrucciones < cantidad_de_instrucciones){
 		Instruccion* instruccion_aux = (Instruccion *)list_get(instrucciones, contador_de_instrucciones);
-		printf("\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
+		log_info(cpu_info_logger, "\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
 		memcpy(memoria_asignada + desplazamiento, instruccion_aux, sizeof(Instruccion));
 		desplazamiento  += sizeof(Instruccion);
 		contador_de_instrucciones++;
@@ -124,10 +128,10 @@ void enviar_exit(int socket_cliente){
 }
 
 pcb * recibir_pcb(int socket_cliente){
+
 	pcb* pcb_leido;
 
 	pcb_leido = pcb_create();
-	printf("Recibiendo pcb");
 
 	leer_y_asignar_pcb(socket_cliente, pcb_leido);
 
@@ -142,35 +146,36 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 
 	//Recibo el process id
 	recv(socket_cliente, &(pcb_leido->id), sizeof(unsigned int), MSG_WAITALL);
-	printf("Pid recibido: %d \n", pcb_leido->id);
-	printf("Recibiendo pcb");
+	log_info(cpu_info_logger, "Pid recibido: %d \n", pcb_leido->id);
+	log_info(cpu_info_logger, "Recibiendo pcb");
 	//Recibo el tamaño del proceso
 	recv(socket_cliente, &(pcb_leido->tam_proceso), sizeof(unsigned int), MSG_WAITALL);
-	printf("tam_proceso recibido: %d \n", pcb_leido->tam_proceso);
+	log_info(cpu_info_logger, "tam_proceso recibido: %d \n", pcb_leido->tam_proceso);
 	//Recibo el program counter
 	recv(socket_cliente, &(pcb_leido->pc), sizeof(unsigned int), MSG_WAITALL);
-	printf("Program counter recibido: %d \n", pcb_leido->pc);
+	log_info(cpu_info_logger, "Program counter recibido: %d \n", pcb_leido->pc);
 	//Recibo la estimacion de rafaga restante
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
-	printf("Rafaga recibida: %f \n", pcb_leido->rafaga);
+	log_info(cpu_info_logger, "Rafaga recibida: %f \n", pcb_leido->rafaga);
 	//Recibo la estimacion anterior
 	recv(socket_cliente, &(pcb_leido->estimacion_anterior), sizeof(double), MSG_WAITALL);
-	printf("Estimacion anterior recibida: %f \n", pcb_leido->estimacion_anterior);
+	log_info(cpu_info_logger, "Estimacion anterior recibida: %f \n", pcb_leido->estimacion_anterior);
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
-	printf("Tabla de paginas recibida: %d \n", pcb_leido->tabla_paginas);
+	log_info(cpu_info_logger, "Tabla de paginas recibida: %d \n", pcb_leido->tabla_paginas);
 	//Recibo la cantidad de instrucciones que posee el proceso
 	recv(socket_cliente, &(cantidad_de_instrucciones), sizeof(int), MSG_WAITALL);
 
 	//Recibo las instrucciones del proceso
 	while(contador < cantidad_de_instrucciones){
 		instruccion_aux = malloc(sizeof(Instruccion));
+
 		recv(socket_cliente, instruccion_aux, sizeof(Instruccion), 0);
 		list_add(pcb_leido->instrucciones, instruccion_aux);
 		contador++;
 	}
 
-	printf("pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n tabla de paginas: %d \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, pcb_leido->tabla_paginas, list_size(pcb_leido->instrucciones));
+	log_info(cpu_info_logger, "pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n tabla de paginas: %d \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, pcb_leido->tabla_paginas, list_size(pcb_leido->instrucciones));
 }
 
 int conexion_servidor(char * ip, char * puerto){

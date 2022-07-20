@@ -66,7 +66,7 @@ typedef struct {
 } interrupcion_pcb;
 
 
-t_log * logger;
+t_log * cpu_info_logger;
 double contador_rafaga;
 double rafaga_actual;
 

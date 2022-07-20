@@ -97,6 +97,8 @@ int main(void) {
 							send(conexion_cpu, &page_fault, sizeof(int), 0);
 							recv(conexion_cpu, &pid, sizeof(unsigned int), 0);
 							recv(conexion_cpu, &nro_tabla_1er_nivel, sizeof(int), 0);
+							//Cargo las páginas que ya se encuentran en memoria
+							inicializar_listado_memoria_actual_proceso(nro_tabla_1er_nivel, pid);
 							if(list_size(listado_memoria_actual_por_proceso) < marcos_por_proceso){
 								log_info(logger_memoria, "Voy a cargar una pagina nueva!");
 								uint32_t marco_libre = *(uint32_t*) list_remove(marcos_disponibles, 0);
@@ -373,8 +375,12 @@ int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
 void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
 	log_info(logger_memoria, "Se suspende el proceso: %d cuya tabla de primer nivel es: %d", pid, nro_tabla_paginas);
 
-	//Aplicamos el retardo de swap solicitado
-	sleep(retardo_swap/1000);
+	//Busco el cursor asociado al proceso para setearlo de nuevo en 0
+	sem_wait(&semaforo_pid_comparacion);
+	pid_comparacion = pid;
+	cursor_por_proceso* relacion = list_find(relaciones_proceso_cursor, es_cursor_del_proceso_actual);
+	sem_post(&semaforo_pid_comparacion);
+	relacion->posicion_cursor = 0;
 
 	//Obtengo la tabla de primer nivel correspondiente al proceso
 	t_list* tabla_primer_nivel_proceso = (t_list*) list_get(tablas_primer_nivel, nro_tabla_paginas);
@@ -404,6 +410,9 @@ void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
 				//Leo de memoria el marco completo
 				void* contenido_de_marco_leido = leer_marco_completo(pagina->marco);
 
+				log_info(logger_memoria, "Ejecutando retardo memoria por swap");
+				sleep(retardo_swap/1000);
+
 				//Abro el archivo y escribo los datos
 				FILE * archivo = fopen(path_archivo_swap, "r+");
 
@@ -414,8 +423,9 @@ void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
 				fwrite(contenido_de_marco_leido, tam_pagina, 1, archivo);
 				fclose(archivo);
 
-				//Paso presencia a 0 y libero el marco
+				//Paso presencia y modificado a 0  y libero el marco
 				pagina->presencia = false;
+				pagina->modificado = false;
 				uint32_t* marco_disponible = malloc(sizeof(uint32_t));
 				*marco_disponible = pagina->marco;
 				list_add(marcos_disponibles, marco_disponible);
@@ -548,6 +558,9 @@ void liberar_entrada_segundo_nivel(void* entrada){
 // ----------------- ALGORITMOS DE REEMPLAZO --------------------
 //---------------------------------------------------------------
 void inicializar_listado_memoria_actual_proceso(int tabla_primer_nivel, unsigned int pid){
+	//Limpio el listado de los marcos asignados para el proceso actual
+	list_clean(listado_memoria_actual_por_proceso);
+
 	//Cargo tabla de primer nivel
 	t_list* tabla_de_primer_nivel = (t_list*)list_get(tablas_primer_nivel, tabla_primer_nivel);
 
@@ -586,8 +599,9 @@ bool ordenar_por_numero_marco(void * unaEntrada, void * otraEntrada){
 }
 
 void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid, int nro_tabla_primer_nivel){
-	//Cargo las páginas que ya se encuentran en memoria
-	inicializar_listado_memoria_actual_proceso(nro_tabla_primer_nivel, pid);
+
+	log_info(logger_memoria, "La posición inicial del cursor es %d", cursor);
+
 	//Ejecuto el algoritmo correspondiente
 	if(strcmp(algoritmo_reemplazo, "CLOCK") == 0){
 		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
@@ -608,6 +622,7 @@ void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigne
 		entrada->uso = false;
 
 		mover_cursor();
+		log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
 
 		//Busco la siguiente pagina
 		entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
@@ -637,6 +652,7 @@ entrada_segundo_nivel* clock_modificado_primer_paso(){
 			}
 			//Desplazo el cursor
 			mover_cursor();
+			log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
 		}
 		//Si no la encontré en toda la vuelta retorno Null
 		return NULL;
@@ -665,6 +681,7 @@ entrada_segundo_nivel* buscar_pagina_modif_sin_uso(){
 		//Si no la encuentro cambio el bit de uso y desplazo el cursor
 		entrada->uso = false;
 		mover_cursor();
+		log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
 	}
 	//Si no la encontré en toda la vuelta retorno Null
 	return NULL;
@@ -694,6 +711,7 @@ void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_ni
 
 	//Vuelvo a mover el cursor
 	mover_cursor();
+	log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
 
 	//Guardo la última posición del cursor en la lista de las relaciones
 	guardar_cursor_del_proceso(pid);

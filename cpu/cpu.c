@@ -7,7 +7,6 @@ int main(void) {
 	contador_rafaga_inicializado = false;
 	atendiendo_interrupcion = false;
 
-	cpu_logger = log_create("cpuErrors.log", "cpuError_logger", 1, LOG_LEVEL_ERROR);
 	cpu_info_logger = log_create("cpu_info.log", "cpu_info_logger", 1, LOG_LEVEL_INFO);
 
 	cpu_config = config_create("cpu.config");
@@ -89,7 +88,7 @@ int main(void) {
 				break;
 		}
 	}
-	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpu_logger, cpu_config);
+	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpu_info_logger, cpu_config);
 }
 
 
@@ -146,13 +145,13 @@ return(NULL);
 //---------------------------------------------------------------
 
 void ejecutar_NO_OP(){
-	log_info(cpu_logger,"Ejecuto el NO_OP");
+	log_info(cpu_info_logger,"Ejecuto el NO_OP");
 	sleep(retardo_NOOP/1000);
 
 }
 
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
-	log_info(cpu_logger,"Ejecuto la I_O");
+	log_info(cpu_info_logger,"Ejecuto la I_O");
 	setear_contador_rafaga();
 	pcb_a_bloquear->pc++;
 	enviar_pcb_bloqueo(pcb_a_bloquear, tiempo_bloqueo, conexion_dispatch);
@@ -161,7 +160,7 @@ void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 }
 
 void ejecutar_exit(){
-	log_info(cpu_logger,"Ejecuto el EXIT");
+	log_info(cpu_info_logger,"Ejecuto el EXIT");
 	enviar_exit(conexion_dispatch);
 	detener_ejecucion = true;
 }
@@ -200,7 +199,7 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 	//Espero el mensaje de memoria indicando que terminó la escritura OK
 	int resultado_escritura;
 	recv(conexion_memoria, &resultado_escritura, sizeof(int), 0);
-	if(!(resultado_escritura == 1)) log_info(cpu_logger, "No se ha podido escribir el mensaje solicitado en memoria");
+	if(!(resultado_escritura == 1)) log_info(cpu_info_logger, "No se ha podido escribir el mensaje solicitado en memoria");
 }
 
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
@@ -367,7 +366,9 @@ bool pagina_encontrada(void* entrada){
 
 void agregar_entrada_tlb(double numero_pagina, int numero_marco){
 	log_info(cpu_info_logger, "Agrego página:  %d y marco %d a tlb", (int) numero_pagina, numero_marco);
+
 	entrada_tlb* entrada_a_agregar = malloc(sizeof(entrada_tlb));
+
 	entrada_a_agregar->marco = numero_marco;
 	entrada_a_agregar->pagina = (int)numero_pagina;
 
@@ -377,7 +378,7 @@ void agregar_entrada_tlb(double numero_pagina, int numero_marco){
 		log_info(cpu_info_logger, "Removí la entrada con pagina %d y marco %d", entrada_removida->pagina, entrada_removida->marco);
 		free(entrada_removida);
 	}
-	if(list_size(tabla_tlb) > entradas_tlb) log_error(cpu_logger, "Overflow en tabla tlb");
+	if(list_size(tabla_tlb) > entradas_tlb) log_error(cpu_info_logger, "Overflow en tabla tlb");
 	log_info(cpu_info_logger, "La tlb antes de asignar tiene %d registros", list_size(tabla_tlb));
 	list_add(tabla_tlb, entrada_a_agregar);
 	log_info(cpu_info_logger, "La tlb después de asignar tiene %d registros", list_size(tabla_tlb));
