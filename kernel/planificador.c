@@ -55,8 +55,6 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
   pcb_creado -> rafaga = estimacion_inicial;
   pcb_creado -> estimacion_anterior = estimacion_inicial;
 
-  log_info(planificador_logger, "ID PROCESO: %d \n TAM PROCESO: %d \n CANTIDAD INSTRUCCIONES: %d \n PROGRAM COUNTER: %d \n RAFAGA RESTANTE: %f ESTIMACION ANTERIOR: %f \n", pcb_creado -> id, pcb_creado -> tam_proceso, list_size(pcb_creado -> instrucciones), pcb_creado -> pc, pcb_creado -> rafaga, pcb_creado->estimacion_anterior);
-
   return pcb_creado;
 }
 
@@ -588,7 +586,6 @@ void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list
 
 	while(contador_de_instrucciones < cantidad_de_instrucciones){
 		Instruccion* instruccion_aux = (Instruccion *)list_get(instrucciones, contador_de_instrucciones);
-		log_info(planificador_logger, "\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
 		memcpy(memoria_asignada + desplazamiento, instruccion_aux, sizeof(Instruccion));
 		desplazamiento  += sizeof(Instruccion);
 		contador_de_instrucciones++;

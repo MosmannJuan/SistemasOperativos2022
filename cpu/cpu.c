@@ -67,20 +67,7 @@ int main(void) {
 					//Limpiamos tlb
 					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 				}
-//				if(atendiendo_interrupcion && pcb_a_ejecutar->id == pid_en_ejecucion){
-//					atendiendo_interrupcion = false;
-//					sem_post(&sem_sincro_contador);
-//				} else {
-//					sem_wait(&sem_contador);
-//					contador_rafaga = 0;
-//					sem_post(&sem_contador);
-//					if(atendiendo_interrupcion){
-//						atendiendo_interrupcion = false;
-//						sem_post(&sem_sincro_contador);
-//					}
-//					//Limpiamos tlb
-//					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
-//				}
+
 				pid_en_ejecucion = pcb_a_ejecutar->id;
 				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
 				log_info(cpu_info_logger, "Se recibió para ejecutar el proceso %d", pid_en_ejecucion);
@@ -102,7 +89,7 @@ void ciclo(pcb* pcb_a_ejecutar){
 	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) && !detener_ejecucion){
 		decode(pcb_a_ejecutar,fetch(pcb_a_ejecutar));
 		pcb_a_ejecutar->pc++;
-		if(hay_interrupciones) atender_interrupcion(pcb_a_ejecutar);
+		if(hay_interrupciones && !detener_ejecucion) atender_interrupcion(pcb_a_ejecutar);
 	}
 }
 

@@ -13,6 +13,7 @@ pcb * pcb_create() {
   if (pcb_nuevo -> instrucciones == NULL) {
     free(pcb_nuevo);
     return NULL;
+
   }
 
   return pcb_nuevo;
@@ -78,8 +79,6 @@ void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo,
 	desplazamiento  += sizeof(double);
 	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
 
-
-
 	return memoria_asignada;
 }
 
@@ -114,7 +113,6 @@ void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list
 
 	while(contador_de_instrucciones < cantidad_de_instrucciones){
 		Instruccion* instruccion_aux = (Instruccion *)list_get(instrucciones, contador_de_instrucciones);
-		log_info(cpu_info_logger, "\n Instruccion a enviar: \n tipo: %d \n param1: %d \n param2:%d \n", instruccion_aux->tipo, instruccion_aux->params[0], instruccion_aux->params[1]);
 		memcpy(memoria_asignada + desplazamiento, instruccion_aux, sizeof(Instruccion));
 		desplazamiento  += sizeof(Instruccion);
 		contador_de_instrucciones++;
@@ -146,23 +144,16 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 
 	//Recibo el process id
 	recv(socket_cliente, &(pcb_leido->id), sizeof(unsigned int), MSG_WAITALL);
-	log_info(cpu_info_logger, "Pid recibido: %d \n", pcb_leido->id);
-	log_info(cpu_info_logger, "Recibiendo pcb");
 	//Recibo el tamaño del proceso
 	recv(socket_cliente, &(pcb_leido->tam_proceso), sizeof(unsigned int), MSG_WAITALL);
-	log_info(cpu_info_logger, "tam_proceso recibido: %d \n", pcb_leido->tam_proceso);
 	//Recibo el program counter
 	recv(socket_cliente, &(pcb_leido->pc), sizeof(unsigned int), MSG_WAITALL);
-	log_info(cpu_info_logger, "Program counter recibido: %d \n", pcb_leido->pc);
 	//Recibo la estimacion de rafaga restante
 	recv(socket_cliente, &(pcb_leido->rafaga), sizeof(double), MSG_WAITALL);
-	log_info(cpu_info_logger, "Rafaga recibida: %f \n", pcb_leido->rafaga);
 	//Recibo la estimacion anterior
 	recv(socket_cliente, &(pcb_leido->estimacion_anterior), sizeof(double), MSG_WAITALL);
-	log_info(cpu_info_logger, "Estimacion anterior recibida: %f \n", pcb_leido->estimacion_anterior);
 	//Recibo la estimacion de rafaga
 	recv(socket_cliente, &(pcb_leido->tabla_paginas), sizeof(int), MSG_WAITALL);
-	log_info(cpu_info_logger, "Tabla de paginas recibida: %d \n", pcb_leido->tabla_paginas);
 	//Recibo la cantidad de instrucciones que posee el proceso
 	recv(socket_cliente, &(cantidad_de_instrucciones), sizeof(int), MSG_WAITALL);
 
@@ -174,8 +165,6 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido){
 		list_add(pcb_leido->instrucciones, instruccion_aux);
 		contador++;
 	}
-
-	log_info(cpu_info_logger, "pcb recibido: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n tabla de paginas: %d \n cantidad de instrucciones: %d", pcb_leido->id, pcb_leido->tam_proceso, pcb_leido->pc, pcb_leido->rafaga, pcb_leido->tabla_paginas, list_size(pcb_leido->instrucciones));
 }
 
 int conexion_servidor(char * ip, char * puerto){
