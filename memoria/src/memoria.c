@@ -92,7 +92,7 @@ int main(void) {
 							log_info(logger_memoria, "Page fault!");
 							unsigned int pid;
 							int nro_tabla_1er_nivel;
-							//TODO: Enviar mensaje a cpu avisando el page fault para pedirle el pid del proceso en running (Lo necesitamos para encontrar el archivo de swap)
+							// Enviar mensaje a cpu avisando el page fault para pedirle el pid del proceso en running (Lo necesitamos para encontrar el archivo de swap)
 							int page_fault = -1;
 							send(conexion_cpu, &page_fault, sizeof(int), 0);
 							recv(conexion_cpu, &pid, sizeof(unsigned int), 0);
@@ -101,7 +101,9 @@ int main(void) {
 							inicializar_listado_memoria_actual_proceso(nro_tabla_1er_nivel, pid);
 							if(list_size(listado_memoria_actual_por_proceso) < marcos_por_proceso){
 								log_info(logger_memoria, "Voy a cargar una pagina nueva!");
-								uint32_t marco_libre = *(uint32_t*) list_remove(marcos_disponibles, 0);
+								uint32_t* marco_libre_ptr = (uint32_t*) list_remove(marcos_disponibles, 0);
+								uint32_t marco_libre = *marco_libre_ptr;
+								free(marco_libre_ptr);
 								entrada_seg_nivel->marco = marco_libre;
 								entrada_seg_nivel->presencia = true;
 								entrada_seg_nivel->uso = true;
@@ -497,6 +499,8 @@ void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_
 	fwrite(contenido_pagina_reemplazada, tam_pagina, 1, archivo_swap);
 
 	fclose(archivo_swap);
+
+	free(contenido_pagina_reemplazada);
 }
 
 //---------------------------------------------------------------

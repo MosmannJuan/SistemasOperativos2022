@@ -31,9 +31,9 @@ void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
 	void* a_enviar = serializar_mensaje_interrupcion(pcb_a_enviar, bytes);
 
 	//Enviamos estructura de bloqueo de pcb
-	send(socket_cliente, a_enviar, bytes, 0);
+	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
 
-	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
 }
 
 void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
@@ -59,9 +59,9 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 	void* a_enviar = serializar_mensaje_bloqueo(pcb_a_enviar, tiempo_bloqueo, bytes);
 
 	//Enviamos estructura de bloqueo de pcb
-	send(socket_cliente, a_enviar, bytes, 0);
+	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
 
-	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
 }
 
 void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes){

@@ -2,7 +2,6 @@
 
 
 int main(void) {
-	pthread_t hilo_contador_rafaga;
 	pthread_t hilo_interrupcion_handler;
 	contador_rafaga_inicializado = false;
 	atendiendo_interrupcion = false;
@@ -43,36 +42,31 @@ int main(void) {
 		mensaje_cpu mensaje_recibido;
 		recv(conexion_dispatch, &mensaje_recibido, sizeof(int), 0);
 		log_info(cpu_info_logger, "Recibí de kernel el mensaje: %d", mensaje_recibido);
-		switch(mensaje_recibido){
-			case EVALUAR_DESALOJO:
-				send(conexion_dispatch, &mensaje_recibido, sizeof(int), 0);
-				send(conexion_dispatch, &contador_rafaga, sizeof(double), 0);
-				break;
-			case EJECUTAR:
-				hay_interrupciones = false;
-				//if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
-				clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
-				pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
-				//Si el proceso a ejecutar llegó de atender una interrupción
-				if(atendiendo_interrupcion){
-					atendiendo_interrupcion = false;
-					//Si hubo desalojo
-					if(!(pcb_a_ejecutar->id == pid_en_ejecucion)) {
-						contador_rafaga = 0;
-						//Limpiamos tlb
-						list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
-					}
-				}else{
+		if(mensaje_recibido == EJECUTAR){
+			hay_interrupciones = false;
+			//if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
+			clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
+			pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
+			//Si el proceso a ejecutar llegó de atender una interrupción
+			if(atendiendo_interrupcion){
+				atendiendo_interrupcion = false;
+				//Si hubo desalojo
+				if(!(pcb_a_ejecutar->id == pid_en_ejecucion)) {
 					contador_rafaga = 0;
 					//Limpiamos tlb
 					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
 				}
+			}else{
+				contador_rafaga = 0;
+				//Limpiamos tlb
+				list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
+			}
 
-				pid_en_ejecucion = pcb_a_ejecutar->id;
-				nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
-				log_info(cpu_info_logger, "Se recibió para ejecutar el proceso %d", pid_en_ejecucion);
-				ciclo(pcb_a_ejecutar);
-				break;
+			pid_en_ejecucion = pcb_a_ejecutar->id;
+			nro_tabla_primer_nivel = pcb_a_ejecutar->tabla_paginas;
+			log_info(cpu_info_logger, "Se recibió para ejecutar el proceso %d", pid_en_ejecucion);
+			ciclo(pcb_a_ejecutar);
+
 		}
 	}
 	terminar_programa(conexion_memoria, conexion_dispatch, conexion_interrupt, cpu_info_logger, cpu_config);

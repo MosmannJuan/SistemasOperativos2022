@@ -20,7 +20,6 @@ typedef enum{
 	PASAR_A_BLOQUEADO,
 	PASAR_A_READY,
 	PASAR_A_EXIT,
-	EVALUAR_DESALOJO,
 	EJECUTAR
 } mensaje_cpu;
 
@@ -130,7 +129,6 @@ pcb * pcb_create();
 bool es_pid_a_desbloquear(void * pcb_desbloqueo);
 bool es_pid_en_exit(void* rel_consola_proceso);
 bool ordenar_por_estimacion_rafaga(void * unPcb, void* otroPcb);
-void evaluar_desalojo(double tiempo_ejecucion_actual);
 void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 void inicializar_listas_procesos();
 void pcb_destroy(pcb * pcb_destruir);

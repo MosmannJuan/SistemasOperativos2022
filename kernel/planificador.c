@@ -165,7 +165,6 @@ void exit_largo_plazo(){
 		pid_comparacion_exit = pcb_exit->id;
 		relacion_consola_proceso* relacion_cp = list_remove_by_condition(lista_relacion_consola_proceso, es_pid_en_exit);
 		sem_post(&semaforo_pid_comparacion_exit);
-		//TODO: Ver si esto puede fallar para devolver false
 		bool finalizacion_exitosa = true;
 		send(relacion_cp->conexion_consola, &finalizacion_exitosa, sizeof(bool), 0);
 		relacion_consola_proceso_destroy(relacion_cp);
@@ -189,7 +188,7 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
   while (1) {
     if (list_size(ready_suspendido) > 0 && grado_multiprogramacion < limite_grado_multiprogramacion) {
       log_info(planificador_logger, "Agregando a ready desde suspendido");
-    	sem_wait( & semaforo_lista_ready_suspendido_remove);
+      sem_wait( & semaforo_lista_ready_suspendido_remove);
       pcb * pcb_ready = list_remove(ready_suspendido, 0);
       sem_post( & semaforo_lista_ready_suspendido_remove);
 
@@ -305,7 +304,6 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
     		break;
     	default:
-    		//TODO: Loggear error de no se ha podido interpretar el mensaje de cpu
     		break;
   }
 }
@@ -465,34 +463,6 @@ void* hilo_contador_suspension_por_bloqueo(void* args){
 	return NULL;
 }
 
-void evaluar_desalojo(double rafaga_cpu_ejecutada){
-
-	//Saco el pcb en running y le actualizo su ráfaga
-	sem_wait(&sem_sincro_running);
-	sem_wait(&semaforo_lista_running_remove);
-	pcb* pcb_running = list_get(running, 0);
-	sem_post(&semaforo_lista_running_remove);
-	double tiempo_restante_proceso_running = pcb_running->rafaga - rafaga_cpu_ejecutada;
-	log_info(planificador_logger, "\nTiempo restante de proceso en running: %f \n", tiempo_restante_proceso_running);
-	//sleep(5);
-
-
-
-	//Saco el pcb de mayor prioridad de la lista de ready
-	sem_wait(&semaforo_lista_ready_remove);
-	pcb* pcb_mayor_prioridad_ready = list_get(ready, 0);
-	sem_post(&semaforo_lista_ready_remove);
-
-	log_info(planificador_logger, "Tiempo restante de proceso N° %d: %f\n", pcb_mayor_prioridad_ready->id, pcb_mayor_prioridad_ready->rafaga);
-	//Comparo sus ráfagas
-	if(pcb_mayor_prioridad_ready->rafaga < tiempo_restante_proceso_running){
-		//Se envía mensaje de interrumpir por socket interrupt
-		int mensaje_interrupt = 1;
-		send(interrupt, &mensaje_interrupt, sizeof(int), 0);
-	}
-	sem_post(&sem_sincro_running);
-}
-
 //---------------------------------------------------------------
 // ------------ MANEJO DE COMUNICACIÓN CON CPU DISPATCH ---------
 //---------------------------------------------------------------
@@ -532,11 +502,6 @@ void* cpu_dispatch_handler(void* args){
 					planificador_de_corto_plazo_sjf_running(mensaje_interrupcion);
 				}else
 					planificador_de_corto_plazo_fifo_running(mensaje_interrupcion);
-				break;
-			case EVALUAR_DESALOJO: ;
-				double tiempo_ejecucion_actual;
-				recv(dispatch, &tiempo_ejecucion_actual, sizeof(double), 0);
-				evaluar_desalojo(tiempo_ejecucion_actual);
 				break;
 			case PASAR_A_EXIT:
 				log_info(planificador_logger, "Pasar a exit");
@@ -597,9 +562,9 @@ void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente)
 	int bytes = 2*sizeof(int) + 3*sizeof(unsigned int) + 2*sizeof(double) + list_size(pcb_a_enviar->instrucciones) * sizeof(Instruccion);
 	void* a_enviar = serializar_pcb(pcb_a_enviar, bytes);
 
-	send(socket_cliente, a_enviar, bytes, 0);
+	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
 
-	//free(a_enviar); TODO: Ver por que rompe, posible memory leak
+	free(a_enviar);
 }
 
 pcb* recibir_pcb(int socket_cliente){
