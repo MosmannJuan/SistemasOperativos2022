@@ -96,6 +96,8 @@ void inicializar_semaforos(){
     sem_init(&sem_sincro_new_ready, 0, 0);
     sem_init(&sem_sincro_running, 0, 0);
     sem_init(&sem_sincro_suspension, 0, 0);
+    sem_init(&sem_cpu_libre, 0, 1);
+    sem_init(&sem_hay_pcb_ready, 0, 0);
 }
 
 void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
@@ -105,13 +107,13 @@ void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  *
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
 
-	if(strcmp(algoritmo_planificacion, "SRT") == 0) {
-		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_sjf_ready, NULL);
+//	if(strcmp(algoritmo_planificacion, "SRT") == 0) {
+		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_pasar_running, NULL);
 		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL); Ya no es más hilo
-	} else {
-		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
+//	} else {
+//		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
 		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL); Ya no es más hilo
-	}
+//	}
 }
 
 void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler){

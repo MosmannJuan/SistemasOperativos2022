@@ -102,6 +102,8 @@ sem_t sem_sincro_running;
 sem_t sem_sincro_new_ready;
 sem_t sem_sincro_suspension;
 sem_t sem_entrada_salida;
+sem_t sem_hay_pcb_ready;
+sem_t sem_cpu_libre;
 
 unsigned int pid_comparacion;
 unsigned int pid_comparacion_exit;
@@ -143,7 +145,7 @@ void * hilo_de_largo_plazo (void * args);
 void * hilo_pcb_new (void * args_p);
 void * hilo_bloqueo_proceso (void* args_p);
 void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
-void * hilo_de_corto_plazo_sjf_ready(void* argumentos);
+void * hilo_de_corto_plazo_pasar_running(void* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
 double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion_anterior);

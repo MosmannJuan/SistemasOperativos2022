@@ -129,6 +129,7 @@ void * hilo_new_ready(void * argumentos){
 			  grado_multiprogramacion++;
 			  sem_post( & semaforo_grado_multiprogramacion);
 
+			  sem_post(&sem_hay_pcb_ready);
 
 			  log_info(planificador_logger, "Agregado a ready el proceso %d desde new", pcb_ready->id);
 
@@ -146,6 +147,7 @@ void exit_largo_plazo(){
 		pcb* pcb_exit = (pcb*) list_remove(running, 0);
 		log_info(planificador_logger, "pcb exit: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_exit->id, pcb_exit->tam_proceso, pcb_exit->pc, pcb_exit->rafaga, list_size(pcb_exit->instrucciones));
 		sem_post(&semaforo_lista_running_remove);
+		sem_post(&sem_cpu_libre);
 		log_info(planificador_logger, "Agrego pcb a exit");
 		list_add(exit_estado, pcb_exit);
 
@@ -211,6 +213,8 @@ void * hilo_mediano_plazo_ready(void * argumentos) {
       grado_multiprogramacion++;
       sem_post( & semaforo_grado_multiprogramacion);
 
+      sem_post(&sem_hay_pcb_ready);
+
       log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
 
     }
@@ -261,9 +265,14 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 //--------------------------------------------------------------
 
 
-void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
+void * hilo_de_corto_plazo_pasar_running(void * argumentos) {
   while (1) {
-    if (list_size(ready) > 0 && list_size(running) == 0) {
+    //if (list_size(ready) > 0 && list_size(running) == 0) {
+	  log_info(planificador_logger, "Esperando llegada de proceso a ready");
+	  sem_wait(&sem_hay_pcb_ready);
+	  log_info(planificador_logger, "Esperando cpu libre");
+	  sem_wait(&sem_cpu_libre);
+	  log_info(planificador_logger, "Enviando proceso a ejecutar");
       //Sacamos de lista de ready
       pcb * pcb_running = list_remove(ready, 0);
       mensaje_cpu mensaje_ejecutar = EJECUTAR;
@@ -275,7 +284,7 @@ void * hilo_de_corto_plazo_fifo_ready(void * argumentos) {
       sem_post(&semaforo_lista_running_remove);
       sem_post(&sem_sincro_running);
       log_info(planificador_logger, "Agregamos el proceso %d a running", pcb_running->id);
-    }
+    //}
   }
 }
 
@@ -289,6 +298,7 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
 			sem_wait(&sem_sincro_running);
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
     		pcb_destroy(pcb_destruir);
+    		sem_post(&sem_cpu_libre);
     		list_add(bloqueado, datos_bloqueo->pcb_a_bloquear);
     		//Comienzo hilo de evaluacion de suspendido
 			unsigned int* pid_bloqueo = malloc(sizeof(unsigned int));
@@ -346,6 +356,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			log_info(planificador_logger, "Sacamos pcb actual de running \n");
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
 			pcb_destroy(pcb_destruir);
+			sem_post(&sem_cpu_libre);
 			argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
 			args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
 			args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;
@@ -363,10 +374,12 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			sem_wait( & semaforo_lista_ready_add);
 			int indice_lista = list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);
 			sem_post( & semaforo_lista_ready_add);
+			sem_post(&sem_hay_pcb_ready);
 			log_info(planificador_logger, "Agregamos a ready al proceso N° %d en la posición %d", pcb_interrupcion->id, indice_lista);
 			//Sacamos de la lista de running al proceso una vez que finalizamos la evaluación de prioridades
 			sem_wait(&sem_sincro_running);
 			pcb_destroy((pcb*)list_remove(running, 0));
+			sem_post(&sem_cpu_libre);
 			log_info(planificador_logger, "Sacamos al pcb de running");
 			break;
 		default:
@@ -422,6 +435,7 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 			sem_wait(&semaforo_lista_ready_add);
 			list_add_sorted(ready, pcb_bloqueado, ordenar_por_estimacion_rafaga);
 			sem_post(&semaforo_lista_ready_add);
+			sem_post(&sem_hay_pcb_ready);
 			//Si tengo algo en running evaluo el desalojo
 			if(list_size(running) > 0){
 				log_info(planificador_logger, "Enviamos mensaje para evaluar desalojo por llegada de nuevo proceso a ready (De bloqueado)");
@@ -433,6 +447,7 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 			sem_wait(&semaforo_lista_ready_add);
 			list_add(ready, pcb_bloqueado);
 			sem_post(&semaforo_lista_ready_add);
+			sem_post(&sem_hay_pcb_ready);
 		}
 	}else{
 		//Busco el proceso en la lista de bloqueados suspendidos
