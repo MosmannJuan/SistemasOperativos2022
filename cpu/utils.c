@@ -20,8 +20,12 @@ pcb * pcb_create() {
 }
 
 void pcb_destroy(pcb * pcb_destruir) {
-  list_destroy(pcb_destruir -> instrucciones);
+  list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
   free(pcb_destruir);
+}
+
+void instruccion_destroy(void* instruccion_a_destruir){
+	free(instruccion_a_destruir);
 }
 
 void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){

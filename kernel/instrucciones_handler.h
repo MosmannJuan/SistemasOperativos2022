@@ -42,7 +42,7 @@ typedef struct {
 
 int recibir_int(int socket_cliente);
 void* atender_instrucciones_cliente(void* pointer_void_cliente_fd);
-void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso, int socket_cliente);
+void crear_proceso(t_list * instrucciones,  unsigned int tam_proceso, int socket_cliente);
 
 
 #endif /* INSTRUCCIONES_HANDLER_H_ */

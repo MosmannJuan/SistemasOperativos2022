@@ -39,7 +39,4 @@ int main(int argc, char ** argv) {
 
   //Finalizar conexion socket, logger y config.
    terminar_programa(conexion, error_logger, info_logger, consola_config);
-
-
-
-   }
+}

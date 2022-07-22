@@ -141,7 +141,7 @@ void exit_largo_plazo();
 void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
-void * hilo_pcb_new (void * args_p);
+unsigned int crear_pcb_new (t_list* instrucciones, unsigned int tam_proceso);
 void * hilo_bloqueo_proceso (void* args_p);
 void * hilo_de_corto_plazo_pasar_running(void* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
@@ -152,5 +152,6 @@ void* hilo_contador_suspension_por_bloqueo(void* pid);
 void planificador_largo_plazo_ready();
 void planificador_mediano_plazo_ready();
 void* hilo_pasar_ready(void* args);
+void instruccion_destroy(void* instruccion_a_destruir);
 
 #endif /* PLANIFICADOR_H_ */

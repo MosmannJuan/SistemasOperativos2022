@@ -89,5 +89,6 @@ int conexion_servidor(char * ip, char * puerto);
 int iniciar_servidor(char * , char * );
 int esperar_cliente(int);
 void pcb_destroy(pcb * pcb_destruir);
+void instruccion_destroy(void* instruccion_a_destruir);
 
 #endif /* UTILS_H_ */

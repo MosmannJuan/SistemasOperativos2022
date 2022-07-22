@@ -32,7 +32,7 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
     case EXIT:
       break;
     case -1:
-      iniciar_thread_largo_plazo(instrucciones, tam_proceso, cliente_fd);
+    	crear_proceso(instrucciones, tam_proceso, cliente_fd);
       return NULL;
     default:
       break;
@@ -43,26 +43,17 @@ void* atender_instrucciones_cliente(void* pointer_argumentos) {
 
 }
 
+void crear_proceso(t_list * instrucciones,  unsigned int tam_proceso, int socket_cliente){
 
-void iniciar_thread_largo_plazo(t_list * instrucciones,  unsigned int tam_proceso, int socket_cliente){
-	pthread_t largo_plazo_thread;
-	argumentos_largo_plazo *args_largo_plazo = malloc(sizeof(argumentos_largo_plazo));
-	args_largo_plazo->instrucciones = instrucciones;
-	args_largo_plazo->tam_proceso = tam_proceso;
-
-	pthread_create(&largo_plazo_thread, NULL, hilo_pcb_new, args_largo_plazo);
-	void* retorno_hilo;
-	pthread_join(largo_plazo_thread, &retorno_hilo);
-
-//	void * retorno_hilo = hilo_pcb_new(args_largo_plazo);
+	unsigned int pid_creado = crear_pcb_new(instrucciones, tam_proceso);
 
 	relacion_consola_proceso* rel_consola_proceso = malloc(sizeof(relacion_consola_proceso));
 
-	rel_consola_proceso->pid = *((unsigned int*) retorno_hilo);
-	free(retorno_hilo);
+	rel_consola_proceso->pid = pid_creado;
+
 	rel_consola_proceso->conexion_consola = socket_cliente;
 
-	printf("El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
+	log_info(planificador_logger, "El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
 
 	list_add(lista_relacion_consola_proceso, rel_consola_proceso);
 

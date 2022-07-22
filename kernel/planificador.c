@@ -61,8 +61,12 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
 // PROCESO DE FINALIZACION DE PROCESO
 
 void pcb_destroy(pcb * pcb_destruir) {
-  list_destroy(pcb_destruir -> instrucciones);
+  list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
   free(pcb_destruir);
+}
+
+void instruccion_destroy(void* instruccion_a_destruir){
+	free(instruccion_a_destruir);
 }
 
 void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
@@ -70,14 +74,10 @@ void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
 	free(relacion_cp);
 }
 
-void * hilo_pcb_new(void * args_p) {
-	//Acceder a args
-	argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
-	t_list * instrucciones = pointer_args -> instrucciones;
-	unsigned int tam_proceso = pointer_args -> tam_proceso;
-	free(args_p);
+unsigned int crear_pcb_new(t_list* instrucciones, unsigned int tam_proceso) {
 	//Inicializar pcb
 	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
+
 	//Asignar pcb a new
 	sem_wait(&semaforo_lista_new_add);
 	list_add(new, pcb_nuevo);
@@ -85,10 +85,7 @@ void * hilo_pcb_new(void * args_p) {
 
 	log_info(planificador_logger, "Proceso %d agregado a new", pcb_nuevo->id);
 
-	unsigned int* puntero_pid = malloc(sizeof(unsigned int));
-	*puntero_pid = pcb_nuevo->id;
-	return puntero_pid;
-
+	return pcb_nuevo->id;
 }
 
 void planificador_largo_plazo_ready(){
@@ -248,8 +245,11 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 
 void* hilo_pasar_ready(void* args){
 	while(1){
+		log_info(planificador_logger, "Hilo pasar a ready");
 		sem_wait(&sem_sincro_ready);
+		log_info(planificador_logger, "Sincro ready tomado");
 		sem_wait(&sem_multiprogramacion);
+		log_info(planificador_logger, "Multiprogramación tomada");
 		if(list_size(ready_suspendido) > 0){
 			planificador_mediano_plazo_ready();
 		}else{
@@ -265,12 +265,11 @@ void* hilo_pasar_ready(void* args){
 
 void * hilo_de_corto_plazo_pasar_running(void * argumentos) {
   while (1) {
-    //if (list_size(ready) > 0 && list_size(running) == 0) {
-	  log_info(planificador_logger, "Esperando llegada de proceso a ready");
+	  log_info(planificador_logger, "Hilo pasar running");
 	  sem_wait(&sem_hay_pcb_ready);
-	  log_info(planificador_logger, "Esperando cpu libre");
+	  log_info(planificador_logger, "Tome sincro ready");
 	  sem_wait(&sem_cpu_libre);
-	  log_info(planificador_logger, "Enviando proceso a ejecutar");
+	  log_info(planificador_logger, "Tome cpu libre");
       //Sacamos de lista de ready
       pcb * pcb_running = list_remove(ready, 0);
       mensaje_cpu mensaje_ejecutar = EJECUTAR;
@@ -282,7 +281,6 @@ void * hilo_de_corto_plazo_pasar_running(void * argumentos) {
       sem_post(&semaforo_lista_running_remove);
       sem_post(&sem_sincro_running);
       log_info(planificador_logger, "Agregamos el proceso %d a running", pcb_running->id);
-    //}
   }
 }
 

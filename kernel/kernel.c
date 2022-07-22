@@ -14,14 +14,15 @@ int main(int argc, char ** argv) {
   t_log * logger_kernel = log_create("kernelerrors.log", "kernel.c", 1, LOG_LEVEL_ERROR);
   planificador_logger = log_create("planificador_logger.log", "Planificador", 1, LOG_LEVEL_INFO);
 
-  kernel_config = config_create("kernel.config");
+  char* path_archivo_config = strdup(argv[1]);
+
+  kernel_config = config_create(path_archivo_config);
   ip_kernel = strdup(config_get_string_value(kernel_config, "IP_KERNEL"));
   puerto_escucha = config_get_string_value(kernel_config, "PUERTO_ESCUCHA");
 
   ip_memoria = strdup(config_get_string_value(kernel_config,"IP_MEMORIA"));
   puerto_memoria = config_get_string_value(kernel_config,"PUERTO_MEMORIA");
 
-  //ip_cpu = strdup(config_get_string_value(kernel_config,"IP_CPU"));
   puerto_cpu_dispatch = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_DISPATCH"));
   puerto_cpu_interrupt = strdup(config_get_string_value(kernel_config,"PUERTO_CPU_INTERRUPT"));
 

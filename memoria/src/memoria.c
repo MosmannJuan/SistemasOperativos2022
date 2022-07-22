@@ -1,8 +1,9 @@
 #include "memoria.h"
-int main(void) {
+int main(int argc, char ** argv) {
 	pthread_t hilo_kernel_handler;
 
-	abrirArchivoConfiguracion();
+	char* path_archivo_config = strdup(argv[1]);
+	abrirArchivoConfiguracion(path_archivo_config);
 	conexion = iniciar_servidor(ip_memoria, puerto_escucha);
 
 	logger_memoria = log_create("memoria.log", "memoria.c", 1, LOG_LEVEL_DEBUG);
@@ -131,18 +132,18 @@ int main(void) {
 // ------------------ CONFIGURACION DE MEMORIA ------------------
 //---------------------------------------------------------------
 
-void abrirArchivoConfiguracion(){
-		memoria_config = config_create("memoria.config");
-		ip_memoria = strdup(config_get_string_value(memoria_config,"IP_MEMORIA"));
-		puerto_escucha = strdup(config_get_string_value(memoria_config,"PUERTO_ESCUCHA"));
-		tam_memoria = config_get_int_value(memoria_config,"TAM_MEMORIA");
-		tam_pagina = config_get_int_value(memoria_config,"TAM_PAGINA");
-		entradas_por_tabla = config_get_int_value(memoria_config,"ENTRADAS_POR_TABLA");
-		retardo_memoria = config_get_int_value(memoria_config,"RETARDO_MEMORIA");
-		algoritmo_reemplazo = strdup(config_get_string_value(memoria_config,"ALGORITMO_REEMPLAZO"));
-		marcos_por_proceso = config_get_int_value(memoria_config,"MARCOS_POR_PROCESO");
-		retardo_swap = config_get_int_value(memoria_config,"RETARDO_SWAP");
-		path_swap = strdup(config_get_string_value(memoria_config,"PATH_SWAP"));
+void abrirArchivoConfiguracion(char* path_archivo_config){
+	memoria_config = config_create(path_archivo_config);
+	ip_memoria = strdup(config_get_string_value(memoria_config,"IP_MEMORIA"));
+	puerto_escucha = strdup(config_get_string_value(memoria_config,"PUERTO_ESCUCHA"));
+	tam_memoria = config_get_int_value(memoria_config,"TAM_MEMORIA");
+	tam_pagina = config_get_int_value(memoria_config,"TAM_PAGINA");
+	entradas_por_tabla = config_get_int_value(memoria_config,"ENTRADAS_POR_TABLA");
+	retardo_memoria = config_get_int_value(memoria_config,"RETARDO_MEMORIA");
+	algoritmo_reemplazo = strdup(config_get_string_value(memoria_config,"ALGORITMO_REEMPLAZO"));
+	marcos_por_proceso = config_get_int_value(memoria_config,"MARCOS_POR_PROCESO");
+	retardo_swap = config_get_int_value(memoria_config,"RETARDO_SWAP");
+	path_swap = strdup(config_get_string_value(memoria_config,"PATH_SWAP"));
 }
 
 void inicializar_listas_procesos(){
@@ -248,12 +249,6 @@ void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid){
 	fclose(archivo_swap);
 
 	log_info(logger_memoria, "Cerré el archivo");
-
-//	int rta_truncate = truncate(path_archivo_swap, tamanio_proceso);
-//	if(!rta_truncate)
-//		printf("Error");
-//	else
-//		printf("Se creo el archivo swap con el tamanio: %d \n", sizeof(archivo_swap));
 }
 
 //---------------------------------------------------------------

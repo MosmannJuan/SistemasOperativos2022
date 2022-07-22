@@ -1,14 +1,16 @@
 #include "cpu.h"
 
 
-int main(void) {
+int main(int argc, char ** argv) {
 	pthread_t hilo_interrupcion_handler;
 	contador_rafaga_inicializado = false;
 	atendiendo_interrupcion = false;
 
 	cpu_info_logger = log_create("cpu_info.log", "cpu_info_logger", 1, LOG_LEVEL_INFO);
 
-	cpu_config = config_create("cpu.config");
+	char* path_archivo_config = strdup(argv[1]);
+
+	cpu_config = config_create(path_archivo_config);
 
 	ipMemoria = strdup(config_get_string_value(cpu_config,"IP_MEMORIA"));
 	puertoMemoria = strdup(config_get_string_value(cpu_config,"PUERTO_MEMORIA"));
@@ -44,7 +46,6 @@ int main(void) {
 		log_info(cpu_info_logger, "Recibí de kernel el mensaje: %d", mensaje_recibido);
 		if(mensaje_recibido == EJECUTAR){
 			hay_interrupciones = false;
-			//if(!contador_rafaga_inicializado) pthread_create(&hilo_contador_rafaga, NULL, contador, NULL);
 			clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
 			pcb* pcb_a_ejecutar = recibir_pcb(conexion_dispatch);
 			//Si el proceso a ejecutar llegó de atender una interrupción
