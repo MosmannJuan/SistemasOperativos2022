@@ -71,8 +71,6 @@ void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){
 }
 
 void * hilo_pcb_new(void * args_p) {
-
-	creando_nuevo_proceso = true;
 	//Acceder a args
 	argumentos_largo_plazo * pointer_args = (argumentos_largo_plazo * ) args_p;
 	t_list * instrucciones = pointer_args -> instrucciones;
@@ -93,50 +91,42 @@ void * hilo_pcb_new(void * args_p) {
 
 }
 
-void * hilo_new_ready(void * argumentos){
-	while (1){
-		if(creando_nuevo_proceso)sem_wait(&sem_sincro_new_ready);
-		  if(grado_multiprogramacion < limite_grado_multiprogramacion && list_size(ready_suspendido) == 0 && list_size(new)>0){
+void planificador_largo_plazo_ready(){
+    sem_wait(&semaforo_lista_new_remove);
+    pcb* pcb_new = (pcb*) list_get(new, 0);
+    sem_post(&semaforo_lista_new_remove);
+    accion_memoria accion_a_ejecutar = INICIALIZAR_ESTRUCTURAS;
+    send(conexion_memoria, &accion_a_ejecutar, sizeof(int), 0);
+    send(conexion_memoria, &pcb_new->id, sizeof(unsigned int), 0);
+    send(conexion_memoria, &pcb_new->tam_proceso, sizeof(unsigned int), 0);
+    recv(conexion_memoria, &pcb_new->tabla_paginas, sizeof(int), 0);
+    log_info(planificador_logger, "Recibí la tabla de páginas: %d \n", pcb_new->tabla_paginas);
 
-			  sem_wait(&semaforo_lista_new_remove);
-			  pcb* pcb_new = (pcb*) list_get(new, 0);
-			  sem_post(&semaforo_lista_new_remove);
-			  accion_memoria accion_a_ejecutar = INICIALIZAR_ESTRUCTURAS;
-			  send(conexion_memoria, &accion_a_ejecutar, sizeof(int), 0);
-			  send(conexion_memoria, &pcb_new->id, sizeof(unsigned int), 0);
-			  send(conexion_memoria, &pcb_new->tam_proceso, sizeof(unsigned int), 0);
-			  recv(conexion_memoria, &pcb_new->tabla_paginas, sizeof(int), 0);
-			  log_info(planificador_logger, "Recibí la tabla de páginas: %d \n", pcb_new->tabla_paginas);
-			  //Eliminar pcb de new y mover a ready
+    //Eliminar pcb de new y mover a ready
+    sem_wait(&semaforo_lista_new_remove);
+    pcb * pcb_ready = list_remove(new, 0);
+    sem_post(&semaforo_lista_new_remove);
 
-			  sem_wait( & semaforo_lista_new_remove);
-			  pcb * pcb_ready = list_remove(new, 0);
-			  sem_post( & semaforo_lista_new_remove);
+    sem_wait(&semaforo_lista_ready_add);
+    if (strcmp(algoritmo_planificacion, "SRT") == 0) {
+    	list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
+    	if(list_size(running)!= 0){
+    		log_info(planificador_logger, "Enviamos mensaje para evaluar desalojo por llegada de nuevo proceso a ready (Desde new)");
+    		//Se envía mensaje de interrumpir por socket interrupt
+    		int mensaje_interrupt = 1;
+    		send(interrupt, &mensaje_interrupt, sizeof(int), 0);
+    	}
+    } else list_add(ready, pcb_ready);
 
-			  sem_wait( & semaforo_lista_ready_add);
-			  if (strcmp(algoritmo_planificacion, "SRT") == 0) {
-				list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
-				if(list_size(running)!= 0){
-					log_info(planificador_logger, "Enviamos mensaje para evaluar desalojo por llegada de nuevo proceso a ready (Desde new)");
-					//Se envía mensaje de interrumpir por socket interrupt
-					int mensaje_interrupt = 1;
-					send(interrupt, &mensaje_interrupt, sizeof(int), 0);
-				}
-			  } else list_add(ready, pcb_ready);
-			  sem_post( & semaforo_lista_ready_add);
+    sem_post(&semaforo_lista_ready_add);
 
-			  sem_wait( & semaforo_grado_multiprogramacion);
-			  grado_multiprogramacion++;
-			  sem_post( & semaforo_grado_multiprogramacion);
+    sem_wait(&semaforo_grado_multiprogramacion);
+    grado_multiprogramacion++;
+    sem_post(&semaforo_grado_multiprogramacion);
 
-			  sem_post(&sem_hay_pcb_ready);
+  	sem_post(&sem_hay_pcb_ready);
 
-			  log_info(planificador_logger, "Agregado a ready el proceso %d desde new", pcb_ready->id);
-
-		  }
-	}
-
-	return NULL;
+  	log_info(planificador_logger, "Agregado a ready el proceso %d desde new", pcb_ready->id);
 }
 
 void exit_largo_plazo(){
@@ -176,6 +166,8 @@ void exit_largo_plazo(){
 		grado_multiprogramacion--;
 		sem_post( & semaforo_grado_multiprogramacion);
 
+		sem_post(&sem_multiprogramacion);
+
 		log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
 }
 
@@ -186,40 +178,35 @@ void exit_largo_plazo(){
 //---------------------------------------------------------------
 
 
-void * hilo_mediano_plazo_ready(void * argumentos) {
-  while (1) {
-    if (list_size(ready_suspendido) > 0 && grado_multiprogramacion < limite_grado_multiprogramacion) {
-      log_info(planificador_logger, "Agregando a ready desde suspendido");
-      sem_wait( & semaforo_lista_ready_suspendido_remove);
-      pcb * pcb_ready = list_remove(ready_suspendido, 0);
-      sem_post( & semaforo_lista_ready_suspendido_remove);
+void planificador_mediano_plazo_ready() {
+  log_info(planificador_logger, "Agregando a ready desde suspendido");
+  sem_wait( & semaforo_lista_ready_suspendido_remove);
+  pcb * pcb_ready = list_remove(ready_suspendido, 0);
+  sem_post( & semaforo_lista_ready_suspendido_remove);
 
-      sem_wait( & semaforo_lista_ready_add);
-      if (strcmp(algoritmo_planificacion, "SRT") == 0) {
-        list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
-      } else {
-        list_add(ready, pcb_ready);
-      }
-      sem_post( & semaforo_lista_ready_add);
-      //Envío mensaje a cpu para que el planificador evalúe el desalojo en caso de SRT
-      if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0){
-    	  log_info(planificador_logger, "Luego de agregar a ready saliendo de ready suspendido evaluo desalojo");
-    	  //Se envía mensaje de interrumpir por socket interrupt
-    	  int mensaje_interrupt = 1;
-    	  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
-      }
-      log_info(planificador_logger, "Agregado el proceso %d a ready desde ready suspendido", pcb_ready->id);
-      sem_wait( & semaforo_grado_multiprogramacion);
-      grado_multiprogramacion++;
-      sem_post( & semaforo_grado_multiprogramacion);
-
-      sem_post(&sem_hay_pcb_ready);
-
-      log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
-
-    }
+  sem_wait( & semaforo_lista_ready_add);
+  if (strcmp(algoritmo_planificacion, "SRT") == 0) {
+	list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
+  } else {
+	list_add(ready, pcb_ready);
   }
-  return NULL;
+  sem_post( & semaforo_lista_ready_add);
+  //Envío mensaje a cpu para que el planificador evalúe el desalojo en caso de SRT
+  if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0){
+	  log_info(planificador_logger, "Luego de agregar a ready saliendo de ready suspendido evaluo desalojo");
+	  //Se envía mensaje de interrumpir por socket interrupt
+	  int mensaje_interrupt = 1;
+	  send(interrupt, &mensaje_interrupt, sizeof(int), 0);
+  }
+  log_info(planificador_logger, "Agregado el proceso %d a ready desde ready suspendido", pcb_ready->id);
+  sem_wait( & semaforo_grado_multiprogramacion);
+  grado_multiprogramacion++;
+  sem_post( & semaforo_grado_multiprogramacion);
+
+  sem_post(&sem_hay_pcb_ready);
+
+  log_info(planificador_logger, "El grado de multiprogramación es: %d \n", grado_multiprogramacion);
+
 }
 
 void mediano_plazo_bloqueado_suspendido(unsigned int pid){
@@ -254,11 +241,22 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 
 	  //Envío post al hilo de bloqueo para que saque de bloqueado suspendido y pase a ready suspendido
 	  sem_post(&sem_sincro_suspension);
+	  sem_post(&sem_multiprogramacion);
 	}
 }
 
 
-
+void* hilo_pasar_ready(void* args){
+	while(1){
+		sem_wait(&sem_sincro_ready);
+		sem_wait(&sem_multiprogramacion);
+		if(list_size(ready_suspendido) > 0){
+			planificador_mediano_plazo_ready();
+		}else{
+			planificador_largo_plazo_ready();
+		}
+	}
+}
 
 //--------------------------------------------------------------
 // ----------------- PLANIFICADOR CORTO PLAZO  -----------------
@@ -315,22 +313,6 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
     		break;
     	default:
     		break;
-  }
-}
-
-void * hilo_de_corto_plazo_sjf_ready(void * argumentos) {
-  while (1) {
-    if (list_size(ready) > 0 && list_size(running) == 0) {
-      //Sacamos de lista de ready
-      pcb * pcb_running = list_remove(ready, 0);
-      //Enviamos a running
-      list_add(running, pcb_running);
-      sem_post(&sem_sincro_running);
-      mensaje_cpu mensaje_ejecutar = EJECUTAR;
-      send(dispatch,&mensaje_ejecutar, sizeof(int), 0);
-      enviar_pcb(pcb_running, dispatch);
-      log_info(planificador_logger, "Agregamos proceso N° %d a running", pcb_running->id);
-    }
   }
 }
 
@@ -461,6 +443,7 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 			sem_wait(&semaforo_lista_ready_suspendido_add);
 			list_add(ready_suspendido, pcb_suspendido);
 			sem_post(&semaforo_lista_ready_suspendido_add);
+			sem_post(&sem_sincro_ready);
 			log_info(planificador_logger, "Agregado proceso N° %d a la lista de ready suspendido", pcb_suspendido->id);
 		}else{
 			log_error(planificador_logger, "No encontré el proceso %d en la lista de suspendidos ni de bloqueados", pcb_actualizado->id);

@@ -4,12 +4,9 @@
 
 int main(int argc, char ** argv) {
 
-  pthread_t hilo_ready;
   pthread_t hilo_running;
   pthread_t hilo_dispatch_handler;
-  pthread_t hilo_new_ready;
-  pthread_t hilo_exit;
-  pthread_t hilo_mediano_plazo;
+  pthread_t hilo_pasar_ready;
   inicializar_listas_procesos();
 
 
@@ -42,9 +39,8 @@ int main(int argc, char ** argv) {
   dispatch = esperar_cliente(conexion_dispatch);
   interrupt = esperar_cliente(conexion_interrupt);
 
-  inicializar_planificador_corto_plazo(&hilo_ready, &hilo_running);
-  inicializar_planificador_largo_plazo(&hilo_new_ready, &hilo_exit);
-  inicializar_planificador_mediano_plazo(&hilo_mediano_plazo);
+  inicializar_planificador_corto_plazo(&hilo_running);
+  inicializar_hilo_pasar_ready(&hilo_pasar_ready);
   inicializar_cpu_dispatch_handler(&hilo_dispatch_handler);
 
   //Inicializamos el semáforo para el process id del planificador de largo plazo
@@ -98,29 +94,20 @@ void inicializar_semaforos(){
     sem_init(&sem_sincro_suspension, 0, 0);
     sem_init(&sem_cpu_libre, 0, 1);
     sem_init(&sem_hay_pcb_ready, 0, 0);
+    sem_init(&sem_sincro_ready,0 ,0);
+    sem_init(&sem_multiprogramacion, 0, limite_grado_multiprogramacion);
 }
 
-void inicializar_planificador_largo_plazo(pthread_t * hiloNewReady, pthread_t  * hilo_exit){
-	pthread_create(hiloNewReady, NULL, hilo_new_ready, NULL);
-	// hay que armar el msje de cpu sino rompe pthread_create(hilo_exit, NULL, exit_largo_plazo, NULL);
+void inicializar_hilo_pasar_ready(pthread_t * hilo_ready){
+	pthread_create(hilo_ready, NULL, hilo_pasar_ready, NULL);
 }
 
-void inicializar_planificador_corto_plazo(pthread_t * hilo_ready, pthread_t * hilo_running){
-
-//	if(strcmp(algoritmo_planificacion, "SRT") == 0) {
-		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_pasar_running, NULL);
-		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_sjf_running, NULL); Ya no es más hilo
-//	} else {
-//		pthread_create(hilo_ready, NULL, hilo_de_corto_plazo_fifo_ready, NULL);
-		//pthread_create(hilo_running, NULL, hilo_de_corto_plazo_fifo_running, NULL); Ya no es más hilo
-//	}
+void inicializar_planificador_corto_plazo(pthread_t * hilo_running){
+	pthread_create(hilo_running, NULL, hilo_de_corto_plazo_pasar_running, NULL);
 }
 
 void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler){
 	pthread_create(hilo_dispatch_handler, NULL, cpu_dispatch_handler, NULL);
 }
 
-void inicializar_planificador_mediano_plazo(pthread_t* hilo_mediano_plazo){
-	pthread_create(hilo_mediano_plazo, NULL, hilo_mediano_plazo_ready, NULL);
-}
 

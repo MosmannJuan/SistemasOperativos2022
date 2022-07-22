@@ -104,6 +104,8 @@ sem_t sem_sincro_suspension;
 sem_t sem_entrada_salida;
 sem_t sem_hay_pcb_ready;
 sem_t sem_cpu_libre;
+sem_t sem_sincro_ready;
+sem_t sem_multiprogramacion;
 
 unsigned int pid_comparacion;
 unsigned int pid_comparacion_exit;
@@ -115,7 +117,6 @@ int conexion_memoria;
 double alfa;
 int tiempo_maximo_bloqueado;
 char * algoritmo_planificacion;
-bool creando_nuevo_proceso;
 
 
 
@@ -140,17 +141,16 @@ void exit_largo_plazo();
 void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
-void * hilo_new_ready (void* args);
-void * hilo_de_largo_plazo (void * args);
 void * hilo_pcb_new (void * args_p);
 void * hilo_bloqueo_proceso (void* args_p);
-void * hilo_de_corto_plazo_fifo_ready(void* argumentos);
 void * hilo_de_corto_plazo_pasar_running(void* argumentos);
 void * cpu_dispatch_handler(void * argumentos);
 void* serializar_pcb(pcb* pcb_a_enviar, int bytes);
 double calcular_estimacion_rafaga(double rafaga_real_anterior, double estimacion_anterior);
 void mediano_plazo_bloqueado_suspendido(unsigned int pid);
-void* hilo_mediano_plazo_ready(void * argumentos);
 void* hilo_contador_suspension_por_bloqueo(void* pid);
+void planificador_largo_plazo_ready();
+void planificador_mediano_plazo_ready();
+void* hilo_pasar_ready(void* args);
 
 #endif /* PLANIFICADOR_H_ */
