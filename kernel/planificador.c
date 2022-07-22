@@ -61,12 +61,14 @@ pcb * inicializar_pcb(t_list * instrucciones, unsigned int tam_proceso) {
 // PROCESO DE FINALIZACION DE PROCESO
 
 void pcb_destroy(pcb * pcb_destruir) {
+//	list_destroy(pcb_destruir->instrucciones);
   list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
   free(pcb_destruir);
 }
 
 void instruccion_destroy(void* instruccion_a_destruir){
-	free(instruccion_a_destruir);
+	Instruccion* instr = (Instruccion*) instruccion_a_destruir;
+	free(instr);
 }
 
 void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp){

@@ -20,12 +20,14 @@ pcb * pcb_create() {
 }
 
 void pcb_destroy(pcb * pcb_destruir) {
-  list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
+	list_destroy(pcb_destruir->instrucciones);
+//  list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
   free(pcb_destruir);
 }
 
 void instruccion_destroy(void* instruccion_a_destruir){
-	free(instruccion_a_destruir);
+	Instruccion* instr = (Instruccion*) instruccion_a_destruir;
+	free(instr);
 }
 
 void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
@@ -36,7 +38,7 @@ void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
 
 	//Enviamos estructura de bloqueo de pcb
 	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
-
+	pcb_destroy(pcb_a_enviar);
 	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
 }
 
@@ -52,7 +54,6 @@ void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
 	memcpy(memoria_asignada + desplazamiento, &rafaga_actual, sizeof(double));
 	desplazamiento += sizeof(double);
 	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
-
 	return memoria_asignada;
 }
 
@@ -64,7 +65,7 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 
 	//Enviamos estructura de bloqueo de pcb
 	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
-
+	pcb_destroy(pcb_a_enviar);
 	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
 }
 
@@ -82,7 +83,6 @@ void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo,
 	memcpy(memoria_asignada + desplazamiento, &contador_rafaga , sizeof(double));
 	desplazamiento  += sizeof(double);
 	serializar_pcb(pcb_a_enviar, memoria_asignada, desplazamiento);
-
 	return memoria_asignada;
 }
 
@@ -103,7 +103,6 @@ void* serializar_pcb(pcb* pcb_a_enviar, void* memoria_asignada, int desplazamien
 	desplazamiento  += sizeof(int);
 
 	serializar_instrucciones(memoria_asignada, desplazamiento, pcb_a_enviar->instrucciones);
-	pcb_destroy(pcb_a_enviar);
 	return memoria_asignada;
 }
 
