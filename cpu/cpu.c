@@ -81,9 +81,9 @@ int main(int argc, char ** argv) {
 
 void ciclo(pcb* pcb_a_ejecutar){
 	detener_ejecucion = false;
-	while (pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones) && !detener_ejecucion){
+	while (!detener_ejecucion && pcb_a_ejecutar->pc <= list_size(pcb_a_ejecutar->instrucciones)){
 		decode(pcb_a_ejecutar,fetch(pcb_a_ejecutar));
-		pcb_a_ejecutar->pc++;
+		if(!detener_ejecucion)pcb_a_ejecutar->pc++;
 		if(hay_interrupciones && !detener_ejecucion) atender_interrupcion(pcb_a_ejecutar);
 	}
 }
@@ -97,25 +97,23 @@ void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
 	switch(instruccion_decode->tipo){
 	case NO_OP:
 		ejecutar_NO_OP();
-	break;
+		break;
 	case I_O:
 		ejecutar_I_O(pcb_a_ejecutar, instruccion_decode->params[0]);
-
-	break;
+		break;
 	case READ:
 		ejecutar_READ(instruccion_decode->params[0], pcb_a_ejecutar->tabla_paginas);
-
-	break;
+		break;
 	case WRITE:
 		ejecutar_WRITE(instruccion_decode->params[0], instruccion_decode->params[1], pcb_a_ejecutar->tabla_paginas);
-	break;
+		break;
 	case COPY: ;
 		unsigned int operando = fetch_operands(instruccion_decode->params[1], pcb_a_ejecutar->tabla_paginas);
 		ejecutar_WRITE(instruccion_decode->params[0], operando, pcb_a_ejecutar->tabla_paginas);
-	break;
+		break;
 	case EXIT:
 		ejecutar_exit(pcb_a_ejecutar);
-	break;
+		break;
 	}
 
 return(NULL);
@@ -177,11 +175,12 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 	send(conexion_memoria, &direccion.tabla_segundo_nivel, sizeof(int), 0);
 	send(conexion_memoria, &direccion.entrada_tabla_segundo_nivel, sizeof(double), 0);
 	send(conexion_memoria, &valor_a_escribir, sizeof(unsigned int), 0);
-
+	log_info(cpu_info_logger, "Enviado a memoria el mensaje para escritura");
 	//Espero el mensaje de memoria indicando que terminó la escritura OK
 	int resultado_escritura;
 	recv(conexion_memoria, &resultado_escritura, sizeof(int), 0);
 	if(!(resultado_escritura == 1)) log_info(cpu_info_logger, "No se ha podido escribir el mensaje solicitado en memoria");
+	log_info(cpu_info_logger, "Escritura correcta en memoria");
 }
 
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
@@ -249,11 +248,12 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 		agregar_entrada_tlb(num_pagina, numero_marco);
 	}
 
+	log_info(cpu_info_logger, "Armando al dirección lógica");
 	datos_direccion resultado;
 	resultado.tabla_segundo_nivel = numero_tabla_segundo_nivel;
 	resultado.entrada_tabla_segundo_nivel = entrada_segundo_nivel;
 	resultado.direccion_fisica = dir_fisica;
-
+	log_info(cpu_info_logger, "Dirección lógica obtenida");
 
 	return resultado;
 
@@ -312,9 +312,11 @@ void* interrupcion_handler(void* args){
 
 void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler){
 	pthread_create(hilo_interrupcion_handler, NULL, interrupcion_handler, NULL);
+	pthread_detach(*hilo_interrupcion_handler);
 }
 
 void atender_interrupcion(pcb* pcb_interrumpido){
+	log_info(cpu_info_logger, "Atendiendo interrupcion");
 	detener_ejecucion = true;
 	atendiendo_interrupcion = true;
 	setear_contador_rafaga();

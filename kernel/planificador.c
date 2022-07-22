@@ -303,13 +303,14 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
 			*pid_bloqueo = datos_bloqueo->pcb_a_bloquear->id;
 			pthread_t hilo_suspension;
 			pthread_create(&hilo_suspension, NULL, hilo_contador_suspension_por_bloqueo, pid_bloqueo);
-
+			pthread_detach(hilo_suspension);
 			log_info(planificador_logger, "pcb a bloquear: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", datos_bloqueo->pcb_a_bloquear->id, datos_bloqueo->pcb_a_bloquear->tam_proceso, datos_bloqueo->pcb_a_bloquear->pc, datos_bloqueo->pcb_a_bloquear->rafaga, list_size(datos_bloqueo->pcb_a_bloquear->instrucciones));
     		argumentos_hilo_bloqueo * args_bloqueo = malloc(sizeof(argumentos_hilo_bloqueo));
     		args_bloqueo -> tiempo_bloqueo = datos_bloqueo->tiempo_bloqueo;
     		args_bloqueo -> pcb_actualizado = datos_bloqueo->pcb_a_bloquear;
     		pthread_t hilo_bloqueo;
     		pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+    		pthread_detach(hilo_bloqueo);
     		break;
     	default:
     		break;
@@ -334,7 +335,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			*pid_bloqueo = datos_bloqueo->pcb_a_bloquear->id;
 			pthread_t hilo_suspension;
 			pthread_create(&hilo_suspension, NULL, hilo_contador_suspension_por_bloqueo, pid_bloqueo);
-
+			pthread_detach(hilo_suspension);
 			log_info(planificador_logger, "Sacamos pcb actual de running \n");
 			pcb* pcb_destruir = (pcb*)list_remove(running, 0);
 			pcb_destroy(pcb_destruir);
@@ -345,6 +346,7 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			args_bloqueo -> rafaga_anterior = datos_bloqueo->rafaga_real_anterior;
 			pthread_t hilo_bloqueo;
 			pthread_create( & hilo_bloqueo, NULL, hilo_bloqueo_proceso, args_bloqueo);
+			pthread_detach(hilo_bloqueo);
 			break;
 		case PASAR_A_READY: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular

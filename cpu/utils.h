@@ -64,7 +64,6 @@ typedef struct {
 	double rafaga_real_anterior;
 } interrupcion_pcb;
 
-
 t_log * cpu_info_logger;
 double contador_rafaga;
 double rafaga_actual;

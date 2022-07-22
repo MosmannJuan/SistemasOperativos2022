@@ -321,6 +321,7 @@ void* conexion_kernel_handler(void* args){
 
 void inicializar_kernel_handler(pthread_t *hilo_kernel_handler){
   pthread_create(hilo_kernel_handler, NULL, conexion_kernel_handler, NULL);
+  pthread_detach(*hilo_kernel_handler);
 }
 
 void enviar_globales(){

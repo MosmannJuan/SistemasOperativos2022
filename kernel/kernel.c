@@ -70,6 +70,8 @@ int main(int argc, char ** argv) {
     		// Si el pthread_create falla, handlea el error en el logger del kernel y free para evitar memory leak.
     	    free(argumentos);
     		log_info(logger_kernel, "No se pudo atender al cliente por error de Kernel.");
+    	}else{
+    		pthread_detach(handler);
     	}
     }
   }
@@ -101,14 +103,17 @@ void inicializar_semaforos(){
 
 void inicializar_hilo_pasar_ready(pthread_t * hilo_ready){
 	pthread_create(hilo_ready, NULL, hilo_pasar_ready, NULL);
+	pthread_detach(*hilo_ready);
 }
 
 void inicializar_planificador_corto_plazo(pthread_t * hilo_running){
 	pthread_create(hilo_running, NULL, hilo_de_corto_plazo_pasar_running, NULL);
+	pthread_detach(*hilo_running);
 }
 
 void inicializar_cpu_dispatch_handler(pthread_t* hilo_dispatch_handler){
 	pthread_create(hilo_dispatch_handler, NULL, cpu_dispatch_handler, NULL);
+	pthread_detach(*hilo_dispatch_handler);
 }
 
 
