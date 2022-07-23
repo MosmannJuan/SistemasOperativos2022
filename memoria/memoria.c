@@ -101,7 +101,7 @@ int main(int argc, char ** argv) {
 								entrada_seg_nivel->marco = marco_libre;
 								entrada_seg_nivel->presencia = true;
 								entrada_seg_nivel->uso = true;
-								log_info(logger_memoria, "Cargo una página nueva en el marco %d", entrada_seg_nivel->marco);
+								log_info(logger_memoria, "Cargo la página %d en el marco %d", entrada_seg_nivel->numero_pagina,  entrada_seg_nivel->marco);
 								void* pagina_swap = buscar_pagina_en_swap(entrada_seg_nivel->numero_pagina, pid);
 								escribir_marco_en_memoria(marco_libre, pagina_swap);
 								list_add_sorted(listado_memoria_actual_por_proceso, entrada_seg_nivel, ordenar_por_numero_marco);
