@@ -77,7 +77,6 @@ t_list* tabla_tlb;
 // ----------------- DECLARACION DE FUNCIONES  ------------------
 //---------------------------------------------------------------
 
-void* contador(void* args);
 void* interrupcion_handler(void* args);
 void* decode (pcb* pcb_decode, Instruccion * instruccion_decode);
 void* fetch(pcb* pcb_fetch);
@@ -85,7 +84,7 @@ void abrirArchivoConfiguracion();
 void ciclo(pcb* paquetePcb);
 void ejecutar_NO_OP();
 void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo);
-void ejecutar_exit();
+void ejecutar_exit(pcb * pcb_exit);
 void inicializar_hilo_conexion_interrupt(pthread_t* hilo_interrupcion_handler);
 void atender_interrupcion(pcb* pcb_interrumpido);
 datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel);

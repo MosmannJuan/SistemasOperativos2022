@@ -30,11 +30,9 @@ int main(int argc, char ** argv) {
 	while(1){
 		//Hilo principal que corresponde con el hilo de atencion de conexion con cpu
 		accion_memoria_con_cpu accion_recibida;
-				log_info(logger_memoria, "Esperando recibir accion de cpu en memoria");
 				recv(conexion_cpu, &accion_recibida, sizeof(int), 0);
-				log_info(logger_memoria, "Recibí la accion: %d de cpu", accion_recibida);
 				switch(accion_recibida){
-					case ESCRIBIR: ;
+					case ESCRIBIR:
 						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Escritura)");
 						sleep(retardo_memoria/1000);
 						//Recibo la dirección física calculada por mmu y el valor a escribir
@@ -62,29 +60,25 @@ int main(int argc, char ** argv) {
 						//Envío el valor leído
 						send(conexion_cpu, &valor_leido, sizeof(unsigned int), 0);
 						break;
-					case OBTENER_TABLA_SEGUNDO_NIVEL: ;
+					case OBTENER_TABLA_SEGUNDO_NIVEL:
 						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Buscar tabla segundo nivel)");
 						sleep(retardo_memoria/1000);
 						int numero_tabla_primer_nivel;
 						recv(conexion_cpu, &numero_tabla_primer_nivel, sizeof(int), 0);
-						log_info(logger_memoria, "Recibí el numero_tabla_primer_nivel: %d", numero_tabla_primer_nivel);
 						double entrada_1er_nivel;
 						recv(conexion_cpu, &entrada_1er_nivel, sizeof(double), 0);
-						log_info(logger_memoria, "Recibí entrada_primer_nivel: %f", entrada_1er_nivel);
 						t_list * tabla_primer_nivel = (t_list *)list_get(tablas_primer_nivel, numero_tabla_primer_nivel);
 						entrada_primer_nivel* numero_tabla_segundo_nivel = (entrada_primer_nivel*)list_get(tabla_primer_nivel, (int)entrada_1er_nivel);
 						send(conexion_cpu, &numero_tabla_segundo_nivel->id_segundo_nivel, sizeof(unsigned int), 0);
-						log_info(logger_memoria, "Send enviado");
+						log_info(logger_memoria, "Numero de tabla de segundo nivel enviado a cpu");
 						break;
-					case OBTENER_NUMERO_MARCO: ;
+					case OBTENER_NUMERO_MARCO:
 						log_info(logger_memoria, "Ejecutamos retardo por acceso a memoria (Buscar número de marco)");
 						sleep(retardo_memoria/1000);
 						unsigned int nro_tabla_segundo_nivel;
 						recv(conexion_cpu, &nro_tabla_segundo_nivel, sizeof(unsigned int), 0);
-						log_info(logger_memoria, "Recibí el nro_tabla_segundo_nivel: %d", nro_tabla_segundo_nivel);
 						double entrada_2do_nivel;
 						recv(conexion_cpu, &entrada_2do_nivel, sizeof(double), 0);
-						log_info(logger_memoria, "Recibí el entrada_2do_nivel: %f", entrada_2do_nivel);
 						t_list * tabla_2do_nivel = (t_list *)list_get(tablas_segundo_nivel, nro_tabla_segundo_nivel);
 
 						entrada_segundo_nivel* entrada_seg_nivel = (entrada_segundo_nivel*)list_get(tabla_2do_nivel, (int)entrada_2do_nivel);
@@ -101,17 +95,17 @@ int main(int argc, char ** argv) {
 							//Cargo las páginas que ya se encuentran en memoria
 							inicializar_listado_memoria_actual_proceso(nro_tabla_1er_nivel, pid);
 							if(list_size(listado_memoria_actual_por_proceso) < marcos_por_proceso){
-								log_info(logger_memoria, "Voy a cargar una pagina nueva!");
 								uint32_t* marco_libre_ptr = (uint32_t*) list_remove(marcos_disponibles, 0);
 								uint32_t marco_libre = *marco_libre_ptr;
 								free(marco_libre_ptr);
 								entrada_seg_nivel->marco = marco_libre;
 								entrada_seg_nivel->presencia = true;
 								entrada_seg_nivel->uso = true;
-								log_info(logger_memoria, "Y en el marco %d", entrada_seg_nivel->marco);
+								log_info(logger_memoria, "Cargo una página nueva en el marco %d", entrada_seg_nivel->marco);
 								void* pagina_swap = buscar_pagina_en_swap(entrada_seg_nivel->numero_pagina, pid);
 								escribir_marco_en_memoria(marco_libre, pagina_swap);
 								list_add_sorted(listado_memoria_actual_por_proceso, entrada_seg_nivel, ordenar_por_numero_marco);
+								log_info(logger_memoria, "El proceso tiene %d marcos libres", marcos_por_proceso - list_size(listado_memoria_actual_por_proceso));
 							} else {
 								reemplazar_pagina(entrada_seg_nivel, pid, nro_tabla_1er_nivel);
 							}
@@ -163,6 +157,8 @@ void inicializar_marcos_disponibles(){
 		*marco = i;
 		list_add(marcos_disponibles, marco);
 	}
+
+	log_info(logger_memoria, "Inicializo la cantidad de marcos disponibles: %d", cantidad_de_marcos_disponibles);
 }
 
 
@@ -180,7 +176,6 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 	int tabla_paginas_asignada = list_size(tablas_primer_nivel) - 1;
 
 	int cantidad_tablas_segundo_nivel = calcular_cantidad_tablas_necesarias(tamanio_proceso);
-	log_info(logger_memoria, "Se necesitan %d tablas de segundo nivel", cantidad_tablas_segundo_nivel);
 
 	int pagina = 0;
 	for (int i = 1; i <= cantidad_tablas_segundo_nivel; i++){
@@ -210,7 +205,7 @@ int inicializar_estructuras_proceso(unsigned int tamanio_proceso, unsigned int p
 
 	crear_cursor_por_proceso(pid);
 	crear_archivo_swap(tamanio_proceso, pid);
-
+	log_info(logger_memoria, "Estructuras del proceso %d creadas", pid);
 	return tabla_paginas_asignada;
 }
 
@@ -227,28 +222,16 @@ void crear_cursor_por_proceso(unsigned int pid){
 void crear_archivo_swap(unsigned int tamanio_proceso, unsigned int pid){
 	char* path_archivo_swap = obtener_nombre_archivo_swap(pid);
 	//Creo el directorio en caso de que no exista
-	if(mkdir(path_swap, 0777) == 0){
-		log_info(logger_memoria, "Directorio %s creado correctamente", path_swap);
-	} else if(errno == EEXIST){
-		log_info(logger_memoria, "El directorio %s ya existe", path_swap);
-	} else {
-		log_error(logger_memoria, "Ha ocurrido un error al querer crear/validar existencia del directorio %s", path_swap);
-	}
+	mkdir(path_swap, 0777);
 
 	//Creo el archivo de swap en el directorio
 	FILE* archivo_swap = fopen(path_archivo_swap, "w+");
 	fseek(archivo_swap, 0, SEEK_END);
-	int size = ftell(archivo_swap);
-	log_info(logger_memoria, "El tamaño es: %d", size);
 	fseek(archivo_swap, tamanio_proceso, SEEK_SET);
 	fputc('\0', archivo_swap);
 	fseek(archivo_swap, 0, SEEK_SET);
 	fseek(archivo_swap, 0, SEEK_END);
-	int size_v2 = ftell(archivo_swap);
-	log_info(logger_memoria, "El tamaño es: %d", size_v2);
 	fclose(archivo_swap);
-
-	log_info(logger_memoria, "Cerré el archivo");
 }
 
 //---------------------------------------------------------------
@@ -276,19 +259,15 @@ void enviar_tabla_de_paginas(int identificador_tabla_de_paginas){
 void* conexion_kernel_handler(void* args){
 	while(1){
 		accion_memoria_con_kernel accion_recibida;
-		log_info(logger_memoria, "Esperando recibir accion de kernel en memoria");
 		recv(conexion_kernel, &accion_recibida, sizeof(int), 0);
-		log_info(logger_memoria, "Recibí la accion: %d de kernel", accion_recibida);
 		switch(accion_recibida){
 			case INICIALIZAR_ESTRUCTURAS: ;
 				unsigned int pid;
 				recv(conexion_kernel, &pid, sizeof(unsigned int), 0);
-				log_info(logger_memoria, "Recibí el pid: %d", pid);
+				log_info(logger_memoria, "Inicializando estructuras del proceso: %d", pid);
 				unsigned int tam_proceso;
 				recv(conexion_kernel, &tam_proceso, sizeof(unsigned int), 0);
-				log_info(logger_memoria, "Recibí tamaño de proceso: %d", tam_proceso);
 				int tabla_de_paginas_asignada = inicializar_estructuras_proceso(tam_proceso, pid);
-				log_info(logger_memoria, "El identificador de tabla de paginas recibido es: %d", tabla_de_paginas_asignada);
 				enviar_tabla_de_paginas(tabla_de_paginas_asignada);
 				break;
 
@@ -339,13 +318,12 @@ unsigned int ejecutar_lectura(datos_direccion direccion){
 
 	//Copio el valor leido en memoria física en la variable declarada
 	memcpy(&valor_leido, base_memoria + (int) direccion.direccion_fisica, sizeof(unsigned int));
-
+	log_info(logger_memoria, "Leo el valor en la direccion %d", (int) direccion.direccion_fisica);
 	//Actualizo el bit de uso de la página accedida
 	t_list* tabla_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, direccion.tabla_segundo_nivel);
 	entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel, direccion.entrada_tabla_segundo_nivel);
-	log_info(logger_memoria, "El valor del bit de uso antes de modificar en la lectura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
 	pagina->uso = true;
-	log_info(logger_memoria, "El valor del bit de uso luego de modificar en la lectura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
+	log_info(logger_memoria, "Actualizo bit de uso en página %d", pagina->numero_pagina);
 
 	return valor_leido;
 }
@@ -357,13 +335,11 @@ int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
 	//Actualizo los bits de uso y modificado de la página accedida
 	t_list* tabla_segundo_nivel = (t_list*)list_get(tablas_segundo_nivel, direccion.tabla_segundo_nivel);
 	entrada_segundo_nivel* pagina = (entrada_segundo_nivel*) list_get(tabla_segundo_nivel, direccion.entrada_tabla_segundo_nivel);
-	log_info(logger_memoria, "El valor del bit de uso antes de modificar en la escritura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
 	pagina->uso = true;
 	pagina->modificado = true;
-	log_info(logger_memoria, "El valor del bit de uso luego de modificar en la escritura es: %d; y el de modificado: %d", pagina->uso, pagina->modificado);
+	log_info(logger_memoria, "Actualizo bit de uso y modificado en página %d", pagina->numero_pagina);
 
 	return 1;
-
 }
 
 //---------------------------------------------------------------
@@ -371,7 +347,7 @@ int ejecutar_escritura(datos_direccion direccion, unsigned int valor_escritura){
 //---------------------------------------------------------------
 
 void enviar_proceso_swap (unsigned int pid, int nro_tabla_paginas){
-	log_info(logger_memoria, "Se suspende el proceso: %d cuya tabla de primer nivel es: %d", pid, nro_tabla_paginas);
+	log_info(logger_memoria, "Se suspende el proceso: %d", pid);
 
 	//Busco el cursor asociado al proceso para setearlo de nuevo en 0
 	sem_wait(&semaforo_pid_comparacion);
@@ -505,7 +481,7 @@ void escribir_pagina_en_swap(unsigned int numero_pagina, void* contenido_pagina_
 
 
 void destruir_estructuras(unsigned int pid, int nro_tabla_paginas){
-	log_info(logger_memoria, "Destruyendo estructuras de proceso: %d", pid);
+	log_info(logger_memoria, "Destruyendo estructuras del proceso: %d", pid);
 	//Obtengo la tabla de primer nivel
 	t_list* tabla_primer_nivel = list_get(tablas_primer_nivel, nro_tabla_paginas);
 
@@ -600,8 +576,6 @@ bool ordenar_por_numero_marco(void * unaEntrada, void * otraEntrada){
 
 void reemplazar_pagina(entrada_segundo_nivel* pagina_a_reemplazar, unsigned int pid, int nro_tabla_primer_nivel){
 
-	log_info(logger_memoria, "La posición inicial del cursor es %d", cursor);
-
 	//Ejecuto el algoritmo correspondiente
 	if(strcmp(algoritmo_reemplazo, "CLOCK") == 0){
 		reemplazar_pagina_clock(pagina_a_reemplazar, pid);
@@ -622,8 +596,6 @@ void reemplazar_pagina_clock(entrada_segundo_nivel* pagina_a_reemplazar, unsigne
 		entrada->uso = false;
 
 		mover_cursor();
-		log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
-
 		//Busco la siguiente pagina
 		entrada = (entrada_segundo_nivel*) list_get(listado_memoria_actual_por_proceso, cursor);
 	}
@@ -711,7 +683,6 @@ void reemplazar_paginas(entrada_segundo_nivel* pagina_a_swap, entrada_segundo_ni
 
 	//Vuelvo a mover el cursor
 	mover_cursor();
-	log_info(logger_memoria, "Muevo el cursor y apunta a %d", cursor);
 
 	//Guardo la última posición del cursor en la lista de las relaciones
 	guardar_cursor_del_proceso(pid);

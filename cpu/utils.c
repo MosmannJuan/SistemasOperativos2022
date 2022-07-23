@@ -20,12 +20,8 @@ pcb * pcb_create() {
 }
 
 void pcb_destroy(pcb * pcb_destruir) {
-//	list_destroy(pcb_destruir->instrucciones);
-	log_info(cpu_info_logger, "Destruyendo pcb");
   list_destroy_and_destroy_elements(pcb_destruir -> instrucciones, instruccion_destroy);
-  log_info(cpu_info_logger, "Instrucciones destruidas");
   free(pcb_destruir);
-  log_info(cpu_info_logger, "Pcb destruido");
 }
 
 void instruccion_destroy(void* instruccion_a_destruir){
@@ -43,8 +39,7 @@ void enviar_pcb_interrupcion(pcb* pcb_a_enviar, int socket_cliente){
 	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
 	log_info(cpu_info_logger, "Mensaje de interrupción enviado");
 	pcb_destroy(pcb_a_enviar);
-	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
-	log_info(cpu_info_logger, "Estructuras liberadas: pcb y void*");
+	free(a_enviar);
 }
 
 void* serializar_mensaje_interrupcion(pcb* pcb_a_enviar, int bytes){
@@ -70,8 +65,9 @@ void enviar_pcb_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int sock
 
 	//Enviamos estructura de bloqueo de pcb
 	send(socket_cliente, a_enviar, bytes, MSG_WAITALL);
+	log_info(cpu_info_logger, "Mensaje de bloqueo enviado");
 	pcb_destroy(pcb_a_enviar);
-	free(a_enviar); //TODO: Ver por que rompe, posible memory leak
+	free(a_enviar);
 }
 
 void* serializar_mensaje_bloqueo(pcb* pcb_a_enviar, unsigned int tiempo_bloqueo, int bytes){
@@ -131,6 +127,7 @@ void enviar_exit(int socket_cliente){
 
 	mensaje_cpu mensaje = PASAR_A_EXIT;
 	send(socket_cliente, &mensaje, sizeof(int), 0);
+	log_info(cpu_info_logger, "Mensaje de exit enviado");
 }
 
 pcb * recibir_pcb(int socket_cliente){

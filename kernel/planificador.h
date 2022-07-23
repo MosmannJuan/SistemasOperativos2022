@@ -35,26 +35,15 @@ typedef struct {
 }pcb;
 
 typedef struct {
-	t_list* instrucciones;
-	unsigned int tam_proceso;
-} argumentos_largo_plazo;
-
-typedef struct {
 	unsigned int tiempo_bloqueo;
 	pcb * pcb_actualizado;
 	double rafaga_anterior;
 } argumentos_hilo_bloqueo;
 
 typedef struct {
-	pcb * pcb_actualizado;
-	unsigned int tiempo_bloqueo;
-	mensaje_cpu mensaje;
-} mensaje_dispatch; //Dejo definida esta estructura para que compile mientras hago el refactor
-
-typedef struct {
 	void* datos;
 	mensaje_cpu mensaje;
-} mensaje_dispatch_posta; //TODO: Renombrar luego del refactor
+} mensaje_dispatch;
 
 typedef struct {
 	pcb* pcb_a_bloquear;
@@ -89,17 +78,13 @@ t_list * lista_relacion_consola_proceso;
 sem_t semaforo_pid;
 sem_t semaforo_pid_comparacion;
 sem_t semaforo_pid_comparacion_exit;
-sem_t semaforo_lista_new_add;
-sem_t semaforo_lista_new_remove;
-sem_t semaforo_lista_ready_add;
-sem_t semaforo_lista_ready_remove;
-sem_t semaforo_lista_ready_suspendido_remove;
-sem_t semaforo_lista_ready_suspendido_add;
+sem_t semaforo_lista_new;
+sem_t semaforo_lista_ready;
+sem_t semaforo_lista_ready_suspendido;
 sem_t semaforo_bloqueado_suspendido;
-sem_t semaforo_lista_running_remove;
+sem_t semaforo_lista_running;
 sem_t semaforo_grado_multiprogramacion;
 sem_t sem_sincro_running;
-sem_t sem_sincro_new_ready;
 sem_t sem_sincro_suspension;
 sem_t sem_entrada_salida;
 sem_t sem_hay_pcb_ready;
@@ -125,7 +110,7 @@ char * algoritmo_planificacion;
 // ----------------- DECLARACION DE FUNCIONES  ------------------
 //---------------------------------------------------------------
 
-mensaje_dispatch_posta* recibir_mensaje_dispatch();
+mensaje_dispatch* recibir_mensaje_dispatch();
 pcb * recibir_pcb(int socket_cliente);
 pcb * inicializar_pcb(t_list * lista_instrucciones, unsigned int tam_proceso);
 pcb * pcb_create();
@@ -136,9 +121,9 @@ void leer_y_asignar_pcb(int socket_cliente, pcb* pcb_leido);
 void inicializar_listas_procesos();
 void pcb_destroy(pcb * pcb_destruir);
 void relacion_consola_proceso_destroy(relacion_consola_proceso* relacion_cp);
-void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta* argumentos);
+void planificador_de_corto_plazo_sjf_running(mensaje_dispatch* argumentos);
 void exit_largo_plazo();
-void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* argumentos);
+void planificador_de_corto_plazo_fifo_running(mensaje_dispatch* argumentos);
 void enviar_pcb(pcb* pcb_a_enviar, int socket_cliente);
 void serializar_instrucciones(void* memoria_asignada, int desplazamiento, t_list* instrucciones);
 unsigned int crear_pcb_new (t_list* instrucciones, unsigned int tam_proceso);

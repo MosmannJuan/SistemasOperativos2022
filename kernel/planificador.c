@@ -81,9 +81,9 @@ unsigned int crear_pcb_new(t_list* instrucciones, unsigned int tam_proceso) {
 	pcb * pcb_nuevo = inicializar_pcb(instrucciones, tam_proceso);
 
 	//Asignar pcb a new
-	sem_wait(&semaforo_lista_new_add);
+	sem_wait(&semaforo_lista_new);
 	list_add(new, pcb_nuevo);
-	sem_post(&semaforo_lista_new_add);
+	sem_post(&semaforo_lista_new);
 
 	log_info(planificador_logger, "Proceso %d agregado a new", pcb_nuevo->id);
 
@@ -91,9 +91,9 @@ unsigned int crear_pcb_new(t_list* instrucciones, unsigned int tam_proceso) {
 }
 
 void planificador_largo_plazo_ready(){
-    sem_wait(&semaforo_lista_new_remove);
+    sem_wait(&semaforo_lista_new);
     pcb* pcb_new = (pcb*) list_get(new, 0);
-    sem_post(&semaforo_lista_new_remove);
+    sem_post(&semaforo_lista_new);
     accion_memoria accion_a_ejecutar = INICIALIZAR_ESTRUCTURAS;
     send(conexion_memoria, &accion_a_ejecutar, sizeof(int), 0);
     send(conexion_memoria, &pcb_new->id, sizeof(unsigned int), 0);
@@ -102,11 +102,11 @@ void planificador_largo_plazo_ready(){
     log_info(planificador_logger, "Recibí la tabla de páginas: %d \n", pcb_new->tabla_paginas);
 
     //Eliminar pcb de new y mover a ready
-    sem_wait(&semaforo_lista_new_remove);
+    sem_wait(&semaforo_lista_new);
     pcb * pcb_ready = list_remove(new, 0);
-    sem_post(&semaforo_lista_new_remove);
+    sem_post(&semaforo_lista_new);
 
-    sem_wait(&semaforo_lista_ready_add);
+    sem_wait(&semaforo_lista_ready);
     if (strcmp(algoritmo_planificacion, "SRT") == 0) {
     	list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
     	if(list_size(running)!= 0){
@@ -117,7 +117,7 @@ void planificador_largo_plazo_ready(){
     	}
     } else list_add(ready, pcb_ready);
 
-    sem_post(&semaforo_lista_ready_add);
+    sem_post(&semaforo_lista_ready);
 
     sem_wait(&semaforo_grado_multiprogramacion);
     grado_multiprogramacion++;
@@ -131,11 +131,10 @@ void planificador_largo_plazo_ready(){
 void exit_largo_plazo(){
 		sem_wait(&sem_sincro_running);
 		log_info(planificador_logger, "\n exit largo plazo \n");
-		log_info(planificador_logger, "Lista running: %d \n", list_size(running));
-		sem_wait(&semaforo_lista_running_remove);
+		sem_wait(&semaforo_lista_running);
 		pcb* pcb_exit = (pcb*) list_remove(running, 0);
-		log_info(planificador_logger, "pcb exit: \n pid: %d \n tam_proceso: %d \n pc: %d \n rafaga: %f \n cantidad de instrucciones: %d \n", pcb_exit->id, pcb_exit->tam_proceso, pcb_exit->pc, pcb_exit->rafaga, list_size(pcb_exit->instrucciones));
-		sem_post(&semaforo_lista_running_remove);
+		log_info(planificador_logger, "pcb exit: \n pid: %d \n tam_proceso: %d \n pc: %d \n cantidad de instrucciones: %d \n", pcb_exit->id, pcb_exit->tam_proceso, pcb_exit->pc, list_size(pcb_exit->instrucciones));
+		sem_post(&semaforo_lista_running);
 		sem_post(&sem_cpu_libre);
 		log_info(planificador_logger, "Agrego pcb a exit");
 		list_add(exit_estado, pcb_exit);
@@ -178,18 +177,17 @@ void exit_largo_plazo(){
 
 
 void planificador_mediano_plazo_ready() {
-  log_info(planificador_logger, "Agregando a ready desde suspendido");
-  sem_wait( & semaforo_lista_ready_suspendido_remove);
+  sem_wait(&semaforo_lista_ready_suspendido);
   pcb * pcb_ready = list_remove(ready_suspendido, 0);
-  sem_post( & semaforo_lista_ready_suspendido_remove);
+  sem_post(&semaforo_lista_ready_suspendido);
 
-  sem_wait( & semaforo_lista_ready_add);
+  sem_wait( & semaforo_lista_ready);
   if (strcmp(algoritmo_planificacion, "SRT") == 0) {
 	list_add_sorted(ready, pcb_ready, ordenar_por_estimacion_rafaga);
   } else {
 	list_add(ready, pcb_ready);
   }
-  sem_post( & semaforo_lista_ready_add);
+  sem_post( & semaforo_lista_ready);
   //Envío mensaje a cpu para que el planificador evalúe el desalojo en caso de SRT
   if (strcmp(algoritmo_planificacion, "SRT") == 0 && list_size(running)!= 0){
 	  log_info(planificador_logger, "Luego de agregar a ready saliendo de ready suspendido evaluo desalojo");
@@ -227,7 +225,7 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 	  //Esperamos confirmación de memoria
 	  bool swap_ok;
 	  recv(conexion_memoria, &swap_ok, sizeof(bool), 0);
-	  log_info(planificador_logger, "Confirmación recibida \n");
+	  log_info(planificador_logger, "Confirmación de suspensión de proceso %d recibida \n", pcb_a_suspender->id);
 
 	  sem_wait(&semaforo_bloqueado_suspendido);
 	  list_add(bloqueado_suspendido, pcb_a_suspender);
@@ -247,11 +245,8 @@ void mediano_plazo_bloqueado_suspendido(unsigned int pid){
 
 void* hilo_pasar_ready(void* args){
 	while(1){
-		log_info(planificador_logger, "Hilo pasar a ready");
 		sem_wait(&sem_sincro_ready);
-		log_info(planificador_logger, "Sincro ready tomado");
 		sem_wait(&sem_multiprogramacion);
-		log_info(planificador_logger, "Multiprogramación tomada");
 		if(list_size(ready_suspendido) > 0){
 			planificador_mediano_plazo_ready();
 		}else{
@@ -267,26 +262,23 @@ void* hilo_pasar_ready(void* args){
 
 void * hilo_de_corto_plazo_pasar_running(void * argumentos) {
   while (1) {
-	  log_info(planificador_logger, "Hilo pasar running");
 	  sem_wait(&sem_hay_pcb_ready);
-	  log_info(planificador_logger, "Tome sincro ready");
 	  sem_wait(&sem_cpu_libre);
-	  log_info(planificador_logger, "Tome cpu libre");
       //Sacamos de lista de ready
       pcb * pcb_running = list_remove(ready, 0);
       mensaje_cpu mensaje_ejecutar = EJECUTAR;
       send(dispatch,&mensaje_ejecutar, sizeof(int), 0);
       enviar_pcb(pcb_running, dispatch);
       //Enviamos a running
-      sem_wait(&semaforo_lista_running_remove);
+      sem_wait(&semaforo_lista_running);
       list_add(running, pcb_running);
-      sem_post(&semaforo_lista_running_remove);
+      sem_post(&semaforo_lista_running);
       sem_post(&sem_sincro_running);
       log_info(planificador_logger, "Agregamos el proceso %d a running", pcb_running->id);
   }
 }
 
-void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cpu) {
+void planificador_de_corto_plazo_fifo_running(mensaje_dispatch* mensaje_cpu) {
     switch (mensaje_cpu->mensaje) {
     	case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
     		//Casteo los datos según lo necesario en el caso particular
@@ -317,7 +309,7 @@ void planificador_de_corto_plazo_fifo_running(mensaje_dispatch_posta* mensaje_cp
   }
 }
 
-void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cpu) {
+void planificador_de_corto_plazo_sjf_running(mensaje_dispatch * mensaje_cpu) {
     switch (mensaje_cpu->mensaje) {
 		case PASAR_A_BLOQUEADO: ;//Para arreglar error con la declaración de datos_bloqueo
 			//Casteo los datos según lo necesario en el caso particular
@@ -355,9 +347,9 @@ void planificador_de_corto_plazo_sjf_running(mensaje_dispatch_posta * mensaje_cp
 			log_info(planificador_logger, "Recibí pcb N° %d para pasar a ready\n", pcb_interrupcion->id);
 			pcb_interrupcion->rafaga -= datos_interrupcion->rafaga_real_anterior;
 			log_info(planificador_logger, "La ráfaga actualizada del proceso N° %d es: %f", pcb_interrupcion->id, pcb_interrupcion->rafaga);
-			sem_wait( & semaforo_lista_ready_add);
+			sem_wait( & semaforo_lista_ready);
 			int indice_lista = list_add_sorted(ready, pcb_interrupcion, ordenar_por_estimacion_rafaga);
-			sem_post( & semaforo_lista_ready_add);
+			sem_post( & semaforo_lista_ready);
 			sem_post(&sem_hay_pcb_ready);
 			log_info(planificador_logger, "Agregamos a ready al proceso N° %d en la posición %d", pcb_interrupcion->id, indice_lista);
 			//Sacamos de la lista de running al proceso una vez que finalizamos la evaluación de prioridades
@@ -416,9 +408,9 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 		log_info(planificador_logger, "Agregamos a ready el proceso %d después de bloqueo", pcb_bloqueado->id);
 		//Agrego a ready el pcb bloqueado
 		if(strcmp(algoritmo_planificacion, "SRT") == 0){
-			sem_wait(&semaforo_lista_ready_add);
+			sem_wait(&semaforo_lista_ready);
 			list_add_sorted(ready, pcb_bloqueado, ordenar_por_estimacion_rafaga);
-			sem_post(&semaforo_lista_ready_add);
+			sem_post(&semaforo_lista_ready);
 			sem_post(&sem_hay_pcb_ready);
 			//Si tengo algo en running evaluo el desalojo
 			if(list_size(running) > 0){
@@ -428,9 +420,9 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 			}
 		}else{
 			//Agrego el proceso a ready según FIFO
-			sem_wait(&semaforo_lista_ready_add);
+			sem_wait(&semaforo_lista_ready);
 			list_add(ready, pcb_bloqueado);
-			sem_post(&semaforo_lista_ready_add);
+			sem_post(&semaforo_lista_ready);
 			sem_post(&sem_hay_pcb_ready);
 		}
 	}else{
@@ -442,9 +434,9 @@ void* hilo_bloqueo_proceso(void * argumentos) {
 		sem_post( & semaforo_pid_comparacion);
 		if(pcb_suspendido != NULL){
 			//Agrego el pcb encontrado a la lista de ready suspendido
-			sem_wait(&semaforo_lista_ready_suspendido_add);
+			sem_wait(&semaforo_lista_ready_suspendido);
 			list_add(ready_suspendido, pcb_suspendido);
-			sem_post(&semaforo_lista_ready_suspendido_add);
+			sem_post(&semaforo_lista_ready_suspendido);
 			sem_post(&sem_sincro_ready);
 			log_info(planificador_logger, "Agregado proceso N° %d a la lista de ready suspendido", pcb_suspendido->id);
 		}else{
@@ -474,7 +466,7 @@ void* cpu_dispatch_handler(void* args){
 		switch(accion_recibida){
 			case PASAR_A_BLOQUEADO: ;
 				log_info(planificador_logger, "Pasar a bloqueado \n");
-				mensaje_dispatch_posta* mensaje_bloqueo = malloc(sizeof(mensaje_dispatch_posta));
+				mensaje_dispatch* mensaje_bloqueo = malloc(sizeof(mensaje_dispatch));
 				bloqueo_pcb* datos_bloqueo = malloc(sizeof(bloqueo_pcb));
 				mensaje_bloqueo->datos = datos_bloqueo;
 				mensaje_bloqueo->mensaje = accion_recibida;
@@ -492,7 +484,7 @@ void* cpu_dispatch_handler(void* args){
 				break;
 			case PASAR_A_READY: ;
 				log_info(planificador_logger, "Pasar a ready en cpu dispatch handler \n");
-				mensaje_dispatch_posta* mensaje_interrupcion = malloc(sizeof(mensaje_dispatch_posta));
+				mensaje_dispatch* mensaje_interrupcion = malloc(sizeof(mensaje_dispatch));
 				interrupcion_pcb* datos_interrupcion = malloc(sizeof(interrupcion_pcb));
 				mensaje_interrupcion->datos = datos_interrupcion;
 				mensaje_interrupcion->mensaje = accion_recibida;

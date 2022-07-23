@@ -53,8 +53,6 @@ void crear_proceso(t_list * instrucciones,  unsigned int tam_proceso, int socket
 
 	rel_consola_proceso->conexion_consola = socket_cliente;
 
-	log_info(planificador_logger, "El socket: %d corresponde al proceso nro: %d", rel_consola_proceso->conexion_consola, rel_consola_proceso->pid);
-
 	list_add(lista_relacion_consola_proceso, rel_consola_proceso);
 
 	sem_post(&sem_sincro_ready);

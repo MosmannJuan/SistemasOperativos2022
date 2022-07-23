@@ -43,7 +43,6 @@ int main(int argc, char ** argv) {
 	while(1){
 		mensaje_cpu mensaje_recibido;
 		recv(conexion_dispatch, &mensaje_recibido, sizeof(int), 0);
-		log_info(cpu_info_logger, "Recibí de kernel el mensaje: %d", mensaje_recibido);
 		if(mensaje_recibido == EJECUTAR){
 			hay_interrupciones = false;
 			clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
@@ -56,11 +55,13 @@ int main(int argc, char ** argv) {
 					contador_rafaga = 0;
 					//Limpiamos tlb
 					list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
+					log_info(cpu_info_logger, "Se limpió tlb por llegada de proceso nuevo a ejecutar");
 				}
 			}else{
 				contador_rafaga = 0;
 				//Limpiamos tlb
 				list_clean_and_destroy_elements(tabla_tlb, entrada_tlb_destroy);
+				log_info(cpu_info_logger, "Se limpió tlb por llegada de proceso nuevo a ejecutar");
 			}
 
 			pid_en_ejecucion = pcb_a_ejecutar->id;
@@ -89,11 +90,12 @@ void ciclo(pcb* pcb_a_ejecutar){
 }
 
 void* fetch(pcb * pcb_fetch){
+	log_info(cpu_info_logger, "Ejecutando fetch con pc: %d para el proceso: %d", pcb_fetch->pc, pcb_fetch->id);
 	return list_get(pcb_fetch->instrucciones,pcb_fetch->pc);
 }
 
 void* decode (pcb * pcb_a_ejecutar, Instruccion * instruccion_decode){
-
+	log_info(cpu_info_logger, "Ejecutando decode");
 	switch(instruccion_decode->tipo){
 	case NO_OP:
 		ejecutar_NO_OP();
@@ -139,10 +141,11 @@ void ejecutar_I_O(pcb* pcb_a_bloquear, unsigned int tiempo_bloqueo){
 
 }
 
-void ejecutar_exit(){
+void ejecutar_exit(pcb* pcb_exit){
 	log_info(cpu_info_logger,"Ejecuto el EXIT");
 	enviar_exit(conexion_dispatch);
 	detener_ejecucion = true;
+	pcb_destroy(pcb_exit);
 }
 
 void ejecutar_READ(unsigned int direccion_logica, int tabla_paginas){
@@ -184,6 +187,7 @@ void ejecutar_WRITE(unsigned int direccion_logica, unsigned int valor_a_escribir
 }
 
 unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
+	log_info(cpu_info_logger, "Buscando operandos");
 	datos_direccion direccion = mmu(direccion_logica, tabla_paginas);
 
 	//Envío el mensaje a memoria para la lectura
@@ -205,6 +209,7 @@ unsigned int fetch_operands(unsigned int direccion_logica, int tabla_paginas){
 //---------------------------------------------------------------
 
 datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
+	log_info(cpu_info_logger, "Calculando dirección física en MMU");
 	//Calculamos numero de pagina y numero de entrada de la tabla de primer nivel
 	double num_pagina = floor(dir_logica/tamanio_pagina);
 	double entrada_primer_nivel = floor(num_pagina/entradas_por_tabla);
@@ -247,17 +252,12 @@ datos_direccion mmu(unsigned int dir_logica, int numero_tabla_primer_nivel){
 		//Si no encontré la página en tlb agrego la entrada
 		agregar_entrada_tlb(num_pagina, numero_marco);
 	}
-
-	log_info(cpu_info_logger, "Armando al dirección lógica");
 	datos_direccion resultado;
 	resultado.tabla_segundo_nivel = numero_tabla_segundo_nivel;
 	resultado.entrada_tabla_segundo_nivel = entrada_segundo_nivel;
 	resultado.direccion_fisica = dir_fisica;
-	log_info(cpu_info_logger, "Dirección lógica obtenida");
 
 	return resultado;
-
-
 }
 
 
@@ -276,26 +276,11 @@ void recibir_valores_globales_memoria(){
 // --------------------------- CONTADOR   -----------------------
 //---------------------------------------------------------------
 
-void* contador(void* args){
-	contador_rafaga_inicializado = true;
-	while(1){
-		if(atendiendo_interrupcion){
-			//Esto simula la pausa del contador
-			sem_wait(&sem_sincro_contador);
-		}
-		usleep(1000);
-		contador_rafaga++;
-	}
-	return NULL;
-}
-
 void setear_contador_rafaga(){
 	clock_gettime(CLOCK_MONOTONIC, &tiempo_fin);
 	rafaga_actual = (tiempo_fin.tv_sec - tiempo_inicio.tv_sec) * 1000 + (tiempo_fin.tv_nsec - tiempo_inicio.tv_nsec) / 1000000;
 	contador_rafaga += rafaga_actual;
 }
-
-
 
 //---------------------------------------------------------------
 // ------------------------ INTERRUPCIONES ----------------------
@@ -332,6 +317,7 @@ void entrada_tlb_destroy(void* entrada_a_destruir){
 }
 
 entrada_tlb* tlb(double numero_pagina){
+	log_info(cpu_info_logger, "Buscando página %d en TLB", (int)numero_pagina);
 	entrada_tlb* entrada_buscada;
 	sem_wait(&sem_tlb_pagina_comparacion);
 	pagina_comparacion_tlb = (int) numero_pagina;
@@ -363,7 +349,6 @@ void agregar_entrada_tlb(double numero_pagina, int numero_marco){
 		free(entrada_removida);
 	}
 	if(list_size(tabla_tlb) > entradas_tlb) log_error(cpu_info_logger, "Overflow en tabla tlb");
-	log_info(cpu_info_logger, "La tlb antes de asignar tiene %d registros", list_size(tabla_tlb));
 	list_add(tabla_tlb, entrada_a_agregar);
-	log_info(cpu_info_logger, "La tlb después de asignar tiene %d registros", list_size(tabla_tlb));
+	log_info(cpu_info_logger, "La tlb tiene %d registros", list_size(tabla_tlb));
 }

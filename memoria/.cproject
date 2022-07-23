@@ -49,24 +49,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1521804108.1977491013" name="/" resourcePath="src">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1948922534" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug" unusedChildren="">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
-							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1611846084" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.648397639"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1025031098" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2140908281"/>
-							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.102619298" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.744207669">
-								<option id="gnu.c.compiler.option.include.paths.1330317186" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/utnso/tp-2022-1c-Operativ-sticos/shared-utils/src"/>
-								</option>
-								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1000747972" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1508950559" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug.257742397"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.708900802" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.563786251"/>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.279599803" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug.1697937312">
-								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.271182750" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
-							</tool>
-						</toolChain>
-					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>

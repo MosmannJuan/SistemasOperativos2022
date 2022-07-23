@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "../utils.h"
+#include "utils.h"
 
 
 t_config* memoria_config;
