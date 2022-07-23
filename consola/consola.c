@@ -24,13 +24,20 @@ int main(int argc, char ** argv) {
   char* path_archivo_instrucciones = strdup(argv[1]);
   log_info(info_logger, "Recibí el path %s", path_archivo_instrucciones);
 
+  clock_gettime(CLOCK_MONOTONIC, &tiempo_inicio);
+
   leer_y_enviar_archivo_de_instrucciones(path_archivo_instrucciones, conexion);
 
   bool finalizo_exitosamente;
   recv(conexion, &finalizo_exitosamente, sizeof(bool), 0);
+  clock_gettime(CLOCK_MONOTONIC, &tiempo_fin);
 
   if(finalizo_exitosamente){
 	  log_info(info_logger, "El proceso finalizó exitosamente!");
+	  int segundos_totales = tiempo_fin.tv_sec - tiempo_inicio.tv_sec;
+	  int minutos_ejecucion = (int) floor(segundos_totales / 60);
+	  int segundos_ejecucion = segundos_totales - minutos_ejecucion * 60;
+	  log_info(info_logger, "Duración total %02d:%02d", minutos_ejecucion, segundos_ejecucion);
   }else{
 	  log_error(error_logger, "Ha ocurrido un error y el proceso ha finalizado de manera forzada. :'(");
   }
